@@ -8,3 +8,12 @@ See https://twitch.tv/livecodingwithsch3lp to see how it's going.
 
 ## Contributing
 Read about the design decisions in the [Captain's Log](./docs/CaptainsLog.md).
+
+## Todo
+* [x] Create gradle modules
+* [x] Make sure we can run a SpringBoot app
+* [x] Make sure we can run elm-make from Gradle
+* [x] Make sure elm-make's build result is served via SpringBoot
+* [ ] Make sure we can run the SpringBoot app from an exectuble jar
+* [ ] Make an initial rest controller
+* [ ] Make an initial Elm page that calls the rest api
