@@ -15,5 +15,5 @@ Read about the design decisions in the [Captain's Log](./docs/CaptainsLog.md).
 * [x] Make sure we can run elm-make from Gradle
 * [x] Make sure elm-make's build result is served via SpringBoot
 * [x] Make sure we can run the SpringBoot app from an executable jar
-* [ ] Make an initial rest controller
+* [x] Make an initial rest controller
 * [ ] Make an initial Elm page that calls the rest api

@@ -4,13 +4,12 @@ plugins {
 }
 
 dependencies {
-    project(":adapter:rest-api")
-    project(":adapter:eventsourcing")
-    project(":adapter:rdbms")
-    project(":domain:core")
-    project(":domain:core-api")
-    project(":infra")
-    project(":ui")
+    implementation(project(":adapter:rest-api"))
+    implementation(project(":adapter:eventsourcing"))
+    implementation(project(":adapter:rdbms"))
+    implementation(project(":domain:core"))
+    implementation(project(":domain:core-api"))
+    implementation(project(":infra"))
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
