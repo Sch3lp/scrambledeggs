@@ -8,3 +8,5 @@ The main idea is that we'll route pages via Spring MVC, and every page loads the
 
 We want to keep this as a separate directory, in the case when we eventually want to split the UI from the backend.
 This is why the UI is a separate module/directory and not included in the Web module.
+
+We're using the [gradle-elm plugin](https://github.com/tmohme/gradle-elm-plugin), so if stuff goes haywire, go there to figure stuff out.
