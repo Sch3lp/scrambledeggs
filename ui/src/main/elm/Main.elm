@@ -1,4 +1,4 @@
-port module Main exposing (..)
+module Main exposing (..)
 
 {-| TodoMVC implemented in Elm, using plain HTML and CSS for rendering.
 
@@ -17,44 +17,32 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy exposing (lazy)
+import Http
 import Json.Decode as Json
 
 
-main : Program (Maybe Model) Model Msg
+main : Program (Maybe String) Model Msg
 main =
     Browser.document
         { init = init
-        , view = \model -> { title = "Elm • TodoMVC", body = [view model] }
-        , update = updateWithStorage
-        , subscriptions = \_ -> Sub.none
+        , view = \model -> { title = "Scramble • Diabotical Ladder", body = [view model] }
+        , update = update
+        , subscriptions = subscriptions
         }
-
-
-port setStorage : Model -> Cmd msg
-
-
-{-| We want to `setStorage` on every update. This function adds the setStorage
-command for every step of the update function.
--}
-updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
-updateWithStorage msg model =
-    let
-        ( newModel, cmds ) =
-            update msg model
-    in
-        ( newModel
-        , Cmd.batch [ setStorage newModel, cmds ]
-        )
 
 
 
 -- MODEL
 
+type ApiPost
+    = Failure
+    | Loading
 
 -- The full application state of our todo app.
 type alias Model =
     { nicknameField : String
     , successMessage : String
+    , postRegisterPlayer: Maybe ApiPost
     }
 
 
@@ -62,12 +50,13 @@ emptyModel : Model
 emptyModel =
     { nicknameField = ""
     , successMessage = ""
+    , postRegisterPlayer = Nothing
     }
 
 
-init : Maybe Model -> ( Model, Cmd Msg )
-init maybeModel =
-  ( Maybe.withDefault emptyModel maybeModel
+init : (Maybe String) -> ( Model, Cmd Msg )
+init _ =
+  ( emptyModel
   , Cmd.none
   )
 
@@ -84,6 +73,7 @@ type Msg
     = NoOp
     | UpdateNicknameField String
     | RegisterButtonClicked
+    | GotText (Result Http.Error String)
 
 
 
@@ -95,17 +85,47 @@ update msg model =
             ( model, Cmd.none )
 
         RegisterButtonClicked ->
-            ( { model
-                | nicknameField = ""
-                , successMessage = "Yay! You are now registered for the Scramble Ladder."
-              }
-            , Cmd.none
-            )
+            registerPlayer model
 
         UpdateNicknameField str ->
             ( { model | nicknameField = str }
             , Cmd.none
             )
+
+        GotText result ->
+            handleRegisterPlayer model result
+
+-- SUBSCRIPTIONS
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+  Sub.none
+
+
+-- HTTP
+
+registerPlayer: Model -> ( Model, Cmd Msg)
+registerPlayer model =
+    ( { model | postRegisterPlayer = Just Loading }
+      , Http.post
+          { url = "/api/register"
+          , body = String.concat ["{\"name\": \"",model.nicknameField,"\"}"]
+                |> Http.stringBody "application/json"
+          , expect = Http.expectString GotText
+          }
+      )
+
+
+handleRegisterPlayer: Model -> Result error value -> ( Model, Cmd Msg)
+handleRegisterPlayer model result =
+    case result of
+        Ok _ ->
+          ( { model | nicknameField = ""
+            , successMessage = "Yay! You are now registered for the Scramble Ladder."
+            } , Cmd.none )
+        Err _ ->
+          (   { model | postRegisterPlayer = Just Failure }, Cmd.none )
+
 
 
 -- VIEW
@@ -134,7 +154,7 @@ viewRegisterButton message =
                     else
                         disabled True
     in
-        button [ isDisabled ] [ text "Register" ]
+        button [ isDisabled, onClick RegisterButtonClicked ] [ text "Register" ]
 
 viewSuccessMessage : String -> Html Msg
 viewSuccessMessage message =
