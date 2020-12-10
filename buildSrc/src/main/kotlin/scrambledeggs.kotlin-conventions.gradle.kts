@@ -5,6 +5,8 @@ plugins {
     `java-library`
 }
 
+java.sourceCompatibility = JavaVersion.VERSION_11
+
 repositories {
     mavenCentral()
 }
@@ -23,7 +25,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-    languageVersion = "1.4"
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        languageVersion = "1.4"
+        freeCompilerArgs = listOf("-Xjsr305=strict")
+        jvmTarget = "11"
+    }
 }
