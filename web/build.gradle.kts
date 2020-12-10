@@ -24,3 +24,10 @@ dependencies {
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
     baseName = "scrambledeggs-webapp"
 }
+
+tasks.processResources {
+    dependsOn(":ui:build")
+    from ("../ui/build/elm") {
+        into("static")
+    }
+}
