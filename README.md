@@ -9,6 +9,8 @@ See https://twitch.tv/livecodingwithsch3lp to see how it's going.
 ## Contributing
 Read about the design decisions in the [Captain's Log](./docs/CaptainsLog.md).
 
+Unsure which GitMoji to use when committing? [Look over here](https://gitmoji.carloscuesta.me/).
+
 ## Todo
 * [x] Create gradle modules
 * [x] Make sure we can run a SpringBoot app
