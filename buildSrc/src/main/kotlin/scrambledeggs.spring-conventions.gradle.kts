@@ -3,13 +3,19 @@ import org.gradle.kotlin.dsl.version
 
 plugins {
     id("scrambledeggs.kotlin-conventions")
-    id("org.springframework.boot")
+    id("org.springframework.boot") apply false
     id("io.spring.dependency-management")
     kotlin("plugin.spring")
 }
 
 repositories {
     mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
+    }
 }
 
 dependencies {

@@ -1,6 +1,7 @@
 plugins {
     id("scrambledeggs.kotlin-conventions")
     id("scrambledeggs.spring-conventions")
+    id("org.springframework.boot")
 }
 
 dependencies {
@@ -22,3 +23,13 @@ tasks.processResources {
         into("static")
     }
 }
+
+/*
+Before, there was javac
+Then, there was ANT
+Then, there was Ivy, Ivy introduced conventional structure, it also introduced dependency management
+Then, there was Maven, who used the trend of the day and made everything look like XML
+Then, Maven evolved to Maven 2, and Maven Central (or maven repositories) sprouted out of the ground everywhere
+Then, there was Gradle, who got rid of XML notation in favor of actual (script) code, with performance improvements (like proper caching, etc.)
+Then, Gradle improved with kotlin script (instead of Groovy Script)
+ */
