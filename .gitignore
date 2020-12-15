@@ -2,7 +2,15 @@
 /workspace.xml
 
 .idea/
+.gradle/
+
+# Built stuff
 build/
 out/
-.gradle/
-/ui/elm-stuff/
+elm-stuff/
+node_modules/
+main.js
+
+
+# OS stuff
+.DS_Store
