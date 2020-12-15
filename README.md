@@ -41,7 +41,7 @@ elm-live src/main/elm/Main.elm --open -d src/main/resources --start-page=index.h
 ## Todo
 * [ ] EventSourcing: what's out there? Or do we DIY it with Postgres?
 * [ ] Do some proper error handling
-* [ ] Actually parse the JSON instead of passing a string
+* [x] Actually parse the JSON instead of passing a string
 * [x] Find a better way to develop the UI locally, because `gradlew :ui:build` is too tedious/slow (no hot-reloading)
 * [x] Make an initial Elm page that calls the rest api
 * [x] Make an initial rest controller
