@@ -4,8 +4,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class ScrambledApplication
+class ScrambledApplication {
 
-fun main(args: Array<String>) {
-    runApplication<ScrambledApplication>(*args)
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            runApplication<ScrambledApplication>(*args)
+        }
+    }
 }

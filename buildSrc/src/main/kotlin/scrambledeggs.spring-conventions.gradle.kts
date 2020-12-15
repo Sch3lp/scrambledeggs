@@ -23,3 +23,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 }
+
+tasks.getByName<Jar>("jar") {
+    enabled = true
+}
+
+tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
+    classifier = "boot"
+    mainClassName = "snarf"
+}

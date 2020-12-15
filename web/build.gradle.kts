@@ -15,6 +15,7 @@ dependencies {
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
     baseName = "scrambledeggs-webapp"
+    mainClassName = "org.scrambled.ScrambledApplication"
 }
 
 tasks.processResources {
