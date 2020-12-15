@@ -1,7 +1,6 @@
 plugins {
     id("scrambledeggs.kotlin-conventions")
     id("scrambledeggs.spring-conventions")
-    id("org.springframework.boot")
 }
 
 dependencies {
