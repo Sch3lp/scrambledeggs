@@ -11,7 +11,7 @@ Now every module that uses the spring-conventions plugin also builds a separate 
 
 Normally only gradle modules that use the `java` plugin, will be targeted by the springboot-gradle plugin, but it appears all our kotlin modules get targeted when they're combined with the springboot-gradle plugin.
 
-So, as a "work-around" we re-enable the regular "jar" task that springboot-gradle disables, so we get a regular library that the other modules can depend on.
+So, as a "work-around" we [re-enable the regular "jar" task that springboot-gradle disables](https://docs.spring.io/spring-boot/docs/2.1.4.RELEASE/gradle-plugin/reference/html/#packaging-executable), so we get a regular library that the other modules can depend on.
 
 Another part of the work-around is to also suffix the created bootjar with -boot, so the regular jar doesn't get overridden with the bootjar. This we do by configuring the BootJar task with `classifier = "boot"`.
 
