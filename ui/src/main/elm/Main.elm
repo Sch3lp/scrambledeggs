@@ -17,7 +17,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy exposing (lazy)
-import Http
+import Http exposing (Error(..), Expect, expectStringResponse)
 import Json.Decode as Json
 import Json.Encode as Encode
 
@@ -36,7 +36,7 @@ main =
 -- MODEL
 
 type ApiPost
-    = Failure
+    = Failure String
     | Loading
 
 -- The full application state of our todo app.
@@ -74,7 +74,7 @@ type Msg
     = NoOp
     | UpdateNicknameField String
     | RegisterButtonClicked
-    | GotText (Result Http.Error String)
+    | GotRegisterPlayerResponse (Result ApiError String)
 
 
 
@@ -93,8 +93,8 @@ update msg model =
             , Cmd.none
             )
 
-        GotText result ->
-            handleRegisterPlayer model result
+        GotRegisterPlayerResponse result ->
+            handleRegisterPlayerResponse model result
 
 -- SUBSCRIPTIONS
 
@@ -113,7 +113,7 @@ registerPlayer model =
       , Http.post
           { url = "/api/register"
           , body = Http.jsonBody playerNameJson
-          , expect = Http.expectString GotText
+          , expect = expectStringWithErrorHandling GotRegisterPlayerResponse
           }
       )
 
@@ -122,17 +122,43 @@ newPlayerName: String -> Encode.Value
 newPlayerName name =
     Encode.object [ ( "name", Encode.string name ) ]
 
-handleRegisterPlayer: Model -> Result error value -> ( Model, Cmd Msg)
-handleRegisterPlayer model result =
+handleRegisterPlayerResponse: Model -> Result ApiError value -> ( Model, Cmd Msg)
+handleRegisterPlayerResponse model result =
     case result of
         Ok _ ->
           ( { model | nicknameField = ""
             , successMessage = "Yay! You are now registered for the Scramble Ladder."
             } , Cmd.none )
-        Err _ ->
-          (   { model | postRegisterPlayer = Just Failure }, Cmd.none )
+        -- When it's a BadRequest, we care about the response, because it contains an insightful error message.
+        Err (BadRequest msg) -> ( { model | postRegisterPlayer = Just (Failure msg)}, Cmd.none )
+        -- When it's any other ApiError we don't care about specifics.
+        _ -> ( { model | postRegisterPlayer = Just (Failure "Something went wrong.")}, Cmd.none )
 
+-- When we need to decode, replace String with "a" and provide a Decoder function as 2nd argument to transform "a"
+expectStringWithErrorHandling : (Result ApiError String -> msg) -> Expect msg
+expectStringWithErrorHandling toMsg =
+  expectStringResponse toMsg <|
+    \response ->
+      case response of
+        Http.BadUrl_ url ->
+            Err (BadUrl url)
 
+        Http.Timeout_ ->
+            Err Timeout
+
+        Http.NetworkError_ ->
+            Err NetworkError
+
+        Http.BadStatus_ metadata body ->
+            Err (BadRequest body)
+
+        Http.GoodStatus_ metadata body ->
+            Ok body
+
+type ApiError = BadRequest String
+                | NetworkError
+                | Timeout
+                | BadUrl String
 
 -- VIEW
 
@@ -148,6 +174,7 @@ view model =
             [ lazy viewInput model.nicknameField
             , lazy viewRegisterButton model.successMessage
             , lazy viewSuccessMessage model.successMessage
+            , lazy viewFailureMessage model.postRegisterPlayer
             ]
         , infoFooter
         ]
@@ -170,6 +197,16 @@ viewSuccessMessage message =
                         "hidden"
                     else
                         "visible"
+    in
+        p [style "visibility" cssVisibility] [ text message ]
+
+viewFailureMessage : Maybe ApiPost -> Html Msg
+viewFailureMessage apiPostResult =
+    let
+        (cssVisibility, message) =
+            case apiPostResult of
+                Just (Failure msg) -> ("visible", msg)
+                _ -> ("hidden", "")
     in
         p [style "visibility" cssVisibility] [ text message ]
 
