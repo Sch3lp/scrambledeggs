@@ -19,6 +19,7 @@ import Html.Events exposing (..)
 import Html.Lazy exposing (lazy)
 import Http
 import Json.Decode as Json
+import Json.Encode as Encode
 
 
 main : Program (Maybe String) Model Msg
@@ -106,15 +107,20 @@ subscriptions _ =
 
 registerPlayer: Model -> ( Model, Cmd Msg)
 registerPlayer model =
-    ( { model | postRegisterPlayer = Just Loading }
+    let
+        playerNameJson = newPlayerName model.nicknameField
+    in ( { model | postRegisterPlayer = Just Loading }
       , Http.post
           { url = "/api/register"
-          , body = String.concat ["{\"name\": \"",model.nicknameField,"\"}"]
-                |> Http.stringBody "application/json"
+          , body = Http.jsonBody playerNameJson
           , expect = Http.expectString GotText
           }
       )
 
+-- This is a constructor function to get a PlayerNameJson object from a string
+newPlayerName: String -> Encode.Value
+newPlayerName name =
+    Encode.object [ ( "name", Encode.string name ) ]
 
 handleRegisterPlayer: Model -> Result error value -> ( Model, Cmd Msg)
 handleRegisterPlayer model result =
