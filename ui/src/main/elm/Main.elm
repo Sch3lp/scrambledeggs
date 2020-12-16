@@ -14,10 +14,10 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 -}
 
 import Browser
-import Element exposing (Element, column, el, explain, fill, height, layout, padding, rgb, rgb255, rgba, row, spacing, text, width)
+import Element exposing (Element, alignBottom, centerX, centerY, column, el, explain, fill, height, layout, maximum, none, padding, paddingEach, paddingXY, paragraph, pointer, px, rgb, rgb255, rgba, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Font as Font
+import Element.Font as Font exposing (center)
 import Element.Input as Input
 import Html exposing (Html, div, footer, h1, header, input, p, section)
 import Html.Events exposing (..)
@@ -48,11 +48,6 @@ type alias Model =
     { user : Maybe User
     , registrationStatus : RegistrationState
     }
-
-
-
--- , postRegisterPlayer : Maybe ApiPost
--- Q: Why failure in postRegisterPlayer and success as a simple message?
 
 
 emptyModel : Model
@@ -151,16 +146,6 @@ registerPlayer model =
     )
 
 
-getUsername : Maybe User -> String
-getUsername user =
-    case user of
-        Just a ->
-            a.username
-
-        Nothing ->
-            ""
-
-
 
 -- This is a constructor function to get a PlayerNameJson object from a string
 
@@ -182,8 +167,8 @@ handleRegisterPlayerResponse model result =
             )
 
         -- When it's a BadRequest, we care about the response, because it contains an insightful error message.
-        Err (BadRequest msg) ->
-            ( { model | registrationStatus = Failed msg }, Cmd.none )
+        Err (BadRequest errorMsg) ->
+            ( { model | registrationStatus = Failed errorMsg }, Cmd.none )
 
         -- When it's any other ApiError we don't care about specifics.
         _ ->
@@ -196,8 +181,8 @@ handleRegisterPlayerResponse model result =
 
 expectStringWithErrorHandling : (Result ApiError String -> msg) -> Expect msg
 expectStringWithErrorHandling toMsg =
-    expectStringResponse toMsg <|
-        \response ->
+    expectStringResponse toMsg
+        (\response ->
             case response of
                 Http.BadUrl_ url ->
                     Err (BadUrl url)
@@ -213,6 +198,7 @@ expectStringWithErrorHandling toMsg =
 
                 Http.GoodStatus_ metadata body ->
                     Ok body
+        )
 
 
 
@@ -221,38 +207,41 @@ expectStringWithErrorHandling toMsg =
 
 view : Model -> Html Msg
 view model =
-    -- I don't understand why we have to pipe
     layout
-        []
-    <|
-        column
-            [ Background.color (rgb255 240 240 240)
+        [ Background.color
+            (rgb 222 230 255)
+        ]
+        (column
+            [ height fill
             , width fill
-            , height fill
+            , centerX
+            , paddingEach { top = 150, left = 0, right = 0, bottom = 0 }
+            , spacing 16
+            , Font.color (rgb255 41 46 54)
 
-            -- , explain Debug.todo
+            -- , explain Debug.todo -- Awesome layout debugging
             ]
             [ viewInput (getUsername model.user)
-            , viewRegisterButton (getUsername model.user /= "")
+            , viewRegisterButton (model.user == Nothing || getUsername model.user == "") -- Not ideal? Probably it will change as we go on
             , viewStatusMessage model.registrationStatus
             , infoFooter
             ]
+        )
 
 
 viewInput : String -> Element Msg
 viewInput value =
-    column
-        []
-        [ el [] (text "Register for Scrambled!")
-        , Input.text
+    el
+        [ centerX ]
+        (Input.text
             [ onEnter RegisterButtonClicked
             ]
             { label = Input.labelLeft [] (text "Username")
             , onChange = UpdateUsername
-            , placeholder = Just (Input.placeholder [] (text "Username"))
+            , placeholder = Just (Input.placeholder [] (text "L33tSn!per69"))
             , text = value
             }
-        ]
+        )
 
 
 
@@ -262,38 +251,68 @@ viewInput value =
 
 viewRegisterButton : Bool -> Element Msg
 viewRegisterButton isDisabled =
-    if isDisabled then
+    let
+        sharedAttributes =
+            [ centerX
+            , Border.width 1
+            , Border.rounded 8
+            , paddingXY 16 8
+            ]
+    in
+    if isDisabled == True then
         Input.button
-            []
-            { label = text "Register", onPress = Just RegisterButtonClicked }
+            (List.append
+                sharedAttributes
+                [ Background.color (rgb255 200 200 200)
+                , Font.color (rgb255 100 100 100)
+                ]
+            )
+            { label = text "Please enter a username", onPress = Just NoOp }
 
     else
-        Input.button [] { label = text "Please enter a username", onPress = Just NoOp }
+        Input.button
+            (List.append
+                sharedAttributes
+                [ Background.color (rgb 150 150 150) ]
+            )
+            { label = text "Register", onPress = Just RegisterButtonClicked }
 
 
 viewStatusMessage : RegistrationState -> Element Msg
 viewStatusMessage registrationStatus =
+    let
+        sharedAttributes =
+            [ width (fill |> maximum 600), centerX ]
+    in
     case registrationStatus of
-        Registered ->
-            el []
-                (text "Yay! You are now registered for the Scramble Ladder.")
-
         NotRegistered ->
-            el []
-                (text "Ready to sign up?")
+            none
 
-        Failed errorMessage ->
-            el []
-                (text errorMessage)
+        Registered ->
+            paragraph sharedAttributes
+                [ text "Yay! You are now registered for the Scramble Ladder." ]
 
         CallingAPI ->
-            el []
-                (text "Loading")
+            paragraph sharedAttributes
+                [ text "Loading" ]
+
+        Failed errorMessage ->
+            paragraph sharedAttributes
+                [ text errorMessage ]
 
 
 infoFooter : Element msg
 infoFooter =
-    el [] (text "Footer: Click the button to be awesome")
+    el
+        [ alignBottom
+        , centerX
+        , Background.color (rgb255 51 67 92)
+        , Font.color (rgb 0.95 0.95 0.95)
+        , width fill
+        , paddingXY 16 32
+        , Font.size 14
+        ]
+        (text "Diabotical District -- Where passionate trashy nerds align their goals")
 
 
 
@@ -315,3 +334,13 @@ onEnter msg =
                     )
             )
         )
+
+
+getUsername : Maybe User -> String
+getUsername user =
+    case user of
+        Just a ->
+            a.username
+
+        Nothing ->
+            ""
