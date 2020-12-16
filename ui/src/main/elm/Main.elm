@@ -14,13 +14,12 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 -}
 
 import Browser
-import Element exposing (Element, column, el, fill, layout, rgb, rgb255, rgba, row, text)
+import Element exposing (Element, column, el, explain, fill, height, layout, padding, rgb, rgb255, rgba, row, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
-import Html exposing (Attribute, Html, div, footer, h1, header, input, p, section)
-import Html.Attributes exposing (..)
+import Html exposing (Html, div, footer, h1, header, input, p, section)
 import Html.Events exposing (..)
 import Html.Lazy exposing (lazy)
 import Http exposing (Error(..), Expect, expectStringResponse)
@@ -224,9 +223,13 @@ view model =
         []
     <|
         column
-            [ Background.color (rgb255 92 99 118) ]
-            [ el [] (text "HI")
-            , viewInput model.username
+            [ Background.color (rgb255 240 240 240)
+            , width fill
+            , height fill
+
+            -- , explain Debug.todo
+            ]
+            [ viewInput model.username
             , viewRegisterButton (model.username /= "")
             , viewStatusMessage model.registrationStatus
             , viewFailureMessage model.postRegisterPlayer
@@ -237,6 +240,22 @@ view model =
 
 -- The docs basically say not to disable lol https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/Element-Input#disabling-inputs
 -- Does nothing when disabled, otherwise sends RegisterButtonClicked msg
+
+
+viewInput : String -> Element Msg
+viewInput value =
+    column
+        []
+        [ el [] (text "Register for Scrambled!")
+        , Input.text
+            [ onEnter RegisterButtonClicked
+            ]
+            { label = Input.labelLeft [] (text "Username")
+            , onChange = UpdateUsername
+            , placeholder = Just (Input.placeholder [] (text "Username"))
+            , text = value
+            }
+        ]
 
 
 viewRegisterButton : Bool -> Element Msg
@@ -308,22 +327,6 @@ viewFailureMessage apiPostResult =
 --     p [ style "visibility" cssVisibility ] [ Html.text message ]
 -- Custom onEnter function as an attribute??
 -- elm-ui Element.input.text compatible attribute
-
-
-viewInput : String -> Element Msg
-viewInput value =
-    column
-        []
-        [ el [] (text "Register for Scrambled!")
-        , Input.text
-            [ onEnter RegisterButtonClicked
-            ]
-            { label = Input.labelLeft [] (text "Username")
-            , onChange = UpdateUsername
-            , placeholder = Just (Input.placeholder [] (text "Username"))
-            , text = value
-            }
-        ]
 
 
 infoFooter : Element msg
