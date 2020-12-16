@@ -45,20 +45,19 @@ main =
 
 
 type alias Model =
-    { username : String
-    , postRegisterPlayer : Maybe ApiPost
+    { user : Maybe User
     , registrationStatus : RegistrationState
     }
 
 
 
+-- , postRegisterPlayer : Maybe ApiPost
 -- Q: Why failure in postRegisterPlayer and success as a simple message?
 
 
 emptyModel : Model
 emptyModel =
-    { username = ""
-    , postRegisterPlayer = Nothing
+    { user = Nothing
     , registrationStatus = NotRegistered
     }
 
@@ -77,23 +76,24 @@ type RegistrationState
     | CallingAPI
 
 
+type alias User =
+    { username : String
 
--- Q: What about success?
+    -- Other stuff can go here, such as email, avatar
+    }
 
 
-type ApiPost
-    = Failure String
-    | Loading
+type ApiError
+    = BadRequest String
+    | NetworkError
+    | Timeout
+    | BadUrl String
 
 
 
 -- UPDATE
 
 
-{-| Users of our app can trigger messages by clicking and typing. These
-messages are fed into the `update` function as they occur, letting us react
-to them.
--}
 type Msg
     = NoOp
     | UpdateUsername String
@@ -115,7 +115,7 @@ update msg model =
             registerPlayer model
 
         UpdateUsername str ->
-            ( { model | username = str }
+            ( { model | user = Just { username = str } }
             , Cmd.none
             )
 
@@ -140,15 +140,25 @@ registerPlayer : Model -> ( Model, Cmd Msg )
 registerPlayer model =
     let
         playerNameJson =
-            newPlayerName model.username
+            newPlayerName (getUsername model.user)
     in
-    ( { model | postRegisterPlayer = Just Loading, registrationStatus = CallingAPI }
+    ( { model | registrationStatus = CallingAPI }
     , Http.post
         { url = "/api/register"
         , body = Http.jsonBody playerNameJson
         , expect = expectStringWithErrorHandling GotRegisterPlayerResponse
         }
     )
+
+
+getUsername : Maybe User -> String
+getUsername user =
+    case user of
+        Just a ->
+            a.username
+
+        Nothing ->
+            ""
 
 
 
@@ -165,7 +175,7 @@ handleRegisterPlayerResponse model result =
     case result of
         Ok _ ->
             ( { model
-                | username = ""
+                | user = Nothing
                 , registrationStatus = Registered
               }
             , Cmd.none
@@ -205,13 +215,6 @@ expectStringWithErrorHandling toMsg =
                     Ok body
 
 
-type ApiError
-    = BadRequest String
-    | NetworkError
-    | Timeout
-    | BadUrl String
-
-
 
 -- VIEW
 
@@ -229,16 +232,11 @@ view model =
 
             -- , explain Debug.todo
             ]
-            [ viewInput model.username
-            , viewRegisterButton (model.username /= "")
+            [ viewInput (getUsername model.user)
+            , viewRegisterButton (getUsername model.user /= "")
             , viewStatusMessage model.registrationStatus
             , infoFooter
             ]
-
-
-
--- The docs basically say not to disable lol https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/Element-Input#disabling-inputs
--- Does nothing when disabled, otherwise sends RegisterButtonClicked msg
 
 
 viewInput : String -> Element Msg
@@ -255,6 +253,11 @@ viewInput value =
             , text = value
             }
         ]
+
+
+
+-- The docs basically say not to use disable for accessibility reasons https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/Element-Input#disabling-inputs
+-- This button does nothing when disabled, otherwise sends RegisterButtonClicked msg
 
 
 viewRegisterButton : Bool -> Element Msg
