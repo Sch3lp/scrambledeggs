@@ -19,9 +19,8 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font exposing (center)
 import Element.Input as Input
-import Html exposing (Html, div, footer, h1, header, input, p, section)
-import Html.Events exposing (..)
-import Html.Lazy exposing (lazy)
+import Html exposing (Html)
+import Html.Events
 import Http exposing (Error(..), Expect, expectStringResponse)
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -307,7 +306,7 @@ infoFooter =
         [ alignBottom
         , centerX
         , Background.color (rgb255 51 67 92)
-        , Font.color (rgb 0.95 0.95 0.95)
+        , Font.color (rgb 0xEE 0xEE 0xEE) -- Hex color example
         , width fill
         , paddingXY 16 32
         , Font.size 14
