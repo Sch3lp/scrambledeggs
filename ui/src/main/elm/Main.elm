@@ -24,7 +24,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy exposing (lazy)
 import Http exposing (Error(..), Expect, expectStringResponse)
-import Json.Decode as Json
+import Json.Decode as Decode
 import Json.Encode as Encode
 
 
@@ -42,29 +42,25 @@ main =
 
 
 -- MODEL
-
-
-type ApiPost
-    = Failure String
-    | Loading
-
-
-
 -- The full application state of our todo app.
 
 
 type alias Model =
-    { nicknameField : String
-    , successMessage : String
+    { username : String
     , postRegisterPlayer : Maybe ApiPost
+    , registrationStatus : RegistrationState
     }
+
+
+
+-- Q: Why failure in postRegisterPlayer and success as a simple message?
 
 
 emptyModel : Model
 emptyModel =
-    { nicknameField = ""
-    , successMessage = ""
+    { username = ""
     , postRegisterPlayer = Nothing
+    , registrationStatus = NotRegistered
     }
 
 
@@ -73,6 +69,22 @@ init _ =
     ( emptyModel
     , Cmd.none
     )
+
+
+type RegistrationState
+    = NotRegistered
+    | Registered
+    | Failed
+    | CallingAPI
+
+
+
+-- Q: What about success?
+
+
+type ApiPost
+    = Failure String
+    | Loading
 
 
 
@@ -85,7 +97,7 @@ to them.
 -}
 type Msg
     = NoOp
-    | UpdateNicknameField String
+    | UpdateUsername String
     | RegisterButtonClicked
     | GotRegisterPlayerResponse (Result ApiError String)
 
@@ -103,8 +115,8 @@ update msg model =
         RegisterButtonClicked ->
             registerPlayer model
 
-        UpdateNicknameField str ->
-            ( { model | nicknameField = str }
+        UpdateUsername str ->
+            ( { model | username = str }
             , Cmd.none
             )
 
@@ -129,9 +141,9 @@ registerPlayer : Model -> ( Model, Cmd Msg )
 registerPlayer model =
     let
         playerNameJson =
-            newPlayerName model.nicknameField
+            newPlayerName model.username
     in
-    ( { model | postRegisterPlayer = Just Loading }
+    ( { model | postRegisterPlayer = Just Loading, registrationStatus = CallingAPI }
     , Http.post
         { url = "/api/register"
         , body = Http.jsonBody playerNameJson
@@ -154,19 +166,19 @@ handleRegisterPlayerResponse model result =
     case result of
         Ok _ ->
             ( { model
-                | nicknameField = ""
-                , successMessage = "Yay! You are now registered for the Scramble Ladder."
+                | username = ""
+                , registrationStatus = Registered
               }
             , Cmd.none
             )
 
         -- When it's a BadRequest, we care about the response, because it contains an insightful error message.
         Err (BadRequest msg) ->
-            ( { model | postRegisterPlayer = Just (Failure msg) }, Cmd.none )
+            ( { model | postRegisterPlayer = Just (Failure msg), registrationStatus = Failed }, Cmd.none )
 
         -- When it's any other ApiError we don't care about specifics.
         _ ->
-            ( { model | postRegisterPlayer = Just (Failure "Something went wrong.") }, Cmd.none )
+            ( { model | postRegisterPlayer = Just (Failure "Something went wrong."), registrationStatus = Failed }, Cmd.none )
 
 
 
@@ -214,52 +226,59 @@ view model =
         column
             [ Background.color (rgb255 92 99 118) ]
             [ el [] (text "HI")
-            , viewInput model.nicknameField
+            , viewInput model.username
+            , viewRegisterButton (model.username /= "")
+            , viewStatusMessage model.registrationStatus
+            , viewFailureMessage model.postRegisterPlayer
+            , infoFooter
             ]
 
 
 
--- [ section
---     [ class "todoapp" ]
---     [ lazy viewInput model.nicknameField
---     , lazy viewRegisterButton model.successMessage
---     , lazy viewSuccessMessage model.successMessage
---     , lazy viewFailureMessage model.postRegisterPlayer
---     ]
--- , infoFooter
--- ]
+-- The docs basically say not to disable lol https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/Element-Input#disabling-inputs
+-- Does nothing when disabled, otherwise sends RegisterButtonClicked msg
 
 
-viewRegisterButton : String -> Html Msg
-viewRegisterButton message =
-    let
-        isDisabled =
-            if String.isEmpty message then
-                disabled False
+viewRegisterButton : Bool -> Element Msg
+viewRegisterButton isDisabled =
+    if isDisabled then
+        Input.button
+            []
+            { label = text "Register", onPress = Just RegisterButtonClicked }
 
-            else
-                disabled True
-    in
-    Html.button [ isDisabled, onClick RegisterButtonClicked ] [ Html.text "Register" ]
+    else
+        Input.button [] { label = text "Please enter a username", onPress = Just NoOp }
 
 
-viewSuccessMessage : String -> Html Msg
-viewSuccessMessage message =
-    let
-        cssVisibility =
-            if String.isEmpty message then
-                "hidden"
+viewStatusMessage : RegistrationState -> Element Msg
+viewStatusMessage registrationStatus =
+    case registrationStatus of
+        Registered ->
+            el []
+                (text "Yay! You are now registered for the Scramble Ladder.")
 
-            else
-                "visible"
-    in
-    p [ style "visibility" cssVisibility ] [ Html.text message ]
+        NotRegistered ->
+            el []
+                (text "Ready to sign up?")
+
+        Failed ->
+            el []
+                (text "Some fail msg from API")
+
+        CallingAPI ->
+            el []
+                (text "Loading")
 
 
-viewFailureMessage : Maybe ApiPost -> Html Msg
+
+-- Todo conditionally render
+-- Todo remove this and merge into viewStatusMessage
+
+
+viewFailureMessage : Maybe ApiPost -> Element Msg
 viewFailureMessage apiPostResult =
     let
-        ( cssVisibility, message ) =
+        ( success, responseMessage ) =
             case apiPostResult of
                 Just (Failure msg) ->
                     ( "visible", msg )
@@ -267,7 +286,28 @@ viewFailureMessage apiPostResult =
                 _ ->
                     ( "hidden", "" )
     in
-    p [ style "visibility" cssVisibility ] [ Html.text message ]
+    if True then
+        el [] (text responseMessage)
+
+    else
+        el [] (text "")
+
+
+
+-- Todo conditionally render
+-- viewFailureMessage : Maybe ApiPost -> Html Msg
+-- viewFailureMessage apiPostResult =
+--     let
+--         ( cssVisibility, message ) =
+--             case apiPostResult of
+--                 Just (Failure msg) ->
+--                     ( "visible", msg )
+--                 _ ->
+--                     ( "hidden", "" )
+--     in
+--     p [ style "visibility" cssVisibility ] [ Html.text message ]
+-- Custom onEnter function as an attribute??
+-- elm-ui Element.input.text compatible attribute
 
 
 viewInput : String -> Element Msg
@@ -276,47 +316,37 @@ viewInput value =
         []
         [ el [] (text "Register for Scrambled!")
         , Input.text
-            []
+            [ onEnter RegisterButtonClicked
+            ]
             { label = Input.labelLeft [] (text "Username")
-            , onChange = UpdateNicknameField
+            , onChange = UpdateUsername
             , placeholder = Just (Input.placeholder [] (text "Username"))
             , text = value
             }
         ]
 
 
-
--- old
--- header
---     [ class "header" ]
---     [ h1 [] [ text "Register for Scrambled!" ]
---     , input
---         [ class "new-todo"
---         , placeholder "Your nickname (you use in Diabotical)"
---         , autofocus True
---         , value task
---         , name "nickname"
---         , onInput UpdateNicknameField
---         , onEnter RegisterButtonClicked
---         ]
---         []
-
-
-onEnter : Msg -> Attribute Msg
-onEnter msg =
-    let
-        isEnter code =
-            if code == 13 then
-                Json.succeed msg
-
-            else
-                Json.fail "not ENTER"
-    in
-    on "keydown" (Json.andThen isEnter keyCode)
-
-
-infoFooter : Html msg
+infoFooter : Element msg
 infoFooter =
-    footer [ class "info" ]
-        [ p [] [ Html.text "Click the button to be awesome" ]
-        ]
+    el [] (text "Footer: Click the button to be awesome")
+
+
+
+-- Helper functions
+
+
+onEnter : msg -> Element.Attribute msg
+onEnter msg =
+    Element.htmlAttribute
+        (Html.Events.on "keyup"
+            (Decode.field "key" Decode.string
+                |> Decode.andThen
+                    (\key ->
+                        if key == "Enter" then
+                            Decode.succeed msg
+
+                        else
+                            Decode.fail "Not the enter key"
+                    )
+            )
+        )
