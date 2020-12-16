@@ -20,9 +20,9 @@ class RegistrationController {
         // both of these people (who are physically different people, aka different players) will be able to log in to each others account
         val sub = "1234"
 
-        throw Exception("This is a message from the backend that will be shown in the frontend")
+//        throw Exception("This is a message from the backend that will be shown in the frontend")
 
-//        return ResponseEntity.ok(playerName)
+        return ResponseEntity.ok(playerName)
     }
 }
 

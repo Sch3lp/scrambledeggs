@@ -73,7 +73,7 @@ init _ =
 type RegistrationState
     = NotRegistered
     | Registered
-    | Failed
+    | Failed String
     | CallingAPI
 
 
@@ -173,11 +173,11 @@ handleRegisterPlayerResponse model result =
 
         -- When it's a BadRequest, we care about the response, because it contains an insightful error message.
         Err (BadRequest msg) ->
-            ( { model | postRegisterPlayer = Just (Failure msg), registrationStatus = Failed }, Cmd.none )
+            ( { model | registrationStatus = Failed msg }, Cmd.none )
 
         -- When it's any other ApiError we don't care about specifics.
         _ ->
-            ( { model | postRegisterPlayer = Just (Failure "Something went wrong."), registrationStatus = Failed }, Cmd.none )
+            ( { model | registrationStatus = Failed "Something went wrong." }, Cmd.none )
 
 
 
@@ -232,7 +232,6 @@ view model =
             [ viewInput model.username
             , viewRegisterButton (model.username /= "")
             , viewStatusMessage model.registrationStatus
-            , viewFailureMessage model.postRegisterPlayer
             , infoFooter
             ]
 
@@ -280,53 +279,13 @@ viewStatusMessage registrationStatus =
             el []
                 (text "Ready to sign up?")
 
-        Failed ->
+        Failed errorMessage ->
             el []
-                (text "Some fail msg from API")
+                (text errorMessage)
 
         CallingAPI ->
             el []
                 (text "Loading")
-
-
-
--- Todo conditionally render
--- Todo remove this and merge into viewStatusMessage
-
-
-viewFailureMessage : Maybe ApiPost -> Element Msg
-viewFailureMessage apiPostResult =
-    let
-        ( success, responseMessage ) =
-            case apiPostResult of
-                Just (Failure msg) ->
-                    ( "visible", msg )
-
-                _ ->
-                    ( "hidden", "" )
-    in
-    if True then
-        el [] (text responseMessage)
-
-    else
-        el [] (text "")
-
-
-
--- Todo conditionally render
--- viewFailureMessage : Maybe ApiPost -> Html Msg
--- viewFailureMessage apiPostResult =
---     let
---         ( cssVisibility, message ) =
---             case apiPostResult of
---                 Just (Failure msg) ->
---                     ( "visible", msg )
---                 _ ->
---                     ( "hidden", "" )
---     in
---     p [ style "visibility" cssVisibility ] [ Html.text message ]
--- Custom onEnter function as an attribute??
--- elm-ui Element.input.text compatible attribute
 
 
 infoFooter : Element msg
