@@ -2,6 +2,20 @@
 
 This log serves to document all design decisions and problems we ran in to.
 
+## 2020, December 18th - Deciding which persistence mechanism to use for storing our events
+### Options
+
+1. Just use PostgreSQL, they've got a TimeSeries plugin.
+2. Use EventStore. 
+3. Use FaunaDB.
+4. Use MySQL, they've also got a TimeSeries plugin.
+
+### Pro's Con's?
+
+
+## 2020, December 16th - Screw css combinations, just use elm-ui
+Because, reasons. Actually just because it's the simplest thing. And we get free typesafety in our CSS. <3
+
 ## 2020, December 15th - Springboot's Gradle Plugin being a troll
 We had the problem that when we built an executable jar, it didn't contain our rest-api.jar.
 
