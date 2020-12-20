@@ -14,16 +14,18 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 -}
 
 import Browser
-import Element exposing (Element, alignBottom, centerX, centerY, column, el, explain, fill, height, layout, maximum, none, padding, paddingEach, paddingXY, paragraph, pointer, px, rgb, rgb255, rgba, row, shrink, spacing, text, width)
+import Element as Ui
 import Element.Background as Background
 import Element.Border as Border
-import Element.Font as Font exposing (center)
+import Element.Font as Font
 import Element.Input as Input
-import Html exposing (Html)
+import Html
 import Html.Events
-import Http exposing (Error(..), Expect, expectStringResponse)
-import Json.Decode as Decode
-import Json.Encode as Encode
+import Http
+import Json.Decode
+import Json.Encode
+import Url
+import Url.Parser as Parser
 
 
 main : Program (Maybe String) Model Msg
@@ -82,6 +84,18 @@ type ApiError
     | NetworkError
     | Timeout
     | BadUrl String
+
+
+
+-- Defining the client side routes for our app
+
+
+type Route
+    = Register
+    | Leaderboards
+    | ChallengePlayer
+    | Report
+    | NotFound
 
 
 
@@ -149,9 +163,9 @@ registerPlayer model =
 -- This is a constructor function to get a PlayerNameJson object from a string
 
 
-newPlayerName : String -> Encode.Value
+newPlayerName : String -> Json.Encode.Value
 newPlayerName name =
-    Encode.object [ ( "name", Encode.string name ) ]
+    Json.Encode.object [ ( "name", Json.Encode.string name ) ]
 
 
 handleRegisterPlayerResponse : Model -> Result ApiError value -> ( Model, Cmd Msg )
@@ -178,9 +192,9 @@ handleRegisterPlayerResponse model result =
 -- When we need to decode, replace String with "a" and provide a Decoder function as 2nd argument to transform "a"
 
 
-expectStringWithErrorHandling : (Result ApiError String -> msg) -> Expect msg
+expectStringWithErrorHandling : (Result ApiError String -> msg) -> Http.Expect msg
 expectStringWithErrorHandling toMsg =
-    expectStringResponse toMsg
+    Http.expectStringResponse toMsg
         (\response ->
             case response of
                 Http.BadUrl_ url ->
@@ -201,22 +215,46 @@ expectStringWithErrorHandling toMsg =
 
 
 
+-- APP ROUTING
+-- I don't fucking get this
+
+
+parseUrl : Url.Url -> Route
+parseUrl url =
+    case Parser.parse parseRoute url of
+        Just route ->
+            route
+
+        Nothing ->
+            Leaderboards
+
+
+parseRoute : Parser.Parser (Route -> a) a
+parseRoute =
+    Parser.oneOf
+        [ Parser.map Register Parser.top
+        , Parser.map Leaderboards (Parser.s "leaderboards")
+        , Parser.map Report (Parser.s "reports")
+        ]
+
+
+
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> Html.Html Msg
 view model =
-    layout
+    Ui.layout
         [ Background.color
-            (rgb 222 230 255)
+            (Ui.rgb 222 230 255)
         ]
-        (column
-            [ height fill
-            , width fill
-            , centerX
-            , paddingEach { top = 150, left = 0, right = 0, bottom = 0 }
-            , spacing 16
-            , Font.color (rgb255 41 46 54)
+        (Ui.column
+            [ Ui.height Ui.fill
+            , Ui.width Ui.fill
+            , Ui.centerX
+            , Ui.paddingEach { top = 150, left = 0, right = 0, bottom = 0 }
+            , Ui.spacing 16
+            , Font.color (Ui.rgb255 41 46 54)
 
             -- , explain Debug.todo -- Awesome layout debugging
             ]
@@ -228,16 +266,16 @@ view model =
         )
 
 
-viewInput : String -> Element Msg
+viewInput : String -> Ui.Element Msg
 viewInput value =
-    el
-        [ centerX ]
+    Ui.el
+        [ Ui.centerX ]
         (Input.text
             [ onEnter RegisterButtonClicked
             ]
-            { label = Input.labelLeft [] (text "Username")
+            { label = Input.labelLeft [] (Ui.text "Username")
             , onChange = UpdateUsername
-            , placeholder = Just (Input.placeholder [] (text "L33tSn!per69"))
+            , placeholder = Just (Input.placeholder [] (Ui.text "L33tSn!per69"))
             , text = value
             }
         )
@@ -248,88 +286,88 @@ viewInput value =
 -- This button does nothing when disabled, otherwise sends RegisterButtonClicked msg
 
 
-viewRegisterButton : Bool -> Element Msg
+viewRegisterButton : Bool -> Ui.Element Msg
 viewRegisterButton isDisabled =
     let
         sharedAttributes =
-            [ centerX
+            [ Ui.centerX
             , Border.width 1
             , Border.rounded 8
-            , paddingXY 16 8
+            , Ui.paddingXY 16 8
             ]
     in
     if isDisabled == True then
         Input.button
             (List.append
                 sharedAttributes
-                [ Background.color (rgb255 200 200 200)
-                , Font.color (rgb255 100 100 100)
+                [ Background.color (Ui.rgb255 200 200 200)
+                , Font.color (Ui.rgb255 100 100 100)
                 ]
             )
-            { label = text "Please enter a username", onPress = Just NoOp }
+            { label = Ui.text "Please enter a username", onPress = Just NoOp }
 
     else
         Input.button
             (List.append
                 sharedAttributes
-                [ Background.color (rgb 150 150 150) ]
+                [ Background.color (Ui.rgb 150 150 150) ]
             )
-            { label = text "Register", onPress = Just RegisterButtonClicked }
+            { label = Ui.text "Register", onPress = Just RegisterButtonClicked }
 
 
-viewStatusMessage : RegistrationState -> Element Msg
+viewStatusMessage : RegistrationState -> Ui.Element Msg
 viewStatusMessage registrationStatus =
     let
         sharedAttributes =
-            [ width (fill |> maximum 600), centerX ]
+            [ Ui.width (Ui.fill |> Ui.maximum 600), Ui.centerX ]
     in
     case registrationStatus of
         NotRegistered ->
-            none
+            Ui.none
 
         Registered ->
-            paragraph sharedAttributes
-                [ text "Yay! You are now registered for the Scramble Ladder." ]
+            Ui.paragraph sharedAttributes
+                [ Ui.text "Yay! You are now registered for the Scramble Ladder." ]
 
         CallingAPI ->
-            paragraph sharedAttributes
-                [ text "Loading" ]
+            Ui.paragraph sharedAttributes
+                [ Ui.text "Loading" ]
 
         Failed errorMessage ->
-            paragraph sharedAttributes
-                [ text errorMessage ]
+            Ui.paragraph sharedAttributes
+                [ Ui.text errorMessage ]
 
 
-infoFooter : Element msg
+infoFooter : Ui.Element msg
 infoFooter =
-    el
-        [ alignBottom
-        , centerX
-        , Background.color (rgb255 51 67 92)
-        , Font.color (rgb 0xEE 0xEE 0xEE) -- Hex color example
-        , width fill
-        , paddingXY 16 32
+    Ui.el
+        [ Ui.alignBottom
+        , Ui.centerX
+        , Background.color (Ui.rgb255 51 67 92)
+        , Font.color (Ui.rgb 0xEE 0xEE 0xEE) -- Hex color example
+        , Ui.width Ui.fill
+        , Ui.paddingXY 16 32
         , Font.size 14
         ]
-        (text "Diabotical District -- Where passionate trashy nerds align their goals")
+        (Ui.text "Diabotical District -- Where passionate trashy nerds align their goals")
 
 
 
 -- Helper functions
 
 
-onEnter : msg -> Element.Attribute msg
+onEnter : msg -> Ui.Attribute msg
 onEnter msg =
-    Element.htmlAttribute
+    Ui.htmlAttribute
         (Html.Events.on "keyup"
-            (Decode.field "key" Decode.string
-                |> Decode.andThen
+            (Json.Decode.field "key" Json.Decode.string
+                |> Json.Decode.andThen
                     (\key ->
                         if key == "Enter" then
-                            Decode.succeed msg
+                            Json.Decode.succeed msg
 
                         else
-                            Decode.fail "Not the enter key"
+                            Json.Decode.fail "Not the enter key"
                     )
             )
         )
