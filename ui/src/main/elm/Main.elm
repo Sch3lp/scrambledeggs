@@ -24,6 +24,7 @@ import Html.Events
 import Http
 import Json.Decode
 import Json.Encode
+import List
 import Url
 import Url.Parser as Parser
 
@@ -46,15 +47,17 @@ main =
 
 
 type alias Model =
-    { user : Maybe User
+    { users : Maybe (List User)
     , registrationStatus : RegistrationState
+    , registerInput : String
     }
 
 
 emptyModel : Model
 emptyModel =
-    { user = Nothing
+    { users = Nothing
     , registrationStatus = NotRegistered
+    , registerInput = ""
     }
 
 
@@ -104,7 +107,7 @@ type Route
 
 type Msg
     = NoOp
-    | UpdateUsername String
+    | UpdateRegisterInput String
     | RegisterButtonClicked
     | GotRegisterPlayerResponse (Result ApiError String)
 
@@ -122,8 +125,8 @@ update msg model =
         RegisterButtonClicked ->
             registerPlayer model
 
-        UpdateUsername str ->
-            ( { model | user = Just { username = str } }
+        UpdateRegisterInput str ->
+            ( { model | registerInput = str }
             , Cmd.none
             )
 
@@ -132,6 +135,8 @@ update msg model =
 
 
 
+-- GenerateRandomUser ->
+--     generateRandomUser model
 -- SUBSCRIPTIONS
 
 
@@ -148,7 +153,11 @@ registerPlayer : Model -> ( Model, Cmd Msg )
 registerPlayer model =
     let
         playerNameJson =
-            newPlayerName (getUsername model.user)
+            Maybe.withDefault [] model.users
+                -- This is shit but I can't get this Maybe mess to make sense
+                |> List.head
+                |> getUsername
+                |> newPlayerName
     in
     ( { model | registrationStatus = CallingAPI }
     , Http.post
@@ -173,7 +182,7 @@ handleRegisterPlayerResponse model result =
     case result of
         Ok _ ->
             ( { model
-                | user = Nothing
+                | users = Nothing
                 , registrationStatus = Registered
               }
             , Cmd.none
@@ -258,23 +267,40 @@ view model =
 
             -- , explain Debug.todo -- Awesome layout debugging
             ]
-            [ viewInput (getUsername model.user)
-            , viewRegisterButton (model.user == Nothing || getUsername model.user == "") -- Not ideal? Probably it will change as we go on
+            [ viewRegisterInput model.registerInput
+            , viewRegisterButton (model.registerInput == "")
             , viewStatusMessage model.registrationStatus
+            , viewLeaderboards (List.repeat 10 { username = "Henkie" }) -- Eventually pass leaderboards data here
             , infoFooter
             ]
         )
 
 
-viewInput : String -> Ui.Element Msg
-viewInput value =
+viewTest : Ui.Element Msg
+viewTest =
+    Ui.el
+        [ Ui.centerX ]
+        (Ui.paragraph [] [ Ui.text "hi" ])
+
+
+viewLeaderboards : List User -> Ui.Element Msg
+viewLeaderboards userList =
+    Ui.column []
+        (List.map
+            (\u -> Ui.row [] [ Ui.text u.username ])
+            userList
+        )
+
+
+viewRegisterInput : String -> Ui.Element Msg
+viewRegisterInput value =
     Ui.el
         [ Ui.centerX ]
         (Input.text
             [ onEnter RegisterButtonClicked
             ]
             { label = Input.labelLeft [] (Ui.text "Username")
-            , onChange = UpdateUsername
+            , onChange = UpdateRegisterInput
             , placeholder = Just (Input.placeholder [] (Ui.text "L33tSn!per69"))
             , text = value
             }
