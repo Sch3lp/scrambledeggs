@@ -29,6 +29,11 @@ import Url
 import Url.Parser as Parser
 
 
+
+-- Main function
+-- App init
+
+
 main : Program (Maybe String) Model Msg
 main =
     Browser.document
@@ -41,9 +46,16 @@ main =
         }
 
 
+init : Maybe String -> ( Model, Cmd Msg )
+init _ =
+    ( emptyModel
+    , Cmd.none
+    )
+
+
 
 -- MODEL
--- The full application state of our todo app.
+-- The full application state of our app.
 
 
 type alias Model =
@@ -61,11 +73,8 @@ emptyModel =
     }
 
 
-init : Maybe String -> ( Model, Cmd Msg )
-init _ =
-    ( emptyModel
-    , Cmd.none
-    )
+
+-- Types
 
 
 type RegistrationState
@@ -82,14 +91,6 @@ type alias User =
     }
 
 
-type Route
-    = Register
-    | Leaderboards
-    | ChallengePlayer
-    | Report
-    | NotFound
-
-
 
 -- UPDATE
 
@@ -99,10 +100,6 @@ type Msg
     | UpdateRegisterInput String
     | RegisterButtonClicked
     | GotUser (Result Http.Error User)
-
-
-
--- How we update our Model on a given Msg?
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -124,8 +121,6 @@ update msg model =
 
 
 
--- GenerateRandomUser ->
---     generateRandomUser model
 -- SUBSCRIPTIONS
 
 
@@ -135,7 +130,7 @@ subscriptions _ =
 
 
 
--- HTTP
+-- HTTP requests & helper functions
 
 
 registerPlayer : Model -> ( Model, Cmd Msg )
@@ -152,6 +147,21 @@ registerPlayer model =
         , expect = Http.expectJson GotUser userDecoder
         }
     )
+
+
+handleRegisterPlayerResponse : Model -> Result Http.Error User -> ( Model, Cmd Msg )
+handleRegisterPlayerResponse model result =
+    case result of
+        Ok user ->
+            ( { model
+                | users = user :: model.users -- push user onto list
+                , registrationStatus = Registered
+              }
+            , Cmd.none
+            )
+
+        Err err ->
+            ( { model | registrationStatus = Failed (httpErrorToString err) }, Cmd.none )
 
 
 userDecoder : Json.Decode.Decoder User
@@ -189,24 +199,18 @@ httpErrorToString error =
             errorMessage
 
 
-handleRegisterPlayerResponse : Model -> Result Http.Error User -> ( Model, Cmd Msg )
-handleRegisterPlayerResponse model result =
-    case result of
-        Ok user ->
-            ( { model
-                | users = user :: model.users -- push user onto list
-                , registrationStatus = Registered
-              }
-            , Cmd.none
-            )
-
-        Err err ->
-            ( { model | registrationStatus = Failed (httpErrorToString err) }, Cmd.none )
-
-
 
 -- APP ROUTING
 -- I don't fucking get this
+-- Does nothing atm
+
+
+type Route
+    = Register
+    | Leaderboards
+    | ChallengePlayer
+    | Report
+    | NotFound
 
 
 parseUrl : Url.Url -> Route
@@ -259,7 +263,7 @@ view model =
 
 viewLeaderboards : List User -> Ui.Element Msg
 viewLeaderboards userList =
-    Ui.column []
+    Ui.column [ Ui.centerX ]
         (List.map
             (\u -> Ui.row [] [ Ui.text u.username ])
             userList
@@ -319,7 +323,7 @@ viewStatusMessage : RegistrationState -> Ui.Element Msg
 viewStatusMessage registrationStatus =
     let
         sharedAttributes =
-            [ Ui.width (Ui.fill |> Ui.maximum 600), Ui.centerX ]
+            [ Ui.width (Ui.fill |> Ui.maximum 600), Ui.centerX, Font.center ]
     in
     case registrationStatus of
         NotRegistered ->
@@ -353,7 +357,7 @@ infoFooter =
 
 
 
--- Helper functions
+-- View helper functions
 
 
 onEnter : msg -> Ui.Attribute msg
@@ -371,13 +375,3 @@ onEnter msg =
                     )
             )
         )
-
-
-getUsername : Maybe User -> String
-getUsername user =
-    case user of
-        Just a ->
-            a.username
-
-        Nothing ->
-            ""
