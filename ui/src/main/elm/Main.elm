@@ -55,7 +55,7 @@ type alias Model =
 
 emptyModel : Model
 emptyModel =
-    { users = []
+    { users = [ { username = "Henkie" }, { username = "Bertie" }, { username = "Jos" } ] -- Prefill for testing
     , registrationStatus = NotRegistered
     , registerInput = ""
     }
@@ -82,14 +82,12 @@ type alias User =
     }
 
 
-type ApiError
-    = BadRequest String
-    | NetworkError
-    | Timeout
-    | BadUrl String
 
-
-
+-- type ApiError
+--     = BadRequest String
+--     | NetworkError
+--     | Timeout
+--     | BadUrl String
 -- Defining the client side routes for our app
 
 
@@ -109,7 +107,7 @@ type Msg
     = NoOp
     | UpdateRegisterInput String
     | RegisterButtonClicked
-    | GotRegisterPlayerResponse (Result ApiError String)
+    | GotUser (Result Http.Error User)
 
 
 
@@ -130,7 +128,7 @@ update msg model =
             , Cmd.none
             )
 
-        GotRegisterPlayerResponse result ->
+        GotUser result ->
             handleRegisterPlayerResponse model result
 
 
@@ -153,76 +151,105 @@ registerPlayer : Model -> ( Model, Cmd Msg )
 registerPlayer model =
     let
         playerNameJson =
-            model.users
-                |> List.head
-                |> getUsername
-                |> newPlayerName
+            model.registerInput
+                |> usernameEncoder
     in
     ( { model | registrationStatus = CallingAPI }
     , Http.post
         { url = "/api/register"
         , body = Http.jsonBody playerNameJson
-        , expect = expectStringWithErrorHandling GotRegisterPlayerResponse
+        , expect = Http.expectJson GotUser usernameDecoder
         }
     )
+
+
+
+-- Read more: https://guide.elm-lang.org/effects/json.html
+
+
+usernameDecoder : Json.Decode.Decoder User
+usernameDecoder =
+    Json.Decode.map User (Json.Decode.field "username" Json.Decode.string)
 
 
 
 -- This is a constructor function to get a PlayerNameJson object from a string
 
 
-newPlayerName : String -> Json.Encode.Value
-newPlayerName name =
-    Json.Encode.object [ ( "name", Json.Encode.string name ) ]
+usernameEncoder : String -> Json.Encode.Value
+usernameEncoder name =
+    Json.Encode.object [ ( "username", Json.Encode.string name ) ]
 
 
-handleRegisterPlayerResponse : Model -> Result ApiError value -> ( Model, Cmd Msg )
+
+-- expectStringWithErrorHandling : (Result ApiError String -> msg) -> Http.Expect msg
+-- expectStringWithErrorHandling toMsg =
+--     Http.expectStringResponse toMsg
+--         (\response ->
+--             case response of
+--                 Http.BadUrl_ url ->
+--                     Err (BadUrl url)
+--                 Http.Timeout_ ->
+--                     Err Timeout
+--                 Http.NetworkError_ ->
+--                     Err NetworkError
+--                 Http.BadStatus_ metadata body ->
+--                     Err (BadRequest body)
+--                 Http.GoodStatus_ metadata body ->
+--                     Ok body
+--         )
+
+
+httpErrorToString : Http.Error -> String
+httpErrorToString error =
+    case error of
+        Http.BadUrl url ->
+            "The URL " ++ url ++ " was invalid"
+
+        Http.Timeout ->
+            "Unable to reach the server, try again"
+
+        Http.NetworkError ->
+            "Unable to reach the server, check your network connection"
+
+        Http.BadStatus 500 ->
+            "The server had a problem, try again later"
+
+        Http.BadStatus 400 ->
+            "Verify your information and try again"
+
+        Http.BadStatus _ ->
+            "Unknown error"
+
+        Http.BadBody errorMessage ->
+            errorMessage
+
+
+handleRegisterPlayerResponse : Model -> Result Http.Error value -> ( Model, Cmd Msg )
 handleRegisterPlayerResponse model result =
     case result of
-        Ok _ ->
+        Ok data ->
+            let
+                username =
+                    "Henk"
+
+                -- Decoding username from data doesn't work
+                _ =
+                    Debug.log "DATA" data
+            in
             ( { model
-                | users = { username = "test" } :: model.users
+                | users = { username = username } :: model.users
                 , registrationStatus = Registered
               }
             , Cmd.none
             )
 
-        -- When it's a BadRequest, we care about the response, because it contains an insightful error message.
-        Err (BadRequest errorMsg) ->
-            ( { model | registrationStatus = Failed errorMsg }, Cmd.none )
-
-        -- When it's any other ApiError we don't care about specifics.
-        _ ->
-            ( { model | registrationStatus = Failed "Something went wrong." }, Cmd.none )
+        Err err ->
+            ( { model | registrationStatus = Failed (httpErrorToString err) }, Cmd.none )
 
 
 
 -- When we need to decode, replace String with "a" and provide a Decoder function as 2nd argument to transform "a"
-
-
-expectStringWithErrorHandling : (Result ApiError String -> msg) -> Http.Expect msg
-expectStringWithErrorHandling toMsg =
-    Http.expectStringResponse toMsg
-        (\response ->
-            case response of
-                Http.BadUrl_ url ->
-                    Err (BadUrl url)
-
-                Http.Timeout_ ->
-                    Err Timeout
-
-                Http.NetworkError_ ->
-                    Err NetworkError
-
-                Http.BadStatus_ metadata body ->
-                    Err (BadRequest body)
-
-                Http.GoodStatus_ metadata body ->
-                    Ok body
-        )
-
-
-
 -- APP ROUTING
 -- I don't fucking get this
 
@@ -269,7 +296,7 @@ view model =
             [ viewRegisterInput model.registerInput
             , viewRegisterButton (model.registerInput == "")
             , viewStatusMessage model.registrationStatus
-            , viewLeaderboards (List.repeat 10 { username = "Henkie" }) -- Eventually pass leaderboards data here
+            , viewLeaderboards model.users
             , infoFooter
             ]
         )

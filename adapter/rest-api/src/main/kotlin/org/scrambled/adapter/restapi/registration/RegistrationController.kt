@@ -26,4 +26,4 @@ class RegistrationController {
     }
 }
 
-data class PlayerNameJson(val name: String)
+data class PlayerNameJson(val username: String)
