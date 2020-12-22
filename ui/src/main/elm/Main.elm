@@ -82,15 +82,6 @@ type alias User =
     }
 
 
-
--- type ApiError
---     = BadRequest String
---     | NetworkError
---     | Timeout
---     | BadUrl String
--- Defining the client side routes for our app
-
-
 type Route
     = Register
     | Leaderboards
@@ -152,52 +143,25 @@ registerPlayer model =
     let
         playerNameJson =
             model.registerInput
-                |> usernameEncoder
+                |> userEncoder
     in
     ( { model | registrationStatus = CallingAPI }
     , Http.post
         { url = "/api/register"
         , body = Http.jsonBody playerNameJson
-        , expect = Http.expectJson GotUser usernameDecoder
+        , expect = Http.expectJson GotUser userDecoder
         }
     )
 
 
-
--- Read more: https://guide.elm-lang.org/effects/json.html
-
-
-usernameDecoder : Json.Decode.Decoder User
-usernameDecoder =
+userDecoder : Json.Decode.Decoder User
+userDecoder =
     Json.Decode.map User (Json.Decode.field "username" Json.Decode.string)
 
 
-
--- This is a constructor function to get a PlayerNameJson object from a string
-
-
-usernameEncoder : String -> Json.Encode.Value
-usernameEncoder name =
+userEncoder : String -> Json.Encode.Value
+userEncoder name =
     Json.Encode.object [ ( "username", Json.Encode.string name ) ]
-
-
-
--- expectStringWithErrorHandling : (Result ApiError String -> msg) -> Http.Expect msg
--- expectStringWithErrorHandling toMsg =
---     Http.expectStringResponse toMsg
---         (\response ->
---             case response of
---                 Http.BadUrl_ url ->
---                     Err (BadUrl url)
---                 Http.Timeout_ ->
---                     Err Timeout
---                 Http.NetworkError_ ->
---                     Err NetworkError
---                 Http.BadStatus_ metadata body ->
---                     Err (BadRequest body)
---                 Http.GoodStatus_ metadata body ->
---                     Ok body
---         )
 
 
 httpErrorToString : Http.Error -> String
@@ -225,20 +189,12 @@ httpErrorToString error =
             errorMessage
 
 
-handleRegisterPlayerResponse : Model -> Result Http.Error value -> ( Model, Cmd Msg )
+handleRegisterPlayerResponse : Model -> Result Http.Error User -> ( Model, Cmd Msg )
 handleRegisterPlayerResponse model result =
     case result of
-        Ok data ->
-            let
-                username =
-                    "Henk"
-
-                -- Decoding username from data doesn't work
-                _ =
-                    Debug.log "DATA" data
-            in
+        Ok user ->
             ( { model
-                | users = { username = username } :: model.users
+                | users = user :: model.users -- push user onto list
                 , registrationStatus = Registered
               }
             , Cmd.none
@@ -249,7 +205,6 @@ handleRegisterPlayerResponse model result =
 
 
 
--- When we need to decode, replace String with "a" and provide a Decoder function as 2nd argument to transform "a"
 -- APP ROUTING
 -- I don't fucking get this
 
