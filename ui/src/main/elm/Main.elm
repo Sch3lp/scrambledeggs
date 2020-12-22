@@ -47,7 +47,7 @@ main =
 
 
 type alias Model =
-    { users : Maybe (List User)
+    { users : List User
     , registrationStatus : RegistrationState
     , registerInput : String
     }
@@ -55,7 +55,7 @@ type alias Model =
 
 emptyModel : Model
 emptyModel =
-    { users = Nothing
+    { users = []
     , registrationStatus = NotRegistered
     , registerInput = ""
     }
@@ -153,8 +153,7 @@ registerPlayer : Model -> ( Model, Cmd Msg )
 registerPlayer model =
     let
         playerNameJson =
-            Maybe.withDefault [] model.users
-                -- This is shit but I can't get this Maybe mess to make sense
+            model.users
                 |> List.head
                 |> getUsername
                 |> newPlayerName
@@ -182,7 +181,7 @@ handleRegisterPlayerResponse model result =
     case result of
         Ok _ ->
             ( { model
-                | users = Nothing
+                | users = { username = "test" } :: model.users
                 , registrationStatus = Registered
               }
             , Cmd.none
@@ -274,13 +273,6 @@ view model =
             , infoFooter
             ]
         )
-
-
-viewTest : Ui.Element Msg
-viewTest =
-    Ui.el
-        [ Ui.centerX ]
-        (Ui.paragraph [] [ Ui.text "hi" ])
 
 
 viewLeaderboards : List User -> Ui.Element Msg
