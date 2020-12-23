@@ -10,4 +10,4 @@ CREATE TABLE eventstore(
 -- Allow jsonb_ops operator class: ?, ?|, ?&, @>, @@, @? [Index each key and value in the JSONB element]
 CREATE INDEX eventpayloadgin ON eventstore USING gin (payload);
 -- Allow existence operators in nested documents
-CREATE INDEX eventpayloadtypegin ON eventstore USING gin (payload->'type');
+-- CREATE INDEX eventpayloadtypegin ON eventstore USING gin (payload->'type');

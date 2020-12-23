@@ -13,7 +13,7 @@ enum class EventType {
 sealed class Event(val type: EventType) {
     val id: UUID = UUID.randomUUID()
     val at: LocalDateTime = LocalDateTime.now()
-    object PlayerRegistered: Event(EventType.PlayerRegistered)
+    data class PlayerRegistered(val nickname: String): Event(EventType.PlayerRegistered)
 }
 
 interface EventStore : Flow<Event> {
