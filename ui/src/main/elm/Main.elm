@@ -59,7 +59,7 @@ init _ =
 
 
 type alias Model =
-    { users : List User
+    { users : List RegisteredPlayer
     , registrationStatus : RegistrationState
     , registerInput : String
     }
@@ -89,7 +89,7 @@ type RegistrationState
     | CallingAPI
 
 
-type alias User =
+type alias RegisteredPlayer =
     { username : String
 
     -- Other stuff can go here, such as email, avatar
@@ -209,9 +209,9 @@ handleRegisterPlayerResponse model result =
 --             ( { model | registrationStatus = Failed "Something went wrong." }, Cmd.none )
 
 
-userDecoder : Json.Decode.Decoder User
+userDecoder : Json.Decode.Decoder RegisteredPlayer
 userDecoder =
-    Json.Decode.map User (Json.Decode.field "username" Json.Decode.string)
+    Json.Decode.map RegisteredPlayer (Json.Decode.field "username" Json.Decode.string)
 
 
 userEncoder : String -> Json.Encode.Value
@@ -315,7 +315,7 @@ view model =
         )
 
 
-viewLeaderboards : List User -> Ui.Element Msg
+viewLeaderboards : List RegisteredPlayer -> Ui.Element Msg
 viewLeaderboards userList =
     Ui.column [ Ui.centerX ]
         (List.map
