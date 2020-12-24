@@ -32,16 +32,16 @@ const val DB_PASSWORD = "Lion-0!"
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 //@SpringJUnitConfig(classes = [PostgresEventStoreTestConfig::class])
 class PostgresEventStreamTest {
-
-    @Container
-    var postgres = PostgreSQLContainer<PostgreSQLContainer<*>>("postgres:13.1-alpine")
-        .apply {
-            withExposedPorts(DB_PORT)
-            withDatabaseName(DB_NAME)
-            withUsername(DB_USERNAME)
-            withPassword(DB_PASSWORD)
-            withInitScript("db/migrations/V1__CreateEventStoreTable.sql")
-        }
+//
+//    @Container
+//    var postgres = PostgreSQLContainer<PostgreSQLContainer<*>>("postgres:13.1-alpine")
+//        .apply {
+//            withExposedPorts(DB_PORT)
+//            withDatabaseName(DB_NAME)
+//            withUsername(DB_USERNAME)
+//            withPassword(DB_PASSWORD)
+//            withInitScript("db/migrations/V1__CreateEventStoreTable.sql")
+//        }
 
 //    @Autowired
 //    lateinit var client: DatabaseClient
@@ -50,16 +50,15 @@ class PostgresEventStreamTest {
     fun postgresClient(): DatabaseClient {
         val options: MutableMap<String, String> = HashMap()
         options["lock_timeout"] = "10s"
-        options["statement_timeout"] = "5m"
 
         val connectionFactory: ConnectionFactory = ConnectionFactories.get(
             builder()
                 .option(DRIVER, "postgresql")
                 .option(HOST, "localhost")
-                .option(PORT, postgres.firstMappedPort) // optional, defaults to 5432
-                .option(USER, postgres.username)
-                .option(PASSWORD, postgres.password)
-                .option(DATABASE, postgres.databaseName) // optional
+                .option(PORT, DB_PORT) // optional, defaults to 5432
+                .option(USER, DB_USERNAME)
+                .option(PASSWORD, DB_PASSWORD)
+                .option(DATABASE, DB_NAME) // optional
                 .option<Map<String, String>>(OPTIONS, options) // optional
                 .build()
         )
@@ -71,7 +70,6 @@ class PostgresEventStreamTest {
 
     @BeforeAll
     fun beforeAll() {
-        postgres.start()
         eventStream = PostgresEventStream(postgresClient())
     }
 

@@ -1,0 +1,10 @@
+version: '3'
+services:
+  eventstore_local_db:
+    image: library/postgres:13.1-alpine
+    ports:
+      - "6667:5432"
+    environment:
+      POSTGRES_DB: postgreseventsdb
+      POSTGRES_USER: snarf
+      POSTGRES_PASSWORD: Lion-0!

@@ -6,8 +6,10 @@ import io.r2dbc.spi.Row
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.runBlocking
 import org.scrambled.adapter.eventsourcing.api.Event
 import org.scrambled.adapter.eventsourcing.api.EventStore
+import org.scrambled.adapter.eventsourcing.api.asJson
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.await
 import org.springframework.stereotype.Component
@@ -38,4 +40,3 @@ class PostgresEventStream(private val client: DatabaseClient) : EventStore {
 fun Row.getString(index: Int) = get(index, String::class.java)
 fun <T> Flux<T?>.filterNonNull(): Flux<T> = filter { it != null }.map { it!! }
 
-fun Event.asJson() = lazy { jacksonObjectMapper().writeValueAsString(this) }
