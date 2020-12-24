@@ -67,7 +67,12 @@ type alias Model =
 
 emptyModel : Model
 emptyModel =
-    { users = [ { username = "Henkie" }, { username = "Bertie" }, { username = "Jos" } ] -- Prefill for testing
+    { users =
+        -- Prefill for testing
+        [ { username = "Henkie" }
+        , { username = "Bertie" }
+        , { username = "Jos" }
+        ]
     , registrationStatus = NotRegistered
     , registerInput = ""
     }
@@ -99,7 +104,7 @@ type Msg
     = NoOp
     | UpdateRegisterInput String
     | RegisterButtonClicked
-    | GotUser (Result Http.Error User)
+    | GotUser (Result ApiError String)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -121,16 +126,14 @@ update msg model =
 
 
 
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
-
-
-
 -- HTTP requests & helper functions
+
+
+type ApiError
+    = BadRequest String
+    | NetworkError
+    | Timeout
+    | BadUrl String
 
 
 registerPlayer : Model -> ( Model, Cmd Msg )
@@ -144,24 +147,66 @@ registerPlayer model =
     , Http.post
         { url = "/api/register"
         , body = Http.jsonBody playerNameJson
-        , expect = Http.expectJson GotUser userDecoder
+        , expect = expectStringWithErrorHandling GotUser
         }
     )
 
 
-handleRegisterPlayerResponse : Model -> Result Http.Error User -> ( Model, Cmd Msg )
+expectStringWithErrorHandling : (Result ApiError String -> msg) -> Http.Expect msg
+expectStringWithErrorHandling toMsg =
+    Http.expectStringResponse toMsg
+        (\response ->
+            case response of
+                Http.BadUrl_ url ->
+                    Err (BadUrl url)
+
+                Http.Timeout_ ->
+                    Err Timeout
+
+                Http.NetworkError_ ->
+                    Err NetworkError
+
+                Http.BadStatus_ metadata body ->
+                    Err (BadRequest body)
+
+                Http.GoodStatus_ metadata body ->
+                    Ok body
+        )
+
+
+handleRegisterPlayerResponse : Model -> Result ApiError String -> ( Model, Cmd Msg )
 handleRegisterPlayerResponse model result =
     case result of
-        Ok user ->
+        Ok userStr ->
             ( { model
-                | users = user :: model.users -- push user onto list
+                | users = { username = userStr } :: model.users -- push user onto list
                 , registrationStatus = Registered
               }
             , Cmd.none
             )
 
         Err err ->
-            ( { model | registrationStatus = Failed (httpErrorToString err) }, Cmd.none )
+            case err of
+                BadRequest str ->
+                    ( { model | registrationStatus = Failed str }, Cmd.none )
+
+                NetworkError ->
+                    ( { model | registrationStatus = Failed "Network Error" }, Cmd.none )
+
+                Timeout ->
+                    ( { model | registrationStatus = Failed "Timeout" }, Cmd.none )
+
+                BadUrl a ->
+                    ( { model | registrationStatus = Failed a }, Cmd.none )
+
+
+
+--    -- When it's a BadRequest, we care about the response, because it contains an insightful error message.
+--         Err (BadRequest errorMsg) ->
+--             ( { model | registrationStatus = Failed errorMsg }, Cmd.none )
+--         -- When it's any other ApiError we don't care about specifics.
+--         _ ->
+--             ( { model | registrationStatus = Failed "Something went wrong." }, Cmd.none )
 
 
 userDecoder : Json.Decode.Decoder User
@@ -192,11 +237,20 @@ httpErrorToString error =
         Http.BadStatus 400 ->
             "Verify your information and try again"
 
-        Http.BadStatus _ ->
-            "Unknown error"
+        Http.BadStatus x ->
+            "Unknown error: " ++ String.fromInt x
 
         Http.BadBody errorMessage ->
             errorMessage
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none
 
 
 
