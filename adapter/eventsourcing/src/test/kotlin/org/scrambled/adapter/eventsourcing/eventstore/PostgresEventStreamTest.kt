@@ -4,6 +4,9 @@ import io.r2dbc.postgresql.PostgresqlConnectionFactoryProvider.OPTIONS
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
@@ -12,7 +15,6 @@ import org.junit.jupiter.api.TestInstance
 import org.scrambled.adapter.eventsourcing.api.Event
 import org.scrambled.adapter.eventsourcing.api.fromJson
 import org.springframework.r2dbc.core.DatabaseClient
-import org.springframework.r2dbc.core.RowsFetchSpec
 import org.testcontainers.junit.jupiter.Testcontainers
 
 
@@ -69,15 +71,14 @@ class PostgresEventStreamTest {
     }
 
     @Test
-    fun `Pushing an event on the eventstream is persisted in Postgres`() = runBlocking {
-        eventStream.push(Event.PlayerRegistered("Mumra"))
-
-        val map: RowsFetchSpec<String> = postgresClient.sql { "select payload from eventstore" }
+    fun `Pushing an event on the eventstream is persisted in Postgres`() {
+        runBlocking { eventStream.push(Event.PlayerRegistered("Mumra5")) }
+        runBlocking { postgresClient
+            .sql { "select payload from eventstore" }
             .map { row -> row.get("payload", String::class.java) }
-        val map1 = map.all().map { it.fromJson<Event.PlayerRegistered>() }
-        val lastEvent = map1.blockLast()
-        assertThat(lastEvent?.nickname).isEqualTo("Mumra")
-
-        return@runBlocking
+            .all()
+            .map { it!!.fromJson<Event.PlayerRegistered>() }
+            .asFlow()
+            .collectLatest { lastEvent -> delay(10); assertThat(lastEvent.nickname).isEqualTo("Mumra5") } }
     }
 }
