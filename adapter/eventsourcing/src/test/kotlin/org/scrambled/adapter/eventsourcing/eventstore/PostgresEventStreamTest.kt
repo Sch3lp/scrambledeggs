@@ -5,21 +5,14 @@ import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions.*
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.extension.ExtendWith
-import org.scrambled.adapter.eventsourcing.PostgresEventStoreTestConfig
 import org.scrambled.adapter.eventsourcing.api.Event
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
+import org.scrambled.adapter.eventsourcing.api.fromJson
 import org.springframework.r2dbc.core.DatabaseClient
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
-import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.junit.jupiter.Container
+import org.springframework.r2dbc.core.RowsFetchSpec
 import org.testcontainers.junit.jupiter.Testcontainers
 
 
@@ -65,16 +58,26 @@ class PostgresEventStreamTest {
         return DatabaseClient.create(connectionFactory)
     }
 
-    @Autowired
+    lateinit var postgresClient: DatabaseClient
+
     lateinit var eventStream: PostgresEventStream
 
     @BeforeAll
     fun beforeAll() {
-        eventStream = PostgresEventStream(postgresClient())
+        postgresClient = postgresClient()
+        eventStream = PostgresEventStream(postgresClient)
     }
 
     @Test
     fun `Pushing an event on the eventstream is persisted in Postgres`() = runBlocking {
         eventStream.push(Event.PlayerRegistered("Mumra"))
+
+        val map: RowsFetchSpec<String> = postgresClient.sql { "select payload from eventstore" }
+            .map { row -> row.get("payload", String::class.java) }
+        val map1 = map.all().map { it.fromJson<Event.PlayerRegistered>() }
+        val lastEvent = map1.blockLast()
+        assertThat(lastEvent?.nickname).isEqualTo("Mumra")
+
+        return@runBlocking
     }
 }

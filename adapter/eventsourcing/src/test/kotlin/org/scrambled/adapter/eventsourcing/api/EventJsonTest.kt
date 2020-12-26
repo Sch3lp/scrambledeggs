@@ -1,22 +1,43 @@
 package org.scrambled.adapter.eventsourcing.api
 
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-internal class EventJsonTest {
+class EventJsonTest {
     @Test
-    internal fun `PlayerRegistered can be serialized`() {
+    fun `PlayerRegistered can be serialized`() {
         val json = Event.PlayerRegistered("Snarf").asJson()
 
-        assertThat(json).isEqualTo("{\"nickname\":\"Snarf\",\"id\":\"859a77ab-96aa-4e38-8571-545a2b72fa9c\",\"at\":[2020,12,24,17,7,55,849986000],\"type\":\"PlayerRegistered\"}")
+        assertThat(json).contains("\"nickname\":\"Snarf\"").contains("\"type\":\"PlayerRegistered\"")
     }
 
     @Test
-    internal fun `PlayerRegistered can be serialized in a coroutine`() {
-        val json = suspend {
-            Event.PlayerRegistered("Snarf").asBlocking()
-        }
+    fun `PlayerRegistered can be serialized in a coroutine`() {
+        val json =
+            suspend {
+                Event.PlayerRegistered("Snarf").asJsonBlocking()
+            }
 
-        assertThat(json).isEqualTo("{\"nickname\":\"Snarf\",\"id\":\"859a77ab-96aa-4e38-8571-545a2b72fa9c\",\"at\":[2020,12,24,17,7,55,849986000],\"type\":\"PlayerRegistered\"}")
+        runBlocking { assertThat(json.invoke()).contains("\"nickname\":\"Snarf\"").contains("\"type\":\"PlayerRegistered\"") }
+    }
+
+    @Test
+    fun `PlayerRegistered can be deserialized`() {
+        val playerRegistered = Event.PlayerRegistered("Snarf")
+        val json = playerRegistered.asJson()
+
+        val deserialized = json.fromJson<Event.PlayerRegistered>()
+        assertThat(deserialized.also { println(it) }).isEqualTo(playerRegistered)
+        assertThat(deserialized.nickname).isEqualTo("Snarf")
+    }
+
+    @Test
+    fun `PlayerRegistered can be deserialized in a coroutine`() {
+        val playerRegistered = Event.PlayerRegistered("Snarf")
+        val json = playerRegistered.asJson()
+
+        val deserialized = suspend { json.fromJson<Event.PlayerRegistered>() }
+        runBlocking { assertThat(deserialized.invoke()).isEqualTo(playerRegistered) }
     }
 }
