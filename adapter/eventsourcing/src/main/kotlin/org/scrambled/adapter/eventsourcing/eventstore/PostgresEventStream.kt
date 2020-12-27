@@ -33,13 +33,13 @@ class PostgresEventStream(val client: DatabaseClient) : EventStore {
             .collect(collector)
     }
 
-    final suspend inline fun <reified T> mostRecent(): T = client
+    final suspend inline fun <reified T> mostRecent(): T? = client
         .sql { "select payload from eventstore order by at desc" }
         .map { row -> row.get("payload", String::class.java)!!.fromJson<Event>() }
         .all()
         .asFlow()
         .filterIsInstance<T>()
-        .first()
+        .firstOrNull()
 }
 
 fun Row.getString(index: Int) = get(index, String::class.java)
