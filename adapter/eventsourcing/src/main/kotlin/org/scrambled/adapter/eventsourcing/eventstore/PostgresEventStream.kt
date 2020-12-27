@@ -1,15 +1,13 @@
 package org.scrambled.adapter.eventsourcing.eventstore
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.r2dbc.spi.Row
 import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.runBlocking
 import org.scrambled.adapter.eventsourcing.api.Event
 import org.scrambled.adapter.eventsourcing.api.EventStore
 import org.scrambled.adapter.eventsourcing.api.asJson
+import org.scrambled.adapter.eventsourcing.api.fromJson
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.await
 import org.springframework.stereotype.Component
@@ -17,7 +15,7 @@ import reactor.core.publisher.Flux
 
 
 @Component
-class PostgresEventStream(private val client: DatabaseClient) : EventStore {
+class PostgresEventStream(val client: DatabaseClient) : EventStore {
 
     override suspend fun push(event: Event) =
         client.sql { "INSERT INTO eventstore values($1, $2, $3::JSON)" }
@@ -29,12 +27,19 @@ class PostgresEventStream(private val client: DatabaseClient) : EventStore {
     @InternalCoroutinesApi
     override suspend fun collect(collector: FlowCollector<Event>) {
         return client.sql { "SELECT payload FROM eventstore" }
-            .map { row -> row.getString(0)?.let { it -> jacksonObjectMapper().readValue<Event>(it) } }
+            .map { row -> row.getString(0)!!.fromJson<Event>() }
             .all()
-            .filterNonNull()
             .asFlow()
             .collect(collector)
     }
+
+    final suspend inline fun <reified T> mostRecent(): T = client
+        .sql { "select payload from eventstore order by at desc" }
+        .map { row -> row.get("payload", String::class.java)!!.fromJson<Event>() }
+        .all()
+        .asFlow()
+        .filterIsInstance<T>()
+        .first()
 }
 
 fun Row.getString(index: Int) = get(index, String::class.java)
