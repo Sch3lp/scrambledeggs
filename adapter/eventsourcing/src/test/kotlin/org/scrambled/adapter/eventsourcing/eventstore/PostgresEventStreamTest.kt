@@ -4,7 +4,6 @@ import io.r2dbc.postgresql.PostgresqlConnectionFactoryProvider.OPTIONS
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions.*
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
@@ -51,11 +50,27 @@ class PostgresEventStreamTest {
 
     @Test
     fun `Pushing an event on the eventstream is persisted in Postgres`() {
-        val newPlayerRegisteredEvent = Event.PlayerRegistered("Mumra9")
+        val newPlayerRegisteredEvent = Event.PlayerRegistered(randomString(10))
         runBlocking { eventStream.push(newPlayerRegisteredEvent) }
         runBlocking {
             val mostRecentEvent = eventStream.mostRecent<Event.PlayerRegistered>()
             assertThat(mostRecentEvent).isEqualTo(newPlayerRegisteredEvent)
         }
     }
+
+    @Test
+    fun `Getting the mostRecent event of a specific type ignores other events`() {
+        val newPlayerRegisteredEvent = Event.PlayerRegistered(randomString(10))
+        runBlocking { eventStream.push(newPlayerRegisteredEvent) }
+        runBlocking { eventStream.push(Event.PlayerRenamed(randomString(10))) }
+        runBlocking {
+            val mostRecentEvent = eventStream.mostRecent<Event.PlayerRegistered>()
+            assertThat(mostRecentEvent).isEqualTo(newPlayerRegisteredEvent)
+        }
+    }
+}
+
+fun randomString(i: Int = 1) : String {
+    val chars = 'A'..'z'
+    return (0..i).fold("${chars.random()}") { acc, _ -> acc + chars.random() }
 }
