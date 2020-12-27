@@ -24,13 +24,13 @@ internal class RegistrationControllerTest {
     internal fun `an authenticated user can register themselves`() {
         val result = mvc.perform {
             post("/api/register")
-                .content("""{ "name": "Snarf" }""")
+                .content("""{ "username": "Snarf" }""")
                 .contentType(MediaType.APPLICATION_JSON)
                 .buildRequest(it)
         }.andExpect(status().isOk())
             .andReturn()
             .response.contentAsString
 
-        Assertions.assertThat(result).isEqualTo("""{"name":"Snarf"}""")
+        Assertions.assertThat(result).isEqualTo("""{"username":"Snarf"}""")
     }
 }
