@@ -86,7 +86,7 @@ class PostgresEventStreamTest {
     }
 }
 
-fun randomString(i: Int = 1): String {
+fun randomString(randomStringLength: Int = 1): String {
     val chars = 'A'..'z'
-    return (0..i).fold("${chars.random()}") { acc, _ -> acc + chars.random() }
+    return (0..randomStringLength).fold("${chars.random()}") { acc, _ -> acc + chars.random() }
 }
