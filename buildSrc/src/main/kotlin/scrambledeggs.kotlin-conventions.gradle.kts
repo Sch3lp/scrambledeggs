@@ -13,9 +13,13 @@ repositories {
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+    implementation(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.4.2")) //TODO figure out why I need to supply a specific version here
+
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.6.2")
     testImplementation("org.assertj:assertj-core:3.14.0")
