@@ -38,9 +38,10 @@ class PostgresEventStoreSpringWiringTest {
 
     @Test
     fun `Getting the mostRecent event of a specific type ignores other events`() {
-        val newPlayerRegisteredEvent = Event.PlayerRegistered(randomString(10))
+        val nickname = randomString(10)
+        val newPlayerRegisteredEvent = Event.PlayerRegistered(nickname)
         runBlocking { eventStream.push(newPlayerRegisteredEvent) }
-        runBlocking { eventStream.push(Event.PlayerRenamed(randomString(10))) }
+        runBlocking { eventStream.push(Event.PlayerRenamed(nickname, randomString(10))) }
         runBlocking {
             val mostRecentEvent = eventStream.mostRecent<Event.PlayerRegistered>()
             assertThat(mostRecentEvent).isEqualTo(newPlayerRegisteredEvent)
@@ -49,7 +50,7 @@ class PostgresEventStoreSpringWiringTest {
 
     @Test
     fun `Getting the mostRecent event of a specific type when there was never such an event returns nothing`() {
-        runBlocking { eventStream.push(Event.PlayerRenamed(randomString(10))) }
+        runBlocking { eventStream.push(Event.PlayerRenamed(randomString(10), randomString(10))) }
         runBlocking {
             val mostRecentEvent = eventStream.mostRecent<Event.PlayerRegistered>()
             assertThat(mostRecentEvent).isNull()

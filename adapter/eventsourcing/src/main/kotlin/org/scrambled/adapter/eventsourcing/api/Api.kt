@@ -26,7 +26,7 @@ sealed class Event(val type: EventType) {
     data class PlayerRegistered(val nickname: String) : Event(EventType.PlayerRegistered)
 
     @JsonTypeName("PlayerRenamed")
-    data class PlayerRenamed(val newNickname: String) : Event(EventType.PlayerRenamed)
+    data class PlayerRenamed(val oldNickname: String, val newNickname: String) : Event(EventType.PlayerRenamed)
 }
 
 fun Event.asJson() = scrambledObjectMapper().writeValueAsString(this)
