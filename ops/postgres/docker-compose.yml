@@ -3,8 +3,16 @@ services:
   eventstore_local_db:
     image: library/postgres:13.1-alpine
     ports:
-      - "6667:5432"
+      - "6668:5432"
     environment:
       POSTGRES_DB: postgreseventsdb
       POSTGRES_USER: snarf
       POSTGRES_PASSWORD: Lion-0!
+  projections_local_db:
+    image: library/postgres:13.1-alpine
+    ports:
+      - "6669:5432"
+    environment:
+      POSTGRES_DB: postgresprojectionsdb
+      POSTGRES_USER: mumra
+      POSTGRES_PASSWORD: SnarfSnarf!
