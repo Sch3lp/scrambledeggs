@@ -15,7 +15,7 @@ import reactor.core.publisher.Flux
 
 
 @Component
-class PostgresEventStream(val client: DatabaseClient) : EventStore {
+class PostgresEventStore(val client: DatabaseClient) : EventStore {
 
     override suspend fun push(event: Event) =
         client.sql { "INSERT INTO eventstore values($1, $2, $3::JSON)" }

@@ -13,10 +13,10 @@ import org.testcontainers.junit.jupiter.Testcontainers
 
 @DataR2dbcTest
 @Testcontainers
-class PostgresEventStreamSpringWiringTest {
+class PostgresEventStoreSpringWiringTest {
 
     @Autowired
-    private lateinit var eventStream: PostgresEventStream
+    private lateinit var eventStream: PostgresEventStore
     @Autowired
     private lateinit var postgresClient: DatabaseClient
 
