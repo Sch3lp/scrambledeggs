@@ -19,6 +19,11 @@ class LeaderboardProjections(private val eventStore: EventStore) {
 
     //subscribes to system-events (not events that are going to be stored in the eventStore!!!!)
     suspend fun subscribePlayerRegisteredSystemEvent() {
+        // Do we first re-create a Leaderboard aggregate (and pass along the eventStore)
+        // and project it to the table: Leaderboard(eventStore).project(handle)
+        // Alternatively:
+        // Leaderboard.replayFrom(eventStore).project(handle)
+
         eventStore.filterEvents<Event.PlayerRegistered>().collect {
             addPlayerToLeaderboard(it.nickname)
         }

@@ -39,6 +39,7 @@ elm-live src/main/elm/Main.elm --open -d src/main/resources --start-page=index.h
 `--src/main/resources/main.js`: Make sure that the dist is built in the same directory as we're serving from (see `-d`).
 
 ## Todo
+* [ ] How to do projections? From which class/responsible thing do we initiate it?
 * [ ] EventSourcing: what's out there? Or do we DIY it with Postgres?
 * [x] Try to use elm-ui (and/or elm-css, dunno what it's called nowadays)
 * [x] Do some proper error handling
