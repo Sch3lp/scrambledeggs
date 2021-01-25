@@ -1,16 +1,23 @@
 package org.scrambled.adapter.restapi.registration
 
 import org.scrambled.adapter.restapi.exceptionhandling.CustomException
+import org.scrambled.domain.core.api.challenging.ChallengePlayer
+import org.scrambled.domain.core.api.players.QueryPlayerById
+import org.scrambled.infra.cqrs.CommandExecutor
+import org.scrambled.infra.cqrs.QueryExecutor
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
 
 @RestController
-@RequestMapping("/api/register",
-    produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping(
+    "/api/register",
+    produces = [MediaType.APPLICATION_JSON_VALUE]
+)
 class RegistrationController {
 
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
@@ -28,3 +35,33 @@ class RegistrationController {
 }
 
 data class PlayerNameJson(val username: String)
+
+@RestController
+@RequestMapping(
+    "/api/challenge",
+    produces = [MediaType.APPLICATION_JSON_VALUE]
+)
+class ChallengeController(
+    private val commandExecutor: CommandExecutor,
+    private val queryExecutor: QueryExecutor,
+) {
+
+    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
+    fun challengePlayer(@RequestBody(required = true) challengeRequest: ChallengePlayerJson): ResponseEntity<String> {
+
+        commandExecutor.execute(ChallengePlayer(challengeRequest.initiator, challengeRequest.opponent))
+
+        val opponent: RegisteredPlayerJson = queryExecutor
+            .execute(QueryPlayerById(challengeRequest.opponent)) {
+                RegisteredPlayerJson(
+                    it.id,
+                    it.nickName
+                )
+            } ?: throw CustomException("Couldn't find stuff")
+
+        return ResponseEntity.ok("Player $opponent was successfully challenged")
+    }
+}
+
+data class ChallengePlayerJson(val initiator: UUID, val opponent: UUID)
+data class RegisteredPlayerJson(val playerId: UUID, val nickName: String)
