@@ -55,7 +55,7 @@ class ChallengeController(
             .execute(QueryPlayerById(challengeRequest.opponent)) {
                 RegisteredPlayerJson(
                     it.id,
-                    it.nickName
+                    it.nickname
                 )
             } ?: throw CustomException("Couldn't find stuff")
 

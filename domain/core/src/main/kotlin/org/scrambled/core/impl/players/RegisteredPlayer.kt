@@ -4,7 +4,10 @@ import org.scrambled.domain.core.api.challenging.ChallengePlayer
 import org.scrambled.domain.core.api.challenging.PlayerChallenged
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.challenging.PlayerNickname
+import org.scrambled.domain.core.api.players.QueryPlayerById
+import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
 import org.scrambled.infra.cqrs.CommandHandler
+import org.scrambled.infra.cqrs.QueryHandler
 import org.scrambled.infra.cqrs.repositoryForAggregate
 
 
@@ -27,6 +30,14 @@ class ChallengePlayerHandler: CommandHandler<ChallengePlayer> {
         return registeredPlayer.execute(cmd)
     }
 }
-
 fun RegisteredPlayer.execute(challengePlayer: ChallengePlayer) =
     this.challenge(challengePlayer.otherPlayerId)
+
+
+class PlayerByIdQueryHandler: QueryHandler<QueryPlayerById, RegisteredPlayerRepresentation> {
+    override fun handle(query: QueryPlayerById): RegisteredPlayerRepresentation {
+        val registeredPlayer = repositoryForAggregate<RegisteredPlayer>().getById(query.id) ?: throw RuntimeException("No Player found for ${query.id}")
+        return registeredPlayer.toRepresentation()
+    }
+}
+fun RegisteredPlayer.toRepresentation(): RegisteredPlayerRepresentation = RegisteredPlayerRepresentation(this.id, this.nickName)

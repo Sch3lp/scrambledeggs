@@ -21,19 +21,25 @@ interface CommandHandler<Cmd> {
 }
 
 
-typealias DomainEventId = UUID
-abstract class DomainEvent(private val id: DomainEventId = UUID.randomUUID())
-
-
-
 interface Query<Aggregate : Any> {
     val id: AggregateId
 }
-class QueryExecutor {
+class QueryExecutor(
+    private val queryHandlers: List<QueryHandler<*,*>>
+) {
     fun <Agg : Any, R> execute(query: Query<Agg>, transformer: (Agg) -> R): R? {
-        return repositoryForAggregate<Agg>().getById(query.id)?.let { transformer(it) }
+        return handlerForQuery<Query<Agg>, Agg>().handle(query)?.let { transformer(it) }
     }
+    private fun <Q: Query<R>, R:Any> handlerForQuery() =
+        (queryHandlers as List<QueryHandler<Q, R>>).first()
 }
+interface QueryHandler<Q: Query<Representation>, Representation: Any> {
+    fun handle(query: Q): Representation?
+}
+
+
+
+
 interface Repository<Aggregate> {
     fun getById(id: AggregateId): Aggregate?
 }
@@ -43,6 +49,5 @@ fun <Agg : Any> repositoryForAggregate(): Repository<Agg> {
 }
 
 
-
-
-
+typealias DomainEventId = UUID
+abstract class DomainEvent(private val id: DomainEventId = UUID.randomUUID())
