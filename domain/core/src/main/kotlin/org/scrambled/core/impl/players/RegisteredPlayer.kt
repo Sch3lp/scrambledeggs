@@ -33,10 +33,6 @@ class RegisterPlayerHandler(
         playerRepository.save(registeredPlayer)
         return PlayerRegistered(registeredPlayer.id, registeredPlayer.nickName)
     }
-
-    override fun canHandle(commandType: Class<out RegisterPlayer>): Boolean {
-        return commandType == RegisterPlayer::class.java
-    }
 }
 
 
@@ -48,10 +44,6 @@ class ChallengePlayerHandler(
         val registeredPlayer = playerRepository.getById(cmd.id)
             ?: throw RuntimeException("No Aggregate found for id ${cmd.id}")
         return registeredPlayer.execute(cmd)
-    }
-
-    override fun canHandle(commandType: Class<out ChallengePlayer>): Boolean {
-        return commandType == ChallengePlayer::class.java
     }
 }
 fun RegisteredPlayer.execute(challengePlayer: ChallengePlayer) =

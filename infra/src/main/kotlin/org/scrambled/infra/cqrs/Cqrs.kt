@@ -18,15 +18,15 @@ class CommandExecutor(
         val domainEvent = handlerForCommand(command).handle(command)
         domainEventBroadcaster.publish(domainEvent)
     }
-    private fun <Cmd: Command> handlerForCommand(command: Cmd) =
+    private inline fun <reified Cmd: Command> handlerForCommand(command: Cmd) =
         (commandHandlers as List<CommandHandler<Cmd>>)
-            .first { it.canHandle(command::class.java) }
+            .first { handler -> command::class.java == handler.commandType }
 }
 @Component
-interface CommandHandler<Cmd> {
+interface CommandHandler<Cmd: Command> {
     fun handle(cmd: Cmd): DomainEvent
-    fun canHandle(commandType: Class<out Cmd>): Boolean
 }
+inline val <reified Cmd: Command> CommandHandler<Cmd>.commandType get() = Cmd::class.java
 
 
 
@@ -39,15 +39,17 @@ class QueryExecutor(
     private val queryHandlers: List<QueryHandler<*,*>>
 ) {
     fun <Agg : Any, R> execute(query: Query<Agg>, transformer: (Agg) -> R): R? {
-        return handlerForQuery<Query<Agg>, Agg>().handle(query)?.let { transformer(it) }
+        return handlerForQuery(query).handle(query)?.let { transformer(it) }
     }
-    private fun <Q: Query<R>, R:Any> handlerForQuery() =
-        (queryHandlers as List<QueryHandler<Q, R>>).first()
+    private inline fun <reified Q: Query<R>, R:Any> handlerForQuery(query: Q) =
+        (queryHandlers as List<QueryHandler<Q, R>>)
+            .first { handler -> query::class.java == handler.queryType }
 }
 @Component
 interface QueryHandler<Q: Query<Representation>, Representation: Any> {
     fun handle(query: Q): Representation?
 }
+inline val <reified Q: Query<*>> QueryHandler<Q, *>.queryType get() = Q::class.java
 
 
 
