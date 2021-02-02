@@ -1,15 +1,18 @@
 plugins {
-    id("scrambledeggs.kotlin-conventions")
     id("scrambledeggs.spring-conventions")
 }
 
 dependencies {
     implementation(project(":adapter:rest-api"))
-    implementation(project(":adapter:eventsourcing"))
-    implementation(project(":adapter:rdbms"))
+//    implementation(project(":adapter:eventsourcing"))
+//    implementation(project(":adapter:rdbms"))
     implementation(project(":domain:core"))
     implementation(project(":domain:core-api"))
     implementation(project(":infra"))
+
+    val ktorVersion = "1.5.1"
+    testImplementation("io.ktor:ktor-client-cio:$ktorVersion")
+    testImplementation("io.ktor:ktor-client-jackson:$ktorVersion")
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {

@@ -2,7 +2,8 @@ package org.scrambled.adapter.restapi.registration
 
 import org.scrambled.adapter.restapi.exceptionhandling.CustomException
 import org.scrambled.domain.core.api.challenging.ChallengePlayer
-import org.scrambled.domain.core.api.players.QueryPlayerById
+import org.scrambled.domain.core.api.players.PlayerById
+import org.scrambled.domain.core.api.registration.RegisterPlayer
 import org.scrambled.infra.cqrs.CommandExecutor
 import org.scrambled.infra.cqrs.QueryExecutor
 import org.springframework.http.MediaType
@@ -18,7 +19,10 @@ import java.util.*
     "/api/register",
     produces = [MediaType.APPLICATION_JSON_VALUE]
 )
-class RegistrationController {
+class RegistrationController(
+    private val commandExecutor: CommandExecutor,
+    private val queryExecutor: QueryExecutor,
+) {
 
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun registerPlayer(@RequestBody(required = true) playerName: PlayerNameJson): ResponseEntity<PlayerNameJson> {
@@ -29,6 +33,8 @@ class RegistrationController {
         val sub = "1234"
 
 //        throw CustomException("This is a message from the backend that will be shown in the frontend")
+
+        commandExecutor.execute(RegisterPlayer(playerName.username))
 
         return ResponseEntity.ok(playerName)
     }
@@ -52,7 +58,7 @@ class ChallengeController(
         commandExecutor.execute(ChallengePlayer(challengeRequest.initiator, challengeRequest.opponent))
 
         val opponent: RegisteredPlayerJson = queryExecutor
-            .execute(QueryPlayerById(challengeRequest.opponent)) {
+            .execute(PlayerById(challengeRequest.opponent)) {
                 RegisteredPlayerJson(
                     it.id,
                     it.nickname

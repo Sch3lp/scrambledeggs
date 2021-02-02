@@ -5,10 +5,12 @@ import org.scrambled.infra.cqrs.DomainEvent
 import java.util.*
 
 data class ChallengePlayer(
-    override val id: PlayerId, val otherPlayerId: PlayerId
+    override val id: ChallengerId, val otherPlayerId: OpponentId
 ): Command
 
-data class PlayerChallenged(val initiator: PlayerId, val opponent: PlayerId): DomainEvent()
+data class PlayerChallenged(val initiator: ChallengerId, val opponent: OpponentId): DomainEvent()
 
+typealias ChallengerId = PlayerId
+typealias OpponentId = PlayerId
 typealias PlayerId = UUID
 typealias PlayerNickname = String
