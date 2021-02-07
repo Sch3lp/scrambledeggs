@@ -20,13 +20,15 @@ class CommandExecutor(
     }
     private inline fun <reified Cmd: Command> handlerForCommand(command: Cmd) =
         (commandHandlers as List<CommandHandler<Cmd>>)
-            .first { handler -> command::class.java == handler.commandType }
+            .first { handler ->
+                val commandType = handler.commandType
+                command::class.java == commandType
+            }
 }
-@Component
 interface CommandHandler<Cmd: Command> {
+    val commandType: Class<Cmd>
     fun handle(cmd: Cmd): DomainEvent
 }
-inline val <reified Cmd: Command> CommandHandler<Cmd>.commandType get() = Cmd::class.java
 
 
 
@@ -45,18 +47,18 @@ class QueryExecutor(
         (queryHandlers as List<QueryHandler<Q, R>>)
             .first { handler -> query::class.java == handler.queryType }
 }
-@Component
 interface QueryHandler<Q: Query<Representation>, Representation: Any> {
+    val queryType: Class<Q>
     fun handle(query: Q): Representation?
 }
 inline val <reified Q: Query<*>> QueryHandler<Q, *>.queryType get() = Q::class.java
 
 
 
-@Component
+//TODO remove because it's not used in "infra"
 interface Repository<Aggregate> {
     fun getById(id: AggregateId): Aggregate?
-    fun save(registeredPlayer: Aggregate)
+    fun save(aggregate: Aggregate)
 }
 
 

@@ -1,7 +1,7 @@
 plugins {
-    id("scrambledeggs.kotlin-conventions")
+    id("scrambledeggs.spring-conventions")
 }
 
 dependencies {
-    implementation(project(":infra"))
+    api(project(":infra"))
 }
