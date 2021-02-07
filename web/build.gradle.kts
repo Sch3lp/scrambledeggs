@@ -5,7 +5,7 @@ plugins {
 dependencies {
     implementation(project(":adapter:rest-api"))
 //    implementation(project(":adapter:eventsourcing"))
-//    implementation(project(":adapter:rdbms"))
+    implementation(project(":adapter:rdbms"))
     implementation(project(":domain:core"))
     implementation(project(":domain:core-api"))
     implementation(project(":infra"))
