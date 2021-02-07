@@ -1,6 +1,9 @@
 package org.scrambled.adapter.restapi.registration
 
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.CoreMatchers
+import org.hamcrest.CoreMatchers.containsString
 import org.junit.jupiter.api.Test
 import org.scrambled.adapter.restapi.RestApiTestConfig
 import org.springframework.beans.factory.annotation.Autowired
@@ -10,6 +13,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest
@@ -27,10 +31,11 @@ internal class RegistrationControllerTest {
                 .content("""{ "username": "Snarf" }""")
                 .contentType(MediaType.APPLICATION_JSON)
                 .buildRequest(it)
-        }.andExpect(status().isOk())
+        }.andExpect(status().isCreated)
+            .andExpect(header().string("Location", containsString("/api/player")))
             .andReturn()
             .response.contentAsString
 
-        Assertions.assertThat(result).isEqualTo("""{"username":"Snarf"}""")
+        assertThat(result).isEqualTo("""{"username":"Snarf"}""")
     }
 }
