@@ -30,9 +30,11 @@ val client = HttpClient(CIO) {
     }
 }
 
+val baseUrl = "http://localhost:9999/api"
+
 suspend fun registerPlayerStep(playerNickname: String): PlayerId {
     val response = client.post<HttpResponse> {
-        url("http://localhost:9999/api/register")
+        url("$baseUrl/register")
         contentType(ContentType.Application.Json)
         body = PlayerNameJson(playerNickname)
     }
@@ -43,7 +45,7 @@ suspend fun registerPlayerStep(playerNickname: String): PlayerId {
 
 suspend fun fetchPlayerStep(playerId: PlayerId): RegisteredPlayerJson {
     return client.get {
-        url("http://localhost:9999/api/player/$playerId")
+        url("$baseUrl/player/$playerId")
         contentType(ContentType.Application.Json)
     }
 }

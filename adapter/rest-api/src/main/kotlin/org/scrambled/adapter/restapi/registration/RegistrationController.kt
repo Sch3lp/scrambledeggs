@@ -32,43 +32,12 @@ class RegistrationController(
         // both of these people (who are physically different people, aka different players) will be able to log in to each others account
         val sub = "1234"
 
-//        throw CustomException("This is a message from the backend that will be shown in the frontend")
-
-        val registerPlayer = RegisterPlayer(playerName.username)
+        val registerPlayer = RegisterPlayer(nickname = playerName.username)
         commandExecutor.execute(registerPlayer)
 
         val locationUri = builder.path("/api/player/{id}").buildAndExpand(registerPlayer.id).toUri()
 
         return ResponseEntity.created(locationUri).body(playerName)
-    }
-}
-
-data class PlayerNameJson(val username: String)
-
-@RestController
-@RequestMapping(
-    "/api/challenge",
-    produces = [MediaType.APPLICATION_JSON_VALUE]
-)
-class ChallengeController(
-    private val commandExecutor: CommandExecutor,
-    private val queryExecutor: QueryExecutor,
-) {
-
-    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun challengePlayer(@RequestBody(required = true) challengeRequest: ChallengePlayerJson): ResponseEntity<String> {
-
-        commandExecutor.execute(ChallengePlayer(challengeRequest.initiator, challengeRequest.opponent))
-
-        val opponent: RegisteredPlayerJson = queryExecutor
-            .execute(PlayerById(challengeRequest.opponent)) {
-                RegisteredPlayerJson(
-                    it.id,
-                    it.nickname
-                )
-            }
-
-        return ResponseEntity.ok("Player $opponent was successfully challenged")
     }
 }
 
@@ -97,6 +66,36 @@ class PlayerController(
 }
 
 
+@RestController
+@RequestMapping(
+    "/api/challenge",
+    produces = [MediaType.APPLICATION_JSON_VALUE]
+)
+class ChallengeController(
+    private val commandExecutor: CommandExecutor,
+    private val queryExecutor: QueryExecutor,
+) {
 
-data class ChallengePlayerJson(val initiator: UUID, val opponent: UUID)
+    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
+    fun challengePlayer(@RequestBody(required = true) challengeRequest: ChallengePlayerJson): ResponseEntity<String> {
+
+        commandExecutor.execute(ChallengePlayer(challengeRequest.initiator, challengeRequest.opponent))
+
+        val opponent: RegisteredPlayerJson = queryExecutor
+            .execute(PlayerById(challengeRequest.opponent)) {
+                RegisteredPlayerJson(
+                    it.id,
+                    it.nickname
+                )
+            }
+
+        return ResponseEntity.ok("Player $opponent was successfully challenged")
+    }
+}
+
+
+
+
+data class PlayerNameJson(val username: String)
 data class RegisteredPlayerJson(val playerId: UUID, val nickname: String)
+data class ChallengePlayerJson(val initiator: UUID, val opponent: UUID)

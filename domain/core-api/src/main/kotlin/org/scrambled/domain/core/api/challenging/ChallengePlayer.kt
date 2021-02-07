@@ -5,7 +5,7 @@ import org.scrambled.infra.cqrs.DomainEvent
 import java.util.*
 
 data class ChallengePlayer(
-    override val id: ChallengerId, val otherPlayerId: OpponentId
+    val id: ChallengerId, val otherPlayerId: OpponentId
 ): Command
 
 data class PlayerChallenged(val initiator: ChallengerId, val opponent: OpponentId): DomainEvent()

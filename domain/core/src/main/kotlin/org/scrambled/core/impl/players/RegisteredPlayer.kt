@@ -32,7 +32,7 @@ class RegisterPlayerHandler(
     override val commandType = RegisterPlayer::class.java
 
     override fun handle(cmd: RegisterPlayer): DomainEvent {
-        val registeredPlayer = RegisteredPlayer(cmd.id, cmd.nickName)
+        val registeredPlayer = RegisteredPlayer(cmd.id, cmd.nickname)
         playerRepository.save(registeredPlayer)
         return PlayerRegistered(registeredPlayer.id, registeredPlayer.nickName)
     }

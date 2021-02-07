@@ -26,7 +26,7 @@ data class FindByArtist(val artist: String) : Query<Song> {
 }
 class FindByArtistHandler(val songDb: List<Song>) : QueryHandler<FindByArtist, Song> {
     override val queryType = FindByArtist::class.java
-    override fun handle(query: FindByArtist) = songDb.firstOrNull { it.artist == query.artist }
+    override fun handle(query: FindByArtist) = songDb.first { it.artist == query.artist }
 }
 
 data class FindByTitle(val title: String) : Query<Song> {
@@ -34,5 +34,5 @@ data class FindByTitle(val title: String) : Query<Song> {
 }
 class FindByTitleHandler(val songDb: List<Song>) : QueryHandler<FindByTitle, Song> {
     override val queryType = FindByTitle::class.java
-    override fun handle(query: FindByTitle) = songDb.firstOrNull { it.title == query.title }
+    override fun handle(query: FindByTitle) = songDb.first { it.title == query.title }
 }

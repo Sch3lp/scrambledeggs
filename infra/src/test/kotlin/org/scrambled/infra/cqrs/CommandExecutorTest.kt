@@ -2,7 +2,6 @@ package org.scrambled.infra.cqrs
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.util.*
 
 internal class CommandExecutorTest {
     private val broadcaster = DomainEventBroadcaster()
@@ -32,9 +31,7 @@ internal class PlaySongHandler: CommandHandler<PlaySong> {
     }
 }
 
-internal data class PlaySong(val songName: String): Command {
-    override val id: AggregateId = UUID.randomUUID()
-}
+internal data class PlaySong(val songName: String): Command
 internal data class SongStarted(val songName: String): DomainEvent()
 
 internal class RewindSongHandler: CommandHandler<RewindSong> {
@@ -44,7 +41,5 @@ internal class RewindSongHandler: CommandHandler<RewindSong> {
     }
 }
 
-internal data class RewindSong(val songName: String): Command {
-    override val id: AggregateId = UUID.randomUUID()
-}
+internal data class RewindSong(val songName: String): Command
 internal data class SongRestarted(val songName: String): DomainEvent()

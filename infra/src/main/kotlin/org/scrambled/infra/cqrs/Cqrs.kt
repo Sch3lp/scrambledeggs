@@ -2,13 +2,11 @@ package org.scrambled.infra.cqrs
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 typealias AggregateId = UUID
 
-interface Command {
-    val id: AggregateId
-}
 @Component
 class CommandExecutor(
     private val commandHandlers: List<CommandHandler<*>>,
@@ -25,6 +23,9 @@ class CommandExecutor(
                 command::class.java == commandType
             }
 }
+interface Command
+
+@Transactional(transactionManager = "rdbms-tx-mgr")
 interface CommandHandler<Cmd: Command> {
     val commandType: Class<Cmd>
     fun handle(cmd: Cmd): DomainEvent
@@ -33,9 +34,6 @@ interface CommandHandler<Cmd: Command> {
 
 
 
-interface Query<Aggregate : Any> {
-    val id: AggregateId
-}
 @Component
 class QueryExecutor(
     private val queryHandlers: List<QueryHandler<*,*>>
@@ -47,17 +45,15 @@ class QueryExecutor(
         (queryHandlers as List<QueryHandler<Q, R>>)
             .first { handler -> query::class.java == handler.queryType }
 }
+interface Query<Aggregate : Any> {
+    val id: AggregateId
+}
+@Transactional(transactionManager = "rdbms-tx-mgr")
 interface QueryHandler<Q: Query<Representation>, Representation: Any> {
     val queryType: Class<Q>
     fun handle(query: Q): Representation
 }
 
-
-//TODO remove because it's not used in "infra"
-interface Repository<Aggregate> {
-    fun getById(id: AggregateId): Aggregate?
-    fun save(aggregate: Aggregate)
-}
 
 
 
