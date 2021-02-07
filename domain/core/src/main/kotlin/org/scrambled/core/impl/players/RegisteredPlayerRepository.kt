@@ -3,23 +3,22 @@ package org.scrambled.core.impl.players
 import org.scrambled.domain.core.api.Repository
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.exceptions.NotFoundException
-import org.scrambled.domain.core.api.players.IPlayers
-import org.scrambled.domain.core.api.players.PlayerFromDb
+import org.scrambled.domain.core.api.players.QueryablePlayers
+import org.scrambled.domain.core.api.players.QueryablePlayer
 import org.springframework.stereotype.Component
 
 @Component
 class RegisteredPlayerRepository(
-    val playerDao: IPlayers
+    val players: QueryablePlayers
 ) : Repository<RegisteredPlayer> {
 
     override fun getById(id: PlayerId) =
-        playerDao.getById(id)?.toRegisteredPlayer()
+        players.getById(id)?.toRegisteredPlayer()
             ?: throw NotFoundException("Couldn't find Player with id $id")
 
-    override fun save(aggregate: RegisteredPlayer) {
-        val toSave = PlayerFromDb(aggregate.id, aggregate.nickName)
-        playerDao.persist(toSave)
-    }
-}
+    override fun save(aggregate: RegisteredPlayer) =
+        QueryablePlayer(aggregate.id, aggregate.nickName).save()
 
-fun PlayerFromDb.toRegisteredPlayer() = RegisteredPlayer(this.id, this.nickname)
+    fun QueryablePlayer.save() = players.store(this)
+    fun QueryablePlayer.toRegisteredPlayer() = RegisteredPlayer(this.id, this.nickname)
+}

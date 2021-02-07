@@ -5,10 +5,9 @@ import org.scrambled.infra.cqrs.Command
 import org.scrambled.infra.cqrs.DomainEvent
 import java.util.*
 
-data class RegisterPlayer(
-    val id: PlayerId = generatePlayerId(),
-    val nickname: String
-): Command
+data class RegisterPlayer(val nickname: String): Command {
+    val id: PlayerId = generatePlayerId()
+}
 
 data class PlayerRegistered(
     val id: PlayerId,

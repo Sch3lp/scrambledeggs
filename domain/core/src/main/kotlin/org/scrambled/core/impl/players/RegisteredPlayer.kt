@@ -47,7 +47,6 @@ class ChallengePlayerHandler(
 
     override fun handle(cmd: ChallengePlayer): PlayerChallenged {
         val registeredPlayer = playerRepository.getById(cmd.id)
-            ?: throw NotFoundException("No Player found for id ${cmd.id}")
         return registeredPlayer.execute(cmd)
     }
 }
@@ -63,7 +62,6 @@ class PlayerByIdQueryHandler(
 
     override fun handle(query: PlayerById): RegisteredPlayerRepresentation {
         val registeredPlayer = playerRepository.getById(query.id)
-            ?: throw NotFoundException("No Player found for id ${query.id}")
         return registeredPlayer.toRepresentation()
     }
 }
