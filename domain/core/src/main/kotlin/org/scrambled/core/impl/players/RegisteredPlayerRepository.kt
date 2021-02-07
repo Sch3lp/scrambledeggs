@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 @Component
 class RegisteredPlayerRepository: Repository<RegisteredPlayer> {
     override fun getById(id: AggregateId): RegisteredPlayer? {
-        return null
+        return RegisteredPlayer(id, "Sch3lp")
     }
 
     override fun save(registeredPlayer: RegisteredPlayer) {
