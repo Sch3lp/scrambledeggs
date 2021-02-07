@@ -40,8 +40,8 @@ interface Query<Aggregate : Any> {
 class QueryExecutor(
     private val queryHandlers: List<QueryHandler<*,*>>
 ) {
-    fun <Agg : Any, R> execute(query: Query<Agg>, transformer: (Agg) -> R): R? {
-        return handlerForQuery(query).handle(query)?.let { transformer(it) }
+    fun <Agg : Any, R> execute(query: Query<Agg>, transformer: (Agg) -> R): R {
+        return handlerForQuery(query).handle(query).let { transformer(it) }
     }
     private inline fun <reified Q: Query<R>, R:Any> handlerForQuery(query: Q) =
         (queryHandlers as List<QueryHandler<Q, R>>)
@@ -49,10 +49,8 @@ class QueryExecutor(
 }
 interface QueryHandler<Q: Query<Representation>, Representation: Any> {
     val queryType: Class<Q>
-    fun handle(query: Q): Representation?
+    fun handle(query: Q): Representation
 }
-inline val <reified Q: Query<*>> QueryHandler<Q, *>.queryType get() = Q::class.java
-
 
 
 //TODO remove because it's not used in "infra"

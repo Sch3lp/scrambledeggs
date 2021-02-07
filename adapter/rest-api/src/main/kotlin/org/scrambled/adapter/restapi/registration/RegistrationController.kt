@@ -1,18 +1,14 @@
 package org.scrambled.adapter.restapi.registration
 
-import org.scrambled.adapter.restapi.exceptionhandling.CustomException
 import org.scrambled.domain.core.api.challenging.ChallengePlayer
+import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.players.PlayerById
 import org.scrambled.domain.core.api.registration.RegisterPlayer
 import org.scrambled.infra.cqrs.CommandExecutor
 import org.scrambled.infra.cqrs.QueryExecutor
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import java.util.*
 
@@ -70,11 +66,37 @@ class ChallengeController(
                     it.id,
                     it.nickname
                 )
-            } ?: throw CustomException("Couldn't find stuff")
+            }
 
         return ResponseEntity.ok("Player $opponent was successfully challenged")
     }
 }
+
+@RestController
+@RequestMapping(
+    "/api/player",
+    produces = [MediaType.APPLICATION_JSON_VALUE]
+)
+class PlayerController(
+    private val queryExecutor: QueryExecutor,
+) {
+
+    @GetMapping(path = ["/{id}"])
+    fun getPlayerById(
+        @PathVariable id: PlayerId
+    ): ResponseEntity<RegisteredPlayerJson> {
+        val player = queryExecutor.execute(PlayerById(id)) {
+            RegisteredPlayerJson(
+                it.id,
+                it.nickname
+            )
+        }
+
+        return ResponseEntity.ok(player)
+    }
+}
+
+
 
 data class ChallengePlayerJson(val initiator: UUID, val opponent: UUID)
 data class RegisteredPlayerJson(val playerId: UUID, val nickname: String)
