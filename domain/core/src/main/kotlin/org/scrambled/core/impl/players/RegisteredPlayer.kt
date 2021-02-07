@@ -9,9 +9,9 @@ import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
 import org.scrambled.domain.core.api.registration.PlayerRegistered
 import org.scrambled.domain.core.api.registration.RegisterPlayer
 import org.scrambled.infra.cqrs.CommandHandler
-import org.scrambled.infra.cqrs.DomainEvent
 import org.scrambled.infra.cqrs.QueryHandler
 import org.springframework.stereotype.Component
+import java.util.*
 
 
 data class RegisteredPlayer(
@@ -29,26 +29,33 @@ data class RegisteredPlayer(
 @Component
 class RegisterPlayerHandler(
     private val playerRepository: RegisteredPlayerRepository
-) : CommandHandler<RegisterPlayer> {
+) : CommandHandler<RegisteredPlayerRepresentation, RegisterPlayer> {
     override val commandType = RegisterPlayer::class
 
-    override fun handle(cmd: RegisterPlayer): DomainEvent {
-        val registeredPlayer = RegisteredPlayer(cmd.id, cmd.nickname)
+    override fun handle(cmd: RegisterPlayer): Pair<RegisteredPlayerRepresentation, PlayerRegistered> {
+        val registeredPlayer = RegisteredPlayer(generatePlayerId(), cmd.nickname)
+
         playerRepository.save(registeredPlayer)
-        return PlayerRegistered(registeredPlayer.id, registeredPlayer.nickName)
+        return registeredPlayerRepresentation(registeredPlayer) to
+                PlayerRegistered(registeredPlayer.id, registeredPlayer.nickName)
     }
+
+    private fun generatePlayerId(): PlayerId = UUID.randomUUID()
+
+    private fun registeredPlayerRepresentation(registeredPlayer: RegisteredPlayer) =
+        RegisteredPlayerRepresentation(registeredPlayer.id, registeredPlayer.nickName)
 }
 
 
 @Component
 class ChallengePlayerHandler(
     private val playerRepository: RegisteredPlayerRepository
-): CommandHandler<ChallengePlayer> {
+): CommandHandler<Unit, ChallengePlayer> {
     override val commandType = ChallengePlayer::class
 
-    override fun handle(cmd: ChallengePlayer): PlayerChallenged {
+    override fun handle(cmd: ChallengePlayer): Pair<Unit, PlayerChallenged> {
         val registeredPlayer = playerRepository.getById(cmd.id)
-        return registeredPlayer.execute(cmd)
+        return Unit to registeredPlayer.execute(cmd)
     }
 }
 fun RegisteredPlayer.execute(challengePlayer: ChallengePlayer) =

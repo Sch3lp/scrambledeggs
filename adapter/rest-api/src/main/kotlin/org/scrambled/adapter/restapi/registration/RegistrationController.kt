@@ -35,9 +35,9 @@ class RegistrationController(
         val sub = "1234"
 
         val registerPlayer = RegisterPlayer(nickname = playerName.username)
-        commandExecutor.execute(registerPlayer)
+        val registeredPlayer = commandExecutor.execute(registerPlayer)
 
-        val locationUri = builder.path("/api/player/{id}").buildAndExpand(registerPlayer.id).toUri()
+        val locationUri = builder.path("/api/player/{id}").buildAndExpand(registeredPlayer.id).toUri()
 
         return ResponseEntity.created(locationUri).body(playerName)
     }

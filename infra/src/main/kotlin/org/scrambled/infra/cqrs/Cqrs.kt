@@ -10,23 +10,25 @@ typealias AggregateId = UUID
 
 @Component
 class CommandExecutor(
-    private val commandHandlers: List<CommandHandler<*>>,
+    private val commandHandlers: List<CommandHandler<*,*>>,
     private val domainEventBroadcaster: DomainEventBroadcaster
 ) {
-    fun execute(command: Command) {
-        val domainEvent = handlerForCommand(command).handle(command)
+    fun <R> execute(command: Command<R>): R {
+        val handler = handlerForCommand(command)
+        val (result, domainEvent) = handler.handle(command)
         domainEventBroadcaster.publish(domainEvent)
+        return result
     }
-    private inline fun <reified Cmd: Command> handlerForCommand(command: Cmd) =
-        (commandHandlers as List<CommandHandler<Cmd>>)
+    private inline fun <R, reified Cmd: Command<R>> handlerForCommand(command: Cmd) =
+        (commandHandlers as List<CommandHandler<R, Cmd>>)
             .first { handler -> command::class == handler.commandType }
 }
-interface Command
+interface Command<R>
 
 @Transactional(transactionManager = "rdbms-tx-mgr")
-interface CommandHandler<Cmd: Command> {
+interface CommandHandler<R, Cmd: Command<R>> {
     val commandType: KClass<Cmd>
-    fun handle(cmd: Cmd): DomainEvent
+    fun handle(cmd: Cmd): Pair<R, DomainEvent>
 }
 
 

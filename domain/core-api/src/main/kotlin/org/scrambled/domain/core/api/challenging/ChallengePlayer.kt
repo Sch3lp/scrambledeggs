@@ -6,7 +6,7 @@ import java.util.*
 
 data class ChallengePlayer(
     val id: ChallengerId, val otherPlayerId: OpponentId
-): Command
+): Command<Unit>
 
 data class PlayerChallenged(val initiator: ChallengerId, val opponent: OpponentId): DomainEvent()
 
