@@ -33,11 +33,11 @@ interface CommandHandler<Cmd: Command> {
 
 
 @Component
-class QueryExecutor(
-    private val queryHandlers: List<QueryHandler<*,*>>
-) {
-    fun <Agg : Any, R> execute(query: Query<Agg>, transformer: (Agg) -> R): R {
-        return handlerForQuery(query).handle(query).let { transformer(it) }
+class QueryExecutor(private val queryHandlers: List<QueryHandler<*, *>>) {
+    fun <Agg : Any, R> execute(query: Query<Agg>, transform: Agg.() -> R): R {
+        return handlerForQuery(query)
+            .handle(query)
+            .transform()
     }
     private inline fun <reified Q: Query<R>, R:Any> handlerForQuery(query: Q) =
         (queryHandlers as List<QueryHandler<Q, R>>)

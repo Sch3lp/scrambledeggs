@@ -3,6 +3,7 @@ package org.scrambled.adapter.restapi.registration
 import org.scrambled.domain.core.api.challenging.ChallengePlayer
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.players.PlayerById
+import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
 import org.scrambled.domain.core.api.registration.RegisterPlayer
 import org.scrambled.infra.cqrs.CommandExecutor
 import org.scrambled.infra.cqrs.QueryExecutor
@@ -25,7 +26,8 @@ class RegistrationController(
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun registerPlayer(
         @RequestBody(required = true) playerName: PlayerNameJson,
-        builder: UriComponentsBuilder): ResponseEntity<PlayerNameJson> {
+        builder: UriComponentsBuilder
+    ): ResponseEntity<PlayerNameJson> {
         // TODO extract sub + provider from authenticated JWT token (because I'm not sure if providers guarantee universally unique identifiers)
         // otherwise if someone logs in with Facebook, and gets sub 1234
         // and somebody completely different logs in with Google, and also gets sub 1234
@@ -54,12 +56,7 @@ class PlayerController(
     fun getPlayerById(
         @PathVariable id: PlayerId
     ): ResponseEntity<RegisteredPlayerJson> {
-        val player = queryExecutor.execute(PlayerById(id)) {
-            RegisteredPlayerJson(
-                it.id,
-                it.nickname
-            )
-        }
+        val player = queryExecutor.execute(PlayerById(id), RegisteredPlayerRepresentation::toJson)
 
         return ResponseEntity.ok(player)
     }
@@ -82,18 +79,14 @@ class ChallengeController(
         commandExecutor.execute(ChallengePlayer(challengeRequest.initiator, challengeRequest.opponent))
 
         val opponent: RegisteredPlayerJson = queryExecutor
-            .execute(PlayerById(challengeRequest.opponent)) {
-                RegisteredPlayerJson(
-                    it.id,
-                    it.nickname
-                )
-            }
+            .execute(PlayerById(challengeRequest.opponent), RegisteredPlayerRepresentation::toJson)
+
 
         return ResponseEntity.ok("Player $opponent was successfully challenged")
     }
 }
 
-
+private fun RegisteredPlayerRepresentation.toJson(): RegisteredPlayerJson = RegisteredPlayerJson(this.id, this.nickname)
 
 
 data class PlayerNameJson(val username: String)

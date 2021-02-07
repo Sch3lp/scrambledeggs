@@ -14,7 +14,7 @@ internal class QueryExecutorTest {
     internal fun `handlerForQuery retrieves the QueryHandler based on the query type`() {
         val queryExecutor = QueryExecutor(listOf(FindByArtistHandler(songDb), FindByTitleHandler(songDb)))
 
-        val result = queryExecutor.execute(FindByTitle("Chiquitita")) { "${it.title} by ${it.artist}" }
+        val result = queryExecutor.execute(FindByTitle("Chiquitita")) { "$title by $artist" }
 
         assertThat(result).isEqualTo("Chiquitita by ABBA")
     }
