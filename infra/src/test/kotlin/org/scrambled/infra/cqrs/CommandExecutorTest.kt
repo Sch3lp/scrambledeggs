@@ -25,7 +25,7 @@ fun <T> DomainEventBroadcaster.verifyEventExists(clazz: Class<T>) {
 
 
 internal class PlaySongHandler: CommandHandler<PlaySong> {
-    override val commandType = PlaySong::class.java
+    override val commandType = PlaySong::class
     override fun handle(cmd: PlaySong): DomainEvent {
         return SongStarted(cmd.songName)
     }
@@ -35,7 +35,7 @@ internal data class PlaySong(val songName: String): Command
 internal data class SongStarted(val songName: String): DomainEvent()
 
 internal class RewindSongHandler: CommandHandler<RewindSong> {
-    override val commandType = RewindSong::class.java
+    override val commandType = RewindSong::class
     override fun handle(cmd: RewindSong): DomainEvent {
         return SongStarted(cmd.songName)
     }

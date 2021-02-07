@@ -4,12 +4,13 @@ import org.scrambled.domain.core.api.challenging.ChallengePlayer
 import org.scrambled.domain.core.api.challenging.PlayerChallenged
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.challenging.PlayerNickname
-import org.scrambled.domain.core.api.exceptions.NotFoundException
 import org.scrambled.domain.core.api.players.PlayerById
 import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
 import org.scrambled.domain.core.api.registration.PlayerRegistered
 import org.scrambled.domain.core.api.registration.RegisterPlayer
-import org.scrambled.infra.cqrs.*
+import org.scrambled.infra.cqrs.CommandHandler
+import org.scrambled.infra.cqrs.DomainEvent
+import org.scrambled.infra.cqrs.QueryHandler
 import org.springframework.stereotype.Component
 
 
@@ -29,7 +30,7 @@ data class RegisteredPlayer(
 class RegisterPlayerHandler(
     private val playerRepository: RegisteredPlayerRepository
 ) : CommandHandler<RegisterPlayer> {
-    override val commandType = RegisterPlayer::class.java
+    override val commandType = RegisterPlayer::class
 
     override fun handle(cmd: RegisterPlayer): DomainEvent {
         val registeredPlayer = RegisteredPlayer(cmd.id, cmd.nickname)
@@ -43,7 +44,7 @@ class RegisterPlayerHandler(
 class ChallengePlayerHandler(
     private val playerRepository: RegisteredPlayerRepository
 ): CommandHandler<ChallengePlayer> {
-    override val commandType = ChallengePlayer::class.java
+    override val commandType = ChallengePlayer::class
 
     override fun handle(cmd: ChallengePlayer): PlayerChallenged {
         val registeredPlayer = playerRepository.getById(cmd.id)
@@ -58,7 +59,7 @@ fun RegisteredPlayer.execute(challengePlayer: ChallengePlayer) =
 class PlayerByIdQueryHandler(
     private val playerRepository: RegisteredPlayerRepository
 ): QueryHandler<PlayerById, RegisteredPlayerRepresentation> {
-    override val queryType = PlayerById::class.java
+    override val queryType = PlayerById::class
 
     override fun handle(query: PlayerById): RegisteredPlayerRepresentation {
         val registeredPlayer = playerRepository.getById(query.id)

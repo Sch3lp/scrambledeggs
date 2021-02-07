@@ -25,7 +25,7 @@ data class FindByArtist(val artist: String) : Query<Song> {
     override val id: AggregateId = UUID.randomUUID()
 }
 class FindByArtistHandler(val songDb: List<Song>) : QueryHandler<FindByArtist, Song> {
-    override val queryType = FindByArtist::class.java
+    override val queryType = FindByArtist::class
     override fun handle(query: FindByArtist) = songDb.first { it.artist == query.artist }
 }
 
@@ -33,6 +33,6 @@ data class FindByTitle(val title: String) : Query<Song> {
     override val id: AggregateId = UUID.randomUUID()
 }
 class FindByTitleHandler(val songDb: List<Song>) : QueryHandler<FindByTitle, Song> {
-    override val queryType = FindByTitle::class.java
+    override val queryType = FindByTitle::class
     override fun handle(query: FindByTitle) = songDb.first { it.title == query.title }
 }

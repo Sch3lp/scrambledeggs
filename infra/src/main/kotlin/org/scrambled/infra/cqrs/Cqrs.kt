@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import kotlin.reflect.KClass
 
 typealias AggregateId = UUID
 
@@ -18,16 +19,13 @@ class CommandExecutor(
     }
     private inline fun <reified Cmd: Command> handlerForCommand(command: Cmd) =
         (commandHandlers as List<CommandHandler<Cmd>>)
-            .first { handler ->
-                val commandType = handler.commandType
-                command::class.java == commandType
-            }
+            .first { handler -> command::class == handler.commandType }
 }
 interface Command
 
 @Transactional(transactionManager = "rdbms-tx-mgr")
 interface CommandHandler<Cmd: Command> {
-    val commandType: Class<Cmd>
+    val commandType: KClass<Cmd>
     fun handle(cmd: Cmd): DomainEvent
 }
 
@@ -43,14 +41,14 @@ class QueryExecutor(
     }
     private inline fun <reified Q: Query<R>, R:Any> handlerForQuery(query: Q) =
         (queryHandlers as List<QueryHandler<Q, R>>)
-            .first { handler -> query::class.java == handler.queryType }
+            .first { handler -> query::class == handler.queryType }
 }
 interface Query<Aggregate : Any> {
     val id: AggregateId
 }
 @Transactional(transactionManager = "rdbms-tx-mgr")
 interface QueryHandler<Q: Query<Representation>, Representation: Any> {
-    val queryType: Class<Q>
+    val queryType: KClass<Q>
     fun handle(query: Q): Representation
 }
 
