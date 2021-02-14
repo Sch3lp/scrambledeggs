@@ -9,7 +9,7 @@ import java.util.*
 data class RegisterPlayer(val nickname: String): Command<RegisteredPlayerRepresentation>
 
 data class PlayerRegistered(
-    val id: PlayerId,
+    val playerId: PlayerId,
     val nickName: String
 ) : DomainEvent()
 

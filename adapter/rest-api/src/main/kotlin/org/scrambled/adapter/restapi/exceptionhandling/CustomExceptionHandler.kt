@@ -1,7 +1,6 @@
 package org.scrambled.adapter.restapi.exceptionhandling
 
 import org.scrambled.domain.core.api.exceptions.DomainRuntimeException
-import org.scrambled.infra.cqrs.DomainEventBroadcaster
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler

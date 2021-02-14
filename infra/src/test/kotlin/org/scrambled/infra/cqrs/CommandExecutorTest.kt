@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 internal class CommandExecutorTest {
-    private val broadcaster = DomainEventBroadcaster()
+    private val broadcaster = InMemoryDomainEventBroadcaster()
 
     @Test
     internal fun `handlerForCommand retrieves the CommandHandler based on the command type`() {
@@ -19,7 +19,7 @@ internal class CommandExecutorTest {
 }
 
 
-fun <T> DomainEventBroadcaster.verifyEventExists(clazz: Class<T>) {
+fun <T> InMemoryDomainEventBroadcaster.verifyEventExists(clazz: Class<T>) {
     assertThat(this.findEvent(clazz)).isNotNull()
 }
 

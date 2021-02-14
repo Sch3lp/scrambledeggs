@@ -9,17 +9,13 @@ import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.error.AssertionErrorCreator
 import org.scrambled.adapter.restapi.registration.PlayerNameJson
 import org.scrambled.adapter.restapi.registration.RegisteredPlayerJson
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.extensions.toPlayerId
 import org.scrambled.domain.core.api.registration.PlayerRegistered
-import org.scrambled.infra.cqrs.DomainEventBroadcaster
-import org.springframework.http.MediaType
-import org.springframework.web.servlet.function.RequestPredicates.contentType
+import org.scrambled.infra.cqrs.InMemoryDomainEventBroadcaster
 
 val client = HttpClient(CIO) {
     install(JsonFeature) {
@@ -50,7 +46,7 @@ suspend fun fetchPlayerStep(playerId: PlayerId): RegisteredPlayerJson {
     }
 }
 
-fun DomainEventBroadcaster.verifyRegisteredPlayer(playerNickname: String) {
+fun InMemoryDomainEventBroadcaster.verifyRegisteredPlayer(playerNickname: String) {
     val playerRegisteredEvent = this.findEvent(PlayerRegistered::class.java)
     assertThat(playerRegisteredEvent?.nickName).isEqualTo(playerNickname)
 }

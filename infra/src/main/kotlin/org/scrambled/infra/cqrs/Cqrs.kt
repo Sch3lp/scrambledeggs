@@ -1,8 +1,10 @@
 package org.scrambled.infra.cqrs
 
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.reflect.KClass
 
@@ -11,7 +13,7 @@ typealias AggregateId = UUID
 @Component
 class CommandExecutor(
     private val commandHandlers: List<CommandHandler<*,*>>,
-    private val domainEventBroadcaster: DomainEventBroadcaster
+    private val domainEventBroadcaster: IDomainEventBroadcaster
 ) {
     fun <R> execute(command: Command<R>): R {
         val handler = handlerForCommand(command)
@@ -59,24 +61,43 @@ interface QueryHandler<Q: Query<Representation>, Representation: Any> {
 
 
 typealias DomainEventId = UUID
-abstract class DomainEvent(private val id: DomainEventId = UUID.randomUUID()) {
+abstract class DomainEvent {
+    val id: DomainEventId = UUID.randomUUID()
+    val time: LocalDateTime = LocalDateTime.now()
     override fun toString(): String {
         return this::javaClass.name
     }
 }
 
+
+interface IDomainEventBroadcaster {
+    fun publish(domainEvent: DomainEvent)
+}
+
 @Component
-class DomainEventBroadcaster {
-    private val logger = LoggerFactory.getLogger(DomainEventBroadcaster::class.java)
+class SpringEventsDomainEventBroadcaster(
+    private val publisher: ApplicationEventPublisher
+) : IDomainEventBroadcaster {
+    private val logger = LoggerFactory.getLogger(SpringEventsDomainEventBroadcaster::class.java)
 
-    private val events: MutableList<DomainEvent> = mutableListOf()
-
-    fun publish(domainEvent: DomainEvent) {
-        events += domainEvent
+    override fun publish(domainEvent: DomainEvent) {
+        publisher.publishEvent(domainEvent)
         logger.info("$domainEvent was broadcast")
     }
 
-    fun <T> DomainEventBroadcaster.findEvent(clazz: Class<T>): T? {
+}
+
+class InMemoryDomainEventBroadcaster : IDomainEventBroadcaster {
+
+    private val logger = LoggerFactory.getLogger(InMemoryDomainEventBroadcaster::class.java)
+
+    private val events: MutableList<DomainEvent> = mutableListOf()
+
+    override fun publish(domainEvent: DomainEvent) {
+        events += domainEvent
+        logger.info("$domainEvent was broadcast")
+    }
+    fun <T> InMemoryDomainEventBroadcaster.findEvent(clazz: Class<T>): T? {
         return events.filterIsInstance(clazz).firstOrNull()
     }
 }
