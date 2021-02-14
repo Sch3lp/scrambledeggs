@@ -1,6 +1,7 @@
 package org.scrambled.adapter.eventsourcing.eventstore
 
 import io.r2dbc.spi.Row
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactive.asFlow
@@ -17,7 +18,7 @@ import reactor.core.publisher.Flux
 @Component
 class PostgresEventStore(val client: DatabaseClient) : EventStore {
 
-    override suspend fun push(event: Event) =
+    override suspend fun push(event: CoroutineScope) =
         client.sql { "INSERT INTO eventstore values($1, $2, $3::JSON)" }
             .bind("$1", event.id)
             .bind("$2", event.at)

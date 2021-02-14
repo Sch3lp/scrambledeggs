@@ -2,7 +2,8 @@ rootProject.name = "scrambledeggs"
 
 include(
     "infra",
-    "domain:core", "domain:core-api", // the domain
+    "domain:core", "domain:core-api", // the player/matches domain
+    "domain:leaderboards", "domain:leaderboards-api", // the Leaderboards domain
     "adapter:eventsourcing", // contains event sourcing persistence + projections
     "adapter:rdbms", // contains DB access stuff
     "adapter:rest-api",

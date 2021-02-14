@@ -33,6 +33,7 @@ class RegistrationScenario {
         with(broadcaster as InMemoryDomainEventBroadcaster) {
             verifyRegisteredPlayer(playerNickname)
         }
+        //TODO expand test to verify correct events in eventstore
     }
 }
 

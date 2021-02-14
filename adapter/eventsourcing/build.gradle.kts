@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":domain:leaderboards-api"))
+
     implementation("org.springframework.data:spring-data-r2dbc")
     implementation("io.r2dbc:r2dbc-spi")
     implementation("io.r2dbc:r2dbc-postgresql")
