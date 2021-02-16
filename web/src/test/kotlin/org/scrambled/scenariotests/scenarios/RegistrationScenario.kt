@@ -30,5 +30,11 @@ class RegistrationScenario {
             val firstPlayerRegistered = eventStream.filterEvents<Event.PlayerRegistered>().first()
             assertThat(firstPlayerRegistered.nickname).isEqualTo("Sch3lp")
         }
+        /*
+        verifyMostChallengesDoneLeaderboard(dataSource) {
+            rank 1 for "Sch3lp" with 0 points
+        }
+         */
+
     }
 }

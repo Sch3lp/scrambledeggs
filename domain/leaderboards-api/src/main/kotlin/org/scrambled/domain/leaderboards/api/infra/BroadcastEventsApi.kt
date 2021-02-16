@@ -13,4 +13,5 @@ sealed class BroadcastEvent {
 
 interface BroadcastEvents {
     fun keep(event: BroadcastEvent)
+    fun findAll(): List<BroadcastEvent>
 }
