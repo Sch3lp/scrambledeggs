@@ -1,4 +1,4 @@
-package org.scrambled.domain.leaderboards.api
+package org.scrambled.domain.leaderboards.api.infra
 
 import java.time.LocalDateTime
 import java.util.*

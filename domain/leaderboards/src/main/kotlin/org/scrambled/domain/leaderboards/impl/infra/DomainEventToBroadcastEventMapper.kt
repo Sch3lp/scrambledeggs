@@ -1,8 +1,8 @@
-package org.scrambled.domain.leaderboards.impl
+package org.scrambled.domain.leaderboards.impl.infra
 
 import org.scrambled.domain.core.api.registration.PlayerRegistered
-import org.scrambled.domain.leaderboards.api.BroadcastEvent
-import org.scrambled.domain.leaderboards.api.BroadcastEvents
+import org.scrambled.domain.leaderboards.api.infra.BroadcastEvent
+import org.scrambled.domain.leaderboards.api.infra.BroadcastEvents
 import org.scrambled.infra.cqrs.DomainEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -25,4 +25,3 @@ class DomainEventToBroadcastEventMapper(
 
     fun BroadcastEvent.store() = broadcastEvents.keep(this)
 }
-

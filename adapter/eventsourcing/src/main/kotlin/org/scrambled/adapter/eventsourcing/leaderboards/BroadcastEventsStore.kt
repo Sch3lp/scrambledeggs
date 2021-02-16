@@ -3,8 +3,8 @@ package org.scrambled.adapter.eventsourcing.leaderboards
 import kotlinx.coroutines.runBlocking
 import org.scrambled.adapter.eventsourcing.api.Event
 import org.scrambled.adapter.eventsourcing.api.EventStore
-import org.scrambled.domain.leaderboards.api.BroadcastEvent
-import org.scrambled.domain.leaderboards.api.BroadcastEvents
+import org.scrambled.domain.leaderboards.api.infra.BroadcastEvent
+import org.scrambled.domain.leaderboards.api.infra.BroadcastEvents
 import org.springframework.stereotype.Component
 
 @Component
