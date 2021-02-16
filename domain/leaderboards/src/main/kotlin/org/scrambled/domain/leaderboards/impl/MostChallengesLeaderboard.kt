@@ -1,6 +1,8 @@
-package org.scrambled.domain.leaderboards
+package org.scrambled.domain.leaderboards.impl
 
 import org.scrambled.domain.core.api.registration.PlayerRegistered
+import org.scrambled.domain.leaderboards.api.LeaderboardEvent
+import org.scrambled.domain.leaderboards.api.LeaderboardEvents
 import org.scrambled.infra.cqrs.DomainEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -22,7 +24,6 @@ class MostChallengesLeaderboardPolicy(
             )
             else -> null
         }?.store()
-
 
     fun LeaderboardEvent.store() = leaderboardEvents.keep(this)
 }

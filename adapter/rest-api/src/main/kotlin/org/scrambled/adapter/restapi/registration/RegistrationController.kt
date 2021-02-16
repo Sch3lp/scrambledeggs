@@ -20,7 +20,6 @@ import java.util.*
 )
 class RegistrationController(
     private val commandExecutor: CommandExecutor,
-    private val queryExecutor: QueryExecutor,
 ) {
 
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])

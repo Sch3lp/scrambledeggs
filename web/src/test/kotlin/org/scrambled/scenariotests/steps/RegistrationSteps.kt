@@ -45,8 +45,3 @@ suspend fun fetchPlayerStep(playerId: PlayerId): RegisteredPlayerJson {
         contentType(ContentType.Application.Json)
     }
 }
-
-fun InMemoryDomainEventBroadcaster.verifyRegisteredPlayer(playerNickname: String) {
-    val playerRegisteredEvent = this.findEvent(PlayerRegistered::class.java)
-    assertThat(playerRegisteredEvent?.nickName).isEqualTo(playerNickname)
-}
