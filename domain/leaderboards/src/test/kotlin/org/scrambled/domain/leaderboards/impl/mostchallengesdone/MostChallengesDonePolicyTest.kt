@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.scrambled.domain.leaderboards.api.infra.BroadcastEvent
 import org.scrambled.domain.leaderboards.api.infra.BroadcastEvents
 import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.MostChallengesDoneLeaderboardProjection
-import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.MostChallengesDoneLeaderboardRepository
 import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.ProjectedPlayer
 import java.util.*
 
@@ -19,7 +18,7 @@ internal class MostChallengesDonePolicyTest {
     lateinit var broadcastEvents: BroadcastEvents
 
     @Mock
-    lateinit var mostChallengesDoneLeaderboardRepository: MostChallengesDoneLeaderboardRepository
+    lateinit var mostChallengesDoneProjections: MostChallengesDoneLeaderboardProjection
 
     lateinit var policy: MostChallengesDonePolicy
 
@@ -28,18 +27,15 @@ internal class MostChallengesDonePolicyTest {
         //TODO: move InMemoryBroadcastEvents to proper "test-fixtures" config of leaderboards.api
         //see https://stackoverflow.com/questions/5644011/multi-project-test-dependencies-with-gradle/60138176#60138176
         broadcastEvents = InMemoryBroadcastEvents()
-        policy = MostChallengesDonePolicy(broadcastEvents, mostChallengesDoneLeaderboardRepository)
+        policy = MostChallengesDonePolicy(broadcastEvents, mostChallengesDoneProjections)
     }
 
     @Test
     internal fun `when broadcastEvents are digested, then a new MostChallengesDoneLeaderboard projection is saved`() {
         broadcastEvents.keep(BroadcastEvent.PlayerRegisteredForLeaderboard(UUID.randomUUID(), "Sch3lp"))
 
-        policy.nom()
+        policy.regenerateLeaderboard()
 
-        val expectedProjection =
-            MostChallengesDoneLeaderboardProjection(listOf(ProjectedPlayer(nickname = "Sch3lp", score = 0)))
-
-        verify(mostChallengesDoneLeaderboardRepository).save(expectedProjection)
+        verify(mostChallengesDoneProjections).store(listOf(ProjectedPlayer(nickname = "Sch3lp", score = 0)))
     }
 }

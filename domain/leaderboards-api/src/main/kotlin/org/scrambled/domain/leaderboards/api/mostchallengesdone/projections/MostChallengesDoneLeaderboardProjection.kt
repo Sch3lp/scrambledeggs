@@ -9,10 +9,8 @@ data class ProjectedPlayer(
     val nickname: Nickname,
     val score: Score
 )
-data class MostChallengesDoneLeaderboardProjection(
-    val players: List<ProjectedPlayer>
-)
 
-interface MostChallengesDoneLeaderboardRepository {
-    fun save(projection: MostChallengesDoneLeaderboardProjection)
+interface MostChallengesDoneLeaderboardProjection {
+    fun store(players: List<ProjectedPlayer>)
+    fun getRanking(): List<ProjectedPlayer>
 }

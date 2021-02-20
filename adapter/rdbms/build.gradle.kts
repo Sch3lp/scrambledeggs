@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":adapter:eventsourcing"))
     implementation(project(":domain:core-api"))
+    implementation(project(":domain:leaderboards-api"))
 
     implementation("org.postgresql:postgresql:42.2.18")
 

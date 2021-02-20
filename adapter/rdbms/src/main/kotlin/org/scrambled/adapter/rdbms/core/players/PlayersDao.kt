@@ -1,4 +1,4 @@
-package org.scrambled.adapter.rdbms.players
+package org.scrambled.adapter.rdbms.core.players
 
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.kotlin.BindKotlin

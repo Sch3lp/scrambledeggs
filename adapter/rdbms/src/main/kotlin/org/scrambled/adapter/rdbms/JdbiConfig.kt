@@ -2,13 +2,11 @@ package org.scrambled.adapter.rdbms
 
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.kotlin.KotlinPlugin
-import org.jdbi.v3.core.mapper.RowMapper
-import org.jdbi.v3.core.spi.JdbiPlugin
 import org.jdbi.v3.postgres.PostgresPlugin
-import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.onDemand
-import org.scrambled.adapter.rdbms.players.PlayersDao
+import org.scrambled.adapter.rdbms.core.players.PlayersDao
+import org.scrambled.adapter.rdbms.leaderboard.projection.MostChallengesDoneDao
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -47,4 +45,7 @@ class JdbiConfig {
 
     @Bean
     fun playersDao(jdbi: Jdbi): PlayersDao = jdbi.onDemand()
+
+    @Bean
+    fun mostChallengesDoneDao(jdbi: Jdbi): MostChallengesDoneDao = jdbi.onDemand()
 }

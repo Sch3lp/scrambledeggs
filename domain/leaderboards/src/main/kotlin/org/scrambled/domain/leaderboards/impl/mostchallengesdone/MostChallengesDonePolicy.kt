@@ -3,20 +3,18 @@ package org.scrambled.domain.leaderboards.impl.mostchallengesdone
 import org.scrambled.domain.leaderboards.api.infra.BroadcastEvent
 import org.scrambled.domain.leaderboards.api.infra.BroadcastEvents
 import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.MostChallengesDoneLeaderboardProjection
-import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.MostChallengesDoneLeaderboardRepository
 import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.ProjectedPlayer
-import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.Score
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
 class MostChallengesDonePolicy(
     private val broadcastEvents: BroadcastEvents,
-    private val mostChallengesDoneLeaderboardRepository: MostChallengesDoneLeaderboardRepository //which is really just a stupid normalized database table with a ranking
+    private val mostChallengesDoneProjection: MostChallengesDoneLeaderboardProjection //which is really just a stupid normalized database table with a ranking
 ) {
 
-    @Scheduled(cron = "* * * * 5")
-    fun nom() {
+    @Scheduled(fixedRateString = "PT1S", initialDelay = 0)
+    fun regenerateLeaderboard() {
         val events: List<BroadcastEvent> = broadcastEvents.findAll()
 
         MostChallengesDoneLeaderboard.rehydrate(events)
@@ -24,8 +22,8 @@ class MostChallengesDonePolicy(
             .save()
     }
 
-    fun MostChallengesDoneLeaderboardProjection.save() {
-        mostChallengesDoneLeaderboardRepository.save(this)
+    fun List<ProjectedPlayer>.save() {
+        mostChallengesDoneProjection.store(this)
     }
 }
 
@@ -37,8 +35,8 @@ class MostChallengesDoneLeaderboard private constructor(private val events: List
         get() = events.filterIsInstance<BroadcastEvent.PlayerRegisteredForLeaderboard>()
             .map { it.nickname }
 
-    fun project(): MostChallengesDoneLeaderboardProjection {
-        return MostChallengesDoneLeaderboardProjection(players.map { ProjectedPlayer(nickname = it, score = 0) })
+    fun project(): List<ProjectedPlayer> {
+        return players.map { ProjectedPlayer(nickname = it, score = 0) }
     }
 
     companion object {
