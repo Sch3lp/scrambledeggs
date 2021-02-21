@@ -11,8 +11,7 @@ dependencies {
     //see https://stackoverflow.com/questions/5644011/multi-project-test-dependencies-with-gradle/60138176#60138176
     //testImplementation(testFixtures(project(":domain:leaderboards-api")))
 
-//    //TODO separate scrambledeggs.spring-conventions into spring-di and others, so we don't need to hardcode a version and use the BOM instead
-//    implementation("org.springframework:spring-context:5.3.1")
+    implementation("org.springframework:spring-tx")
 //
 //    //TODO separate scrambledeggs.spring-conventions into impl and test conventions?
 //    testImplementation("org.springframework.boot:spring-boot-starter-web:2.4.0")

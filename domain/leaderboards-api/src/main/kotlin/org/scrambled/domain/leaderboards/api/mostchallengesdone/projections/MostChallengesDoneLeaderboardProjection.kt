@@ -13,4 +13,5 @@ data class ProjectedPlayer(
 interface MostChallengesDoneLeaderboardProjection {
     fun store(players: List<ProjectedPlayer>)
     fun getRanking(): List<ProjectedPlayer>
+    fun wipe()
 }

@@ -4,8 +4,10 @@ import org.scrambled.domain.leaderboards.api.infra.BroadcastEvent
 import org.scrambled.domain.leaderboards.api.infra.BroadcastEvents
 import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.MostChallengesDoneLeaderboardProjection
 import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.ProjectedPlayer
+import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class MostChallengesDonePolicy(
@@ -13,16 +15,20 @@ class MostChallengesDonePolicy(
     private val mostChallengesDoneProjection: MostChallengesDoneLeaderboardProjection //which is really just a stupid normalized database table with a ranking
 ) {
 
-    @Scheduled(fixedRateString = "PT1S", initialDelay = 0)
+    private val logger = LoggerFactory.getLogger(MostChallengesDonePolicy::class.java)
+
+    @Scheduled(fixedDelay = 1000 * 60 * 5) // Every 5 minutes
     fun regenerateLeaderboard() {
         val events: List<BroadcastEvent> = broadcastEvents.findAll()
 
         MostChallengesDoneLeaderboard.rehydrate(events)
             .project()
-            .save()
+            .regenerate()
     }
 
-    fun List<ProjectedPlayer>.save() {
+    fun List<ProjectedPlayer>.regenerate() {
+        logger.debug("Regenerate triggered with $size players")
+        mostChallengesDoneProjection.wipe()
         mostChallengesDoneProjection.store(this)
     }
 }

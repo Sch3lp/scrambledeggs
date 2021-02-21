@@ -7,17 +7,14 @@ import org.junit.jupiter.api.Test
 import org.scrambled.adapter.rdbms.JdbiConfig
 import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.ProjectedPlayer
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
+import org.springframework.test.context.ContextConfiguration
 
-@SpringBootTest(
-    classes = [JdbiConfig::class], webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-    properties = [
-        "spring.datasource.driver-class-name=org.postgresql.Driver",
-        "spring.datasource.url=jdbc:postgresql://localhost:6669/postgresprojectionsdb",
-        "spring.datasource.username=mumra",
-        "spring.datasource.password=SnarfSnarf!",
-    ]
-)
+
+@JdbcTest
+@ContextConfiguration(classes = [JdbiConfig::class])
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class MostChallengesDoneDaoTest {
 
     @Autowired
