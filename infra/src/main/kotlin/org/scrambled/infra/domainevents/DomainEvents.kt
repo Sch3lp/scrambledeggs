@@ -1,4 +1,4 @@
-package org.scrambled.infra.cqrs
+package org.scrambled.infra.domainevents
 
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher

@@ -1,5 +1,7 @@
 package org.scrambled.infra.cqrs
 
+import org.scrambled.infra.domainevents.DomainEvent
+import org.scrambled.infra.domainevents.IDomainEventBroadcaster
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*

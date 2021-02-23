@@ -1,7 +1,7 @@
 package org.scrambled.domain.core.api.challenging
 
 import org.scrambled.infra.cqrs.Command
-import org.scrambled.infra.cqrs.DomainEvent
+import org.scrambled.infra.domainevents.DomainEvent
 import java.util.*
 
 data class ChallengePlayer(

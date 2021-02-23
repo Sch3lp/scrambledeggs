@@ -2,6 +2,8 @@ package org.scrambled.infra.cqrs
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.scrambled.infra.domainevents.DomainEvent
+import org.scrambled.infra.domainevents.InMemoryDomainEventBroadcaster
 
 internal class CommandExecutorTest {
     private val broadcaster = InMemoryDomainEventBroadcaster()
