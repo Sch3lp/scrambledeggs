@@ -9,6 +9,32 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
+
+class MostChallengesDoneLeaderboard private constructor(private val events: List<BroadcastEvent>) {
+
+//    private val scoringAlgorithm: (events: List<BroadcastEvent>) -> Score = { _ -> 0 }
+
+    private val players: List<String>
+        get() = events.filterIsInstance<BroadcastEvent.PlayerRegisteredForLeaderboard>()
+            .map { it.nickname }
+
+    fun project(): List<ProjectedPlayer> {
+        return players.map { ProjectedPlayer(nickname = it, score = 0) }
+    }
+
+    companion object {
+        /**
+         * Applies the MostChallengesDoneLeaderboard's scoring algorithm in order to "recover" this kind of leaderboard's state
+         * which we can then project into some normalized format to save in the database
+         */
+        fun rehydrate(events: List<BroadcastEvent>): MostChallengesDoneLeaderboard {
+            return MostChallengesDoneLeaderboard(events)
+        }
+    }
+}
+
+
+
 @Component
 class MostChallengesDonePolicy(
     private val broadcastEvents: BroadcastEvents,
@@ -31,28 +57,5 @@ class MostChallengesDonePolicy(
         logger.info("Regenerate triggered with $size players")
         mostChallengesDoneProjection.wipe()
         mostChallengesDoneProjection.store(this)
-    }
-}
-
-class MostChallengesDoneLeaderboard private constructor(private val events: List<BroadcastEvent>) {
-
-//    private val scoringAlgorithm: (events: List<BroadcastEvent>) -> Score = { _ -> 0 }
-
-    private val players: List<String>
-        get() = events.filterIsInstance<BroadcastEvent.PlayerRegisteredForLeaderboard>()
-            .map { it.nickname }
-
-    fun project(): List<ProjectedPlayer> {
-        return players.map { ProjectedPlayer(nickname = it, score = 0) }
-    }
-
-    companion object {
-        /**
-         * Applies the MostChallengesDoneLeaderboard's scoring algorithm in order to "recover" this kind of leaderboard's state
-         * which we can then project into some normalized format to save in the database
-         */
-        fun rehydrate(events: List<BroadcastEvent>): MostChallengesDoneLeaderboard {
-            return MostChallengesDoneLeaderboard(events)
-        }
     }
 }
