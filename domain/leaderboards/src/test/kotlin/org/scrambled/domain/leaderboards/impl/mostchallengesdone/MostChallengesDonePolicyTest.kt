@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
 import org.scrambled.domain.leaderboards.api.infra.BroadcastEvent
@@ -31,11 +32,13 @@ internal class MostChallengesDonePolicyTest {
     }
 
     @Test
-    internal fun `when broadcastEvents are digested, then a new MostChallengesDoneLeaderboard projection is saved`() {
+    internal fun `when broadcastEvents are digested, then a completely new MostChallengesDoneLeaderboard projection is regenerated`() {
         broadcastEvents.keep(BroadcastEvent.PlayerRegisteredForLeaderboard(UUID.randomUUID(), "Sch3lp"))
 
         policy.regenerateLeaderboard()
 
-        verify(mostChallengesDoneProjections).store(listOf(ProjectedPlayer(nickname = "Sch3lp", score = 0)))
+        val inOrder = Mockito.inOrder(mostChallengesDoneProjections)
+        inOrder.verify(mostChallengesDoneProjections).wipe()
+        inOrder.verify(mostChallengesDoneProjections).store(listOf(ProjectedPlayer(nickname = "Sch3lp", score = 0)))
     }
 }

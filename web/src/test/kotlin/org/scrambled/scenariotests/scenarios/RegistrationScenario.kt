@@ -35,7 +35,7 @@ class RegistrationScenario {
         Thread.sleep(1000L)
         runBlocking {
             val leaderboard: List<LeaderboardEntryJson> = fetchLeaderboardStep()
-            assertThat(leaderboard).contains(LeaderboardEntryJson(rank = null, nickname="Sch3lp", score=0))
+            assertThat(leaderboard).containsExactly(LeaderboardEntryJson(rank = null, nickname="Sch3lp", score=0))
         }
     }
 }

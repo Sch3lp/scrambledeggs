@@ -28,7 +28,7 @@ class MostChallengesDonePolicy(
     }
 
     fun List<ProjectedPlayer>.regenerate() {
-        logger.debug("Regenerate triggered with $size players")
+        logger.info("Regenerate triggered with $size players")
         mostChallengesDoneProjection.wipe()
         mostChallengesDoneProjection.store(this)
     }
