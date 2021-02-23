@@ -15,6 +15,9 @@ dependencies {
     val ktorVersion = "1.5.1"
     testImplementation("io.ktor:ktor-client-cio:$ktorVersion")
     testImplementation("io.ktor:ktor-client-jackson:$ktorVersion")
+    testImplementation(platform("org.jdbi:jdbi3-bom:3.18.0"))
+    testImplementation("org.jdbi:jdbi3-core")
+    testImplementation("org.springframework.data:spring-data-r2dbc")
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
