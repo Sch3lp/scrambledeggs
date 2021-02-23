@@ -7,8 +7,10 @@ import org.junit.jupiter.api.Test
 import org.scrambled.adapter.eventsourcing.api.Event
 import org.scrambled.adapter.eventsourcing.api.filterEvents
 import org.scrambled.adapter.eventsourcing.eventstore.PostgresEventStore
-import org.scrambled.scenariotests.steps.fetchPlayerStep
-import org.scrambled.scenariotests.steps.registerPlayerStep
+import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
+import org.scrambled.scenariotests.steps.core.fetchPlayerStep
+import org.scrambled.scenariotests.steps.core.registerPlayerStep
+import org.scrambled.scenariotests.steps.leaderboard.fetchLeaderboardStep
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 
@@ -30,11 +32,10 @@ class RegistrationScenario {
             val firstPlayerRegistered = eventStream.filterEvents<Event.PlayerRegistered>().first()
             assertThat(firstPlayerRegistered.nickname).isEqualTo("Sch3lp")
         }
-        /*
-        verifyMostChallengesDoneLeaderboard(dataSource) {
-            rank 1 for "Sch3lp" with 0 points
+        Thread.sleep(1000L)
+        runBlocking {
+            val leaderboard: List<LeaderboardEntryJson> = fetchLeaderboardStep()
+            assertThat(leaderboard).contains(LeaderboardEntryJson(rank = null, nickname="Sch3lp", score=0))
         }
-         */
-
     }
 }

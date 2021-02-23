@@ -23,5 +23,5 @@ class DomainEventToBroadcastEventMapper(
         else -> null
     }
 
-    fun BroadcastEvent.store() = broadcastEvents.keep(this)
+    private fun BroadcastEvent.store() = broadcastEvents.keep(this)
 }

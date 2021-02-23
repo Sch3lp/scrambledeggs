@@ -1,32 +1,14 @@
-package org.scrambled.scenariotests.steps
+package org.scrambled.scenariotests.steps.core
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import org.assertj.core.api.Assertions.assertThat
 import org.scrambled.adapter.restapi.registration.PlayerNameJson
 import org.scrambled.adapter.restapi.registration.RegisteredPlayerJson
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.extensions.toPlayerId
-import org.scrambled.domain.core.api.registration.PlayerRegistered
-import org.scrambled.infra.cqrs.InMemoryDomainEventBroadcaster
-
-val client = HttpClient(CIO) {
-    install(JsonFeature) {
-        serializer = JacksonSerializer {
-            registerModules(KotlinModule(), JavaTimeModule())
-            enable(SerializationFeature.INDENT_OUTPUT)
-        }
-    }
-}
-
-val baseUrl = "http://localhost:9999/api"
+import org.scrambled.scenariotests.steps.client.baseUrl
+import org.scrambled.scenariotests.steps.client.client
 
 suspend fun registerPlayerStep(playerNickname: String): PlayerId {
     val response = client.post<HttpResponse> {

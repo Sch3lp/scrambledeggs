@@ -35,10 +35,13 @@ class RegisterPlayerHandler(
     override fun handle(cmd: RegisterPlayer): Pair<RegisteredPlayerRepresentation, PlayerRegistered> {
         val registeredPlayer = RegisteredPlayer(generatePlayerId(), cmd.nickname)
 
-        playerRepository.save(registeredPlayer)
+        registeredPlayer.save()
+
         return registeredPlayerRepresentation(registeredPlayer) to
                 PlayerRegistered(registeredPlayer.id, registeredPlayer.nickName)
     }
+
+    private fun RegisteredPlayer.save() = playerRepository.save(this)
 
     private fun generatePlayerId(): PlayerId = UUID.randomUUID()
 
@@ -50,22 +53,23 @@ class RegisterPlayerHandler(
 @Component
 class ChallengePlayerHandler(
     private val playerRepository: RegisteredPlayerRepository
-): CommandHandler<Unit, ChallengePlayer> {
+) : CommandHandler<Unit, ChallengePlayer> {
     override val commandType = ChallengePlayer::class
 
     override fun handle(cmd: ChallengePlayer): Pair<Unit, PlayerChallenged> {
         val registeredPlayer = playerRepository.getById(cmd.id)
         return Unit to registeredPlayer.execute(cmd)
     }
+
+    private fun RegisteredPlayer.execute(challengePlayer: ChallengePlayer) =
+        this.challenge(challengePlayer.otherPlayerId)
 }
-fun RegisteredPlayer.execute(challengePlayer: ChallengePlayer) =
-    this.challenge(challengePlayer.otherPlayerId)
 
 
 @Component
 class PlayerByIdQueryHandler(
     private val playerRepository: RegisteredPlayerRepository
-): QueryHandler<PlayerById, RegisteredPlayerRepresentation> {
+) : QueryHandler<PlayerById, RegisteredPlayerRepresentation> {
     override val queryType = PlayerById::class
 
     override fun handle(query: PlayerById): RegisteredPlayerRepresentation {
@@ -73,4 +77,6 @@ class PlayerByIdQueryHandler(
         return registeredPlayer.toRepresentation()
     }
 }
-fun RegisteredPlayer.toRepresentation(): RegisteredPlayerRepresentation = RegisteredPlayerRepresentation(this.id, this.nickName)
+
+fun RegisteredPlayer.toRepresentation(): RegisteredPlayerRepresentation =
+    RegisteredPlayerRepresentation(this.id, this.nickName)
