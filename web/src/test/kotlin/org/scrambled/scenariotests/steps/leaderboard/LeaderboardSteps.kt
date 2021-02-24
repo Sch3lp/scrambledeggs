@@ -6,9 +6,7 @@ import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
 import org.scrambled.scenariotests.steps.client.baseUrl
 import org.scrambled.scenariotests.steps.client.client
 
-suspend fun fetchLeaderboardStep(): List<LeaderboardEntryJson> {
-    return client.get {
-        url("$baseUrl/leaderboard")
-        contentType(ContentType.Application.Json)
-    }
+suspend fun fetchLeaderboardStep(): List<LeaderboardEntryJson> = client.get {
+    url("$baseUrl/leaderboard")
+    contentType(ContentType.Application.Json)
 }
