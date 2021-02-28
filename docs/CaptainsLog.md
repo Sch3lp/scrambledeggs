@@ -2,6 +2,13 @@
 
 This log serves to document all design decisions and problems we ran in to.
 
+## 2021, February 28th - Gradle Spring Cleaning!
+Ha! Wow! Much pun!
+
+Because we split the gradle conventions plugins into smaller bits, and because of the low dependency on spring stuff (only need @Component or whatever) it's now possible to drop that bootJar overriding hack.
+
+Also added `java-test-fixtures` to be able to share objects like TestBuilders etc. across modules.
+
 ## 2020, December 18th - Deciding which persistence mechanism to use for storing our events
 ### Options
 
@@ -11,7 +18,7 @@ This log serves to document all design decisions and problems we ran in to.
 4. Use MySQL, they've also got a TimeSeries plugin.
 
 ### Pro's Con's?
-
+Ended up with PostgreSQL table because of the learning potential we'd get when trying to implement our own EventStore.
 
 ## 2020, December 16th - Screw css combinations, just use elm-ui
 Because, reasons. Actually just because it's the simplest thing. And we get free typesafety in our CSS. <3
