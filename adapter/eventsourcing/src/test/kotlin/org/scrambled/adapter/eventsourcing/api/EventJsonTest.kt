@@ -3,11 +3,12 @@ package org.scrambled.adapter.eventsourcing.api
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.util.*
 
 class EventJsonTest {
     @Test
     fun `PlayerRegistered can be serialized`() {
-        val json = Event.PlayerRegistered("Snarf").asJson()
+        val json = Event.PlayerRegistered(UUID.randomUUID(),"Snarf").asJson()
 
         assertThat(json).contains("\"nickname\":\"Snarf\"").contains("\"type\":\"PlayerRegistered\"")
     }
@@ -16,7 +17,7 @@ class EventJsonTest {
     fun `PlayerRegistered can be serialized in a coroutine`() {
         val json =
             suspend {
-                Event.PlayerRegistered("Snarf").asJsonBlocking()
+                Event.PlayerRegistered(UUID.randomUUID(),"Snarf").asJsonBlocking()
             }
 
         runBlocking { assertThat(json.invoke()).contains("\"nickname\":\"Snarf\"").contains("\"type\":\"PlayerRegistered\"") }
@@ -24,7 +25,7 @@ class EventJsonTest {
 
     @Test
     fun `PlayerRegistered can be deserialized`() {
-        val playerRegistered = Event.PlayerRegistered("Snarf")
+        val playerRegistered = Event.PlayerRegistered(UUID.randomUUID(),"Snarf")
         val json = playerRegistered.asJson()
 
         val deserialized = json.fromJson<Event.PlayerRegistered>()
@@ -34,7 +35,7 @@ class EventJsonTest {
 
     @Test
     fun `PlayerRegistered can be deserialized in a coroutine`() {
-        val playerRegistered = Event.PlayerRegistered("Snarf")
+        val playerRegistered = Event.PlayerRegistered(UUID.randomUUID(),"Snarf")
         val json = playerRegistered.asJson()
 
         val deserialized = suspend { json.fromJson<Event.PlayerRegistered>() }

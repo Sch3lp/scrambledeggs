@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.await
 import org.testcontainers.junit.jupiter.Testcontainers
+import java.util.*
 
 @DataR2dbcTest
 @Testcontainers
@@ -28,7 +29,7 @@ class PostgresEventStoreSpringWiringTest {
 
     @Test
     fun `Pushing an event on the eventstream is persisted in Postgres`() {
-        val newPlayerRegisteredEvent = Event.PlayerRegistered(randomString(10))
+        val newPlayerRegisteredEvent = Event.PlayerRegistered(UUID.randomUUID(),randomString(10))
         runBlocking { eventStream.push(newPlayerRegisteredEvent) }
         runBlocking {
             val mostRecentEvent = eventStream.mostRecent<Event.PlayerRegistered>()
@@ -39,7 +40,7 @@ class PostgresEventStoreSpringWiringTest {
     @Test
     fun `Getting the mostRecent event of a specific type ignores other events`() {
         val nickname = randomString(10)
-        val newPlayerRegisteredEvent = Event.PlayerRegistered(nickname)
+        val newPlayerRegisteredEvent = Event.PlayerRegistered(UUID.randomUUID(),nickname)
         runBlocking { eventStream.push(newPlayerRegisteredEvent) }
         runBlocking { eventStream.push(Event.PlayerRenamed(nickname, randomString(10))) }
         runBlocking {
