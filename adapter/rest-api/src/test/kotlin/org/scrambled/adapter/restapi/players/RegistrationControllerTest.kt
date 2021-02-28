@@ -1,4 +1,4 @@
-package org.scrambled.adapter.restapi.registration
+package org.scrambled.adapter.restapi.players
 
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.CoreMatchers.containsString
@@ -30,8 +30,6 @@ internal class RegistrationControllerTest {
     lateinit var commandExecutor: CommandExecutor
     @Autowired
     private lateinit var mvc: MockMvc
-    @MockBean
-    private lateinit var projection: MostChallengesDoneLeaderboardProjection
 
     @Test
     internal fun `an authenticated user can register themselves`() {
