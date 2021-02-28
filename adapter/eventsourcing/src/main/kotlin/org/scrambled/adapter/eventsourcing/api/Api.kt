@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.fasterxml.jackson.module.kotlin.readValue
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.runBlocking
@@ -14,7 +13,8 @@ import java.util.*
 
 enum class EventType {
     PlayerRegistered,
-    PlayerRenamed
+    PlayerRenamed,
+    PlayerChallenged
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -24,10 +24,13 @@ sealed class Event(val type: EventType) {
     val at: LocalDateTime = LocalDateTime.now()
 
     @JsonTypeName("PlayerRegistered")
-    data class PlayerRegistered(val nickname: String) : Event(EventType.PlayerRegistered)
+    data class PlayerRegistered(val playerId: UUID, val nickname: String) : Event(EventType.PlayerRegistered)
 
     @JsonTypeName("PlayerRenamed")
     data class PlayerRenamed(val oldNickname: String, val newNickname: String) : Event(EventType.PlayerRenamed)
+
+    @JsonTypeName("PlayerChallenged")
+    data class PlayerChallenged(val initiator: UUID, val opponent: UUID) : Event(EventType.PlayerChallenged)
 }
 
 fun Event.asJson() = scrambledObjectMapper().writeValueAsString(this)

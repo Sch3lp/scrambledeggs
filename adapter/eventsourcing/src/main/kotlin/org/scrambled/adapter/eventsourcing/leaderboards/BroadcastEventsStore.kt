@@ -13,15 +13,17 @@ class BroadcastEventsStore(
     private val eventStore: EventStore
 ): BroadcastEvents {
     override fun keep(event: BroadcastEvent) = when(event) {
-        is BroadcastEvent.PlayerRegisteredForLeaderboard -> Event.PlayerRegistered(event.nickname)
+        is BroadcastEvent.PlayerRegisteredForLeaderboard -> Event.PlayerRegistered(event.playerId, event.nickname)
+        is BroadcastEvent.PlayerChallengedForLeaderboard -> Event.PlayerChallenged(event.initiator, event.opponent)
     }.store()
 
     override fun findAll(): List<BroadcastEvent> = runBlocking {
         val all = mutableListOf<BroadcastEvent>()
         eventStore.collect { event ->
             when(event) {
-                is Event.PlayerRegistered -> BroadcastEvent.PlayerRegisteredForLeaderboard(event.id, event.nickname)
+                is Event.PlayerRegistered -> BroadcastEvent.PlayerRegisteredForLeaderboard(event.playerId, event.nickname)
                 is Event.PlayerRenamed -> null
+                is Event.PlayerChallenged -> BroadcastEvent.PlayerChallengedForLeaderboard(event.initiator, event.opponent)
             }?.let { broadcastEvent -> all += broadcastEvent }
         }
         return@runBlocking all
