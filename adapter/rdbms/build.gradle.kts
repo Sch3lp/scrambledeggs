@@ -1,6 +1,7 @@
 plugins {
     id("scrambledeggs.kotlin-library-conventions")
-    id("scrambledeggs.spring-conventions")
+    id("scrambledeggs.spring-di-conventions")
+    id("scrambledeggs.spring-boot-conventions") //because @Configuration
 }
 
 dependencies {
