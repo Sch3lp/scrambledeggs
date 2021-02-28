@@ -16,7 +16,7 @@ dependencies {
     }
 
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
-    implementation(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.4.2")) //TODO figure out why I need to supply a specific version here
+    implementation(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.4.2")) //dep is not tied to kotlin version because it's experimental
 
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
