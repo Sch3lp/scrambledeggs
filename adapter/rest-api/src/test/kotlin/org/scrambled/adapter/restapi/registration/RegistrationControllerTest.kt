@@ -7,9 +7,11 @@ import org.mockito.Mockito
 import org.scrambled.adapter.restapi.RestApiTestConfig
 import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
 import org.scrambled.domain.core.api.registration.RegisterPlayer
+import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.MostChallengesDoneLeaderboardProjection
 import org.scrambled.infra.cqrs.CommandExecutor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig
@@ -28,6 +30,8 @@ internal class RegistrationControllerTest {
     lateinit var commandExecutor: CommandExecutor
     @Autowired
     private lateinit var mvc: MockMvc
+    @MockBean
+    private lateinit var projection: MostChallengesDoneLeaderboardProjection
 
     @Test
     internal fun `an authenticated user can register themselves`() {
