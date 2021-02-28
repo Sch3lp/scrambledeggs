@@ -4,14 +4,14 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":adapter:rest-api"))
-    implementation(project(":adapter:eventsourcing"))
-    implementation(project(":adapter:rdbms"))
-    implementation(project(":domain:core"))
-    implementation(project(":domain:core-api"))
-    implementation(project(":domain:leaderboards"))
-    implementation(project(":domain:leaderboards-api"))
-    implementation(project(":infra"))
+    api(project(":adapter:rest-api"))
+    api(project(":adapter:eventsourcing"))
+    api(project(":adapter:rdbms"))
+    api(project(":domain:core"))
+    api(project(":domain:core-api"))
+    api(project(":domain:leaderboards"))
+    api(project(":domain:leaderboards-api"))
+    api(project(":infra"))
 
     val ktorVersion = "1.5.1"
     testImplementation("io.ktor:ktor-client-cio:$ktorVersion")
