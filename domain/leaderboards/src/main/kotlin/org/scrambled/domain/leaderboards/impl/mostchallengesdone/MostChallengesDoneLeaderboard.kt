@@ -48,7 +48,13 @@ class MostChallengesDoneLeaderboard private constructor(private val events: List
 
     private fun List<ProjectedPlayerPartial>.rank() = this
         .sortedByDescending { it.score }
-        .mapIndexed { index, projectedPlayer -> projectedPlayer.copy(rank = index + 1) }
+        .mapIndexed { index, projectedPlayer ->
+            if (projectedPlayer.score == 0) {
+                projectedPlayer
+            } else {
+                projectedPlayer.copy(rank = index + 1)
+            }
+        }
 
     private fun List<ProjectedPlayerPartial>.build() = this.map { it.build() }
     private fun ProjectedPlayerPartial.build(): ProjectedPlayer =

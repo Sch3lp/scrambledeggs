@@ -1,6 +1,7 @@
 package org.scrambled.domain.leaderboards.impl.mostchallengesdone
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.scrambled.domain.leaderboards.api.infra.BroadcastEvent
 import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.ProjectedPlayer
@@ -30,42 +31,63 @@ class MostChallengesDoneLeaderboardTest {
     }
 
     @Test
-    internal fun `MostChallengesAlgorithm attributes 1 point per challenge initiated`() {
-        val sch3lpId = UUID.randomUUID()
-        val decripId = UUID.randomUUID()
-        val inMemBroadcastEvents = InMemoryBroadcastEvents()
-        inMemBroadcastEvents.keep(BroadcastEvent.PlayerChallengedForLeaderboard(sch3lpId, decripId))
-        inMemBroadcastEvents.keep(BroadcastEvent.PlayerChallengedForLeaderboard(sch3lpId, decripId))
-        inMemBroadcastEvents.keep(BroadcastEvent.PlayerChallengedForLeaderboard(decripId, sch3lpId))
-
-        val sch3lpsScore = mostChallengesDoneAlgorithm(inMemBroadcastEvents, sch3lpId)
-        val decripsScore = mostChallengesDoneAlgorithm(inMemBroadcastEvents, decripId)
-
-        assertThat(sch3lpsScore).isEqualTo(2)
-        assertThat(decripsScore).isEqualTo(1)
-    }
-
-
-    @Test
-    internal fun `MostChallengesAlgorithm without any PlayerChallenged events, returns score of 0`() {
+    internal fun `MostChallengesDoneLeaderboard's rank remains null when a player has not sent out any challenges`() {
         val sch3lpId = UUID.randomUUID()
         val decripId = UUID.randomUUID()
         val inMemBroadcastEvents = InMemoryBroadcastEvents()
         inMemBroadcastEvents.keep(BroadcastEvent.PlayerRegisteredForLeaderboard(sch3lpId, "Sch3lp"))
         inMemBroadcastEvents.keep(BroadcastEvent.PlayerRegisteredForLeaderboard(decripId, "Decrip"))
-        inMemBroadcastEvents.keep(BroadcastEvent.PlayerChallengedForLeaderboard(decripId, sch3lpId))
 
-        val sch3lpsScore = mostChallengesDoneAlgorithm(inMemBroadcastEvents, sch3lpId)
+        val ranking = MostChallengesDoneLeaderboard.rehydrate(inMemBroadcastEvents).project()
 
-        assertThat(sch3lpsScore).isEqualTo(0)
+        assertThat(ranking)
+            .containsExactly(
+                ProjectedPlayer(null, "Sch3lp", 0),
+                ProjectedPlayer(null, "Decrip", 0)
+            )
     }
 
-    @Test
-    internal fun `MostChallengesAlgorithm without any events, returns score of 0`() {
-        val inMemBroadcastEvents = InMemoryBroadcastEvents()
+    @Nested
+    inner class ScoringAlgo {
+        @Test
+        internal fun `MostChallengesAlgorithm attributes 1 point per challenge initiated`() {
+            val sch3lpId = UUID.randomUUID()
+            val decripId = UUID.randomUUID()
+            val inMemBroadcastEvents = InMemoryBroadcastEvents()
+            inMemBroadcastEvents.keep(BroadcastEvent.PlayerChallengedForLeaderboard(sch3lpId, decripId))
+            inMemBroadcastEvents.keep(BroadcastEvent.PlayerChallengedForLeaderboard(sch3lpId, decripId))
+            inMemBroadcastEvents.keep(BroadcastEvent.PlayerChallengedForLeaderboard(decripId, sch3lpId))
 
-        val somebodysScore = mostChallengesDoneAlgorithm(inMemBroadcastEvents, UUID.randomUUID())
+            val sch3lpsScore = mostChallengesDoneAlgorithm(inMemBroadcastEvents, sch3lpId)
+            val decripsScore = mostChallengesDoneAlgorithm(inMemBroadcastEvents, decripId)
 
-        assertThat(somebodysScore).isEqualTo(0)
+            assertThat(sch3lpsScore).isEqualTo(2)
+            assertThat(decripsScore).isEqualTo(1)
+        }
+
+
+        @Test
+        internal fun `MostChallengesAlgorithm without any PlayerChallenged events, returns score of 0`() {
+            val sch3lpId = UUID.randomUUID()
+            val decripId = UUID.randomUUID()
+            val inMemBroadcastEvents = InMemoryBroadcastEvents()
+            inMemBroadcastEvents.keep(BroadcastEvent.PlayerRegisteredForLeaderboard(sch3lpId, "Sch3lp"))
+            inMemBroadcastEvents.keep(BroadcastEvent.PlayerRegisteredForLeaderboard(decripId, "Decrip"))
+            inMemBroadcastEvents.keep(BroadcastEvent.PlayerChallengedForLeaderboard(decripId, sch3lpId))
+
+            val sch3lpsScore = mostChallengesDoneAlgorithm(inMemBroadcastEvents, sch3lpId)
+
+            assertThat(sch3lpsScore).isEqualTo(0)
+        }
+
+        @Test
+        internal fun `MostChallengesAlgorithm without any events, returns score of 0`() {
+            val inMemBroadcastEvents = InMemoryBroadcastEvents()
+
+            val somebodysScore = mostChallengesDoneAlgorithm(inMemBroadcastEvents, UUID.randomUUID())
+
+            assertThat(somebodysScore).isEqualTo(0)
+        }
     }
+
 }
