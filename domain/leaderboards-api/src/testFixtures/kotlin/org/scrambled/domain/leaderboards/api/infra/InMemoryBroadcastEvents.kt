@@ -1,7 +1,4 @@
-package org.scrambled.domain.leaderboards.impl.mostchallengesdone
-
-import org.scrambled.domain.leaderboards.api.infra.BroadcastEvent
-import org.scrambled.domain.leaderboards.api.infra.BroadcastEvents
+package org.scrambled.domain.leaderboards.api.infra
 
 class InMemoryBroadcastEvents(
     private val _events: MutableList<BroadcastEvent> = emptyList<BroadcastEvent>().toMutableList())

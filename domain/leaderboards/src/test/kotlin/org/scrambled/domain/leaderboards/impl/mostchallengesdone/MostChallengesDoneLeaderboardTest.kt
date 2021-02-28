@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.scrambled.domain.leaderboards.api.infra.BroadcastEvent
+import org.scrambled.domain.leaderboards.api.infra.InMemoryBroadcastEvents
 import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.ProjectedPlayer
 import java.util.*
 

@@ -1,6 +1,7 @@
 plugins {
     id("scrambledeggs.kotlin-common-conventions")
     `java-library`
+    `java-test-fixtures`
 }
 
 dependencies {
