@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":domain:core-api"))
-    implementation(project(":infra"))
+    api(project(":domain:core-api"))
+    api(project(":infra"))
 
 
 //    //TODO separate scrambledeggs.spring-conventions into spring-di and others, so we don't need to hardcode a version and use the BOM instead

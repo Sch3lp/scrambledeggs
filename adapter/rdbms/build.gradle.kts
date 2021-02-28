@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":domain:core-api"))
-    implementation(project(":domain:leaderboards-api"))
+    api(project(":domain:core-api"))
+    api(project(":domain:leaderboards-api"))
 
     implementation("org.postgresql:postgresql:42.2.18")
 
