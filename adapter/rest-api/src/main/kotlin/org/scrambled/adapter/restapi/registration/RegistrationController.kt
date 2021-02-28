@@ -31,7 +31,6 @@ class RegistrationController(
         // otherwise if someone logs in with Facebook, and gets sub 1234
         // and somebody completely different logs in with Google, and also gets sub 1234
         // both of these people (who are physically different people, aka different players) will be able to log in to each others account
-        val sub = "1234"
 
         val registerPlayer = RegisterPlayer(nickname = playerName.username)
         val registeredPlayer = commandExecutor.execute(registerPlayer)
