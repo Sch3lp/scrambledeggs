@@ -15,14 +15,8 @@ abstract class DomainEvent {
     }
 }
 
-//class DomainApplicationEvent<E: DomainEvent>(val domainEvent: E)
-
 interface IDomainEventBroadcaster {
     fun publish(domainEvent: DomainEvent)
-}
-
-interface IDomainEventSubscriber {
-    fun <E: DomainEvent> on(domainEvent: E)
 }
 
 @Component
@@ -36,21 +30,4 @@ class SpringEventsDomainEventBroadcaster(
         logger.info("Broadcasted: $domainEvent")
     }
 
-}
-
-// No @Component because should only be used in tests
-// Too lazy to move to shared-test package and create shared-test gradle configuration atm
-class InMemoryDomainEventBroadcaster : IDomainEventBroadcaster {
-
-    private val logger = LoggerFactory.getLogger(InMemoryDomainEventBroadcaster::class.java)
-
-    private val events: MutableList<DomainEvent> = mutableListOf()
-
-    override fun publish(domainEvent: DomainEvent) {
-        events += domainEvent
-        logger.info("$domainEvent was broadcast")
-    }
-    fun <T> InMemoryDomainEventBroadcaster.findEvent(clazz: Class<T>): T? {
-        return events.filterIsInstance(clazz).firstOrNull()
-    }
 }

@@ -21,7 +21,7 @@ internal class CommandExecutorTest {
 }
 
 
-fun <T> InMemoryDomainEventBroadcaster.verifyEventExists(clazz: Class<T>) {
+private fun <T> InMemoryDomainEventBroadcaster.verifyEventExists(clazz: Class<T>) {
     assertThat(this.findEvent(clazz)).isNotNull()
 }
 
