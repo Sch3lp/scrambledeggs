@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
-    `java-library`
 }
 
 java.sourceCompatibility = JavaVersion.VERSION_11
@@ -12,6 +11,10 @@ repositories {
 }
 
 dependencies {
+    constraints {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    }
+
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.4.2")) //TODO figure out why I need to supply a specific version here
 

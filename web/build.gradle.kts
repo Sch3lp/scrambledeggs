@@ -1,4 +1,5 @@
 plugins {
+    id("scrambledeggs.kotlin-application-conventions")
     id("scrambledeggs.spring-conventions")
 }
 

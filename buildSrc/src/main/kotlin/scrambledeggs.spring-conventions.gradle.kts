@@ -2,7 +2,7 @@ import org.gradle.kotlin.dsl.kotlin
 import org.gradle.kotlin.dsl.version
 
 plugins {
-    id("scrambledeggs.kotlin-conventions")
+    id("scrambledeggs.kotlin-common-conventions")
     id("org.springframework.boot") apply false
     id("io.spring.dependency-management")
     kotlin("plugin.spring")
