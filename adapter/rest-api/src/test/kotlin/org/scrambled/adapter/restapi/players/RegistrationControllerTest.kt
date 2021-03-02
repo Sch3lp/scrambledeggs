@@ -47,6 +47,6 @@ internal class RegistrationControllerTest {
             .andReturn()
             .response.contentAsString
 
-        assertThat(result).isEqualTo("""{"username":"Snarf"}""")
+        assertThat(result).isEqualTo("Snarf")
     }
 }
