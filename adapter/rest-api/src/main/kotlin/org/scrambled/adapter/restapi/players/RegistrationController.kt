@@ -20,7 +20,7 @@ class RegistrationController(
     fun registerPlayer(
         @RequestBody(required = true) registrationInfo: RegisterPlayerJson,
         builder: UriComponentsBuilder
-    ): ResponseEntity<String> {
+    ): ResponseEntity<Any> {
         // TODO extract sub + provider from authenticated JWT token (because I'm not sure if providers guarantee universally unique identifiers)
         // otherwise if someone logs in with Facebook, and gets sub 1234
         // and somebody completely different logs in with Google, and also gets sub 1234
@@ -31,7 +31,7 @@ class RegistrationController(
 
         val locationUri = builder.path("/api/player/{id}").buildAndExpand(registeredPlayer.id).toUri()
 
-        return ResponseEntity.created(locationUri).body(registrationInfo.nickname)
+        return ResponseEntity.created(locationUri).build()
     }
 }
 

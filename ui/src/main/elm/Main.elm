@@ -99,7 +99,7 @@ type Msg
     = NoOp
     | UpdateRegisterInput String
     | RegisterButtonClicked
-    | GotRegisterPlayerResponse (Result ApiError String)
+    | GotRegisterPlayerResponse (Result ApiError ())
     | GotFetchPlayersResponse (Result ApiError (List RegisteredPlayer))
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -148,7 +148,7 @@ registerPlayer model =
         }
     )
 
-expectStringWithErrorHandling : (Result ApiError String -> msg) -> Http.Expect msg
+expectStringWithErrorHandling : (Result ApiError () -> msg) -> Http.Expect msg
 expectStringWithErrorHandling toMsg =
     Http.expectStringResponse toMsg
         (\response ->
@@ -165,8 +165,8 @@ expectStringWithErrorHandling toMsg =
                 Http.BadStatus_ metadata body ->
                     Err (BadRequest body)
 
-                Http.GoodStatus_ metadata body ->
-                    Ok body
+                Http.GoodStatus_ metadata _ ->
+                    Ok ()
         )
 
 expectJsonWithErrorHandling : Decoder a -> (Result ApiError a -> msg)  -> Http.Expect msg
@@ -209,7 +209,7 @@ registeredPlayerDecoder =
         <| D.field "nickname" D.string
 
 
-handleRegisterPlayerResponse : Model -> Result ApiError String -> ( Model, Cmd Msg )
+handleRegisterPlayerResponse : Model -> Result ApiError () -> ( Model, Cmd Msg )
 handleRegisterPlayerResponse model result =
     case result of
         Ok _ ->

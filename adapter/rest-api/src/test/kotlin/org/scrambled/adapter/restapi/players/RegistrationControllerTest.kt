@@ -1,17 +1,14 @@
 package org.scrambled.adapter.restapi.players
 
-import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.scrambled.adapter.restapi.RestApiTestConfig
 import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
 import org.scrambled.domain.core.api.registration.RegisterPlayer
-import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.MostChallengesDoneLeaderboardProjection
 import org.scrambled.infra.cqrs.CommandExecutor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig
@@ -28,6 +25,7 @@ internal class RegistrationControllerTest {
 
     @Autowired
     lateinit var commandExecutor: CommandExecutor
+
     @Autowired
     private lateinit var mvc: MockMvc
 
@@ -37,16 +35,13 @@ internal class RegistrationControllerTest {
         Mockito.`when`(commandExecutor.execute(RegisterPlayer(nickname = "Snarf")))
             .thenReturn(RegisteredPlayerRepresentation(registeredPlayerId, "Snarf"))
 
-        val result = mvc.perform {
+        mvc.perform {
             post("/api/register")
                 .content("""{ "nickname": "Snarf" }""")
                 .contentType(MediaType.APPLICATION_JSON)
                 .buildRequest(it)
-        }.andExpect(status().isCreated)
+        }
+            .andExpect(status().isCreated)
             .andExpect(header().string("Location", containsString("/api/player/$registeredPlayerId")))
-            .andReturn()
-            .response.contentAsString
-
-        assertThat(result).isEqualTo("Snarf")
     }
 }
