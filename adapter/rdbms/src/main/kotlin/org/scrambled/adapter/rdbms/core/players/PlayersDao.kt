@@ -17,4 +17,7 @@ interface PlayersDao : QueryablePlayers {
 
     @SqlUpdate("INSERT INTO REGISTERED_PLAYERS(id, nickname) values(:id, :nickname)")
     override fun store(@BindKotlin player: QueryablePlayer)
+
+    @SqlQuery("SELECT id, nickname FROM REGISTERED_PLAYERS")
+    override fun all(): List<QueryablePlayer>
 }

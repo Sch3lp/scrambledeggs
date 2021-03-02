@@ -19,6 +19,10 @@ class RegisteredPlayerRepository(
     override fun save(aggregate: RegisteredPlayer) =
         QueryablePlayer(aggregate.id, aggregate.nickName).save()
 
-    fun QueryablePlayer.save() = players.store(this)
-    fun QueryablePlayer.toRegisteredPlayer() = RegisteredPlayer(this.id, this.nickname)
+    fun getAll() = players.all().toRegisteredPlayers()
+
+    private fun QueryablePlayer.save() = players.store(this)
+    private fun QueryablePlayer.toRegisteredPlayer() = RegisteredPlayer(this.id, this.nickname)
+    private fun List<QueryablePlayer>.toRegisteredPlayers() = this.map { it.toRegisteredPlayer() }
+
 }

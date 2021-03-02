@@ -4,6 +4,7 @@ import org.scrambled.domain.core.api.challenging.ChallengePlayer
 import org.scrambled.domain.core.api.challenging.PlayerChallenged
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.challenging.PlayerNickname
+import org.scrambled.domain.core.api.players.FetchAllRegisteredPlayers
 import org.scrambled.domain.core.api.players.PlayerById
 import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
 import org.scrambled.domain.core.api.registration.PlayerRegistered
@@ -78,5 +79,19 @@ class PlayerByIdQueryHandler(
     }
 }
 
-fun RegisteredPlayer.toRepresentation(): RegisteredPlayerRepresentation =
+@Component
+class FetchAllRegisteredPlayersQueryHandler(
+    private val playerRepository: RegisteredPlayerRepository
+) : QueryHandler<FetchAllRegisteredPlayers, List<RegisteredPlayerRepresentation>> {
+    override val queryType = FetchAllRegisteredPlayers::class
+
+    override fun handle(query: FetchAllRegisteredPlayers): List<RegisteredPlayerRepresentation> {
+        val registeredPlayers: List<RegisteredPlayer> = playerRepository.getAll()
+        return registeredPlayers.toRepresentation()
+    }
+}
+
+internal fun RegisteredPlayer.toRepresentation(): RegisteredPlayerRepresentation =
     RegisteredPlayerRepresentation(this.id, this.nickName)
+
+internal fun List<RegisteredPlayer>.toRepresentation() = this.map(RegisteredPlayer::toRepresentation)

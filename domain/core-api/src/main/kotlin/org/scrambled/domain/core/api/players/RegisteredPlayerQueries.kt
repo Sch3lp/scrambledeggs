@@ -6,5 +6,6 @@ import org.scrambled.infra.cqrs.AggregateId
 import org.scrambled.infra.cqrs.Query
 
 class PlayerById(override val id: AggregateId) : Query<RegisteredPlayerRepresentation>
+class FetchAllRegisteredPlayers(override val id: AggregateId = AggregateId.randomUUID()) : Query<List<RegisteredPlayerRepresentation>>
 
 data class RegisteredPlayerRepresentation(val id: PlayerId, val nickname: PlayerNickname)

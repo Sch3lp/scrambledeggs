@@ -1,6 +1,7 @@
 package org.scrambled.adapter.restapi.players
 
 import org.scrambled.domain.core.api.challenging.PlayerId
+import org.scrambled.domain.core.api.players.FetchAllRegisteredPlayers
 import org.scrambled.domain.core.api.players.PlayerById
 import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
 import org.scrambled.infra.cqrs.QueryExecutor
@@ -29,6 +30,16 @@ class PlayerController(
 
         return ResponseEntity.ok(player)
     }
+
+    @GetMapping
+    fun getPlayers(): ResponseEntity<List<RegisteredPlayerJson>> {
+        val players : List<RegisteredPlayerJson> = queryExecutor.execute(FetchAllRegisteredPlayers()) {
+            this.map(RegisteredPlayerRepresentation::toJson)
+        }
+
+        return ResponseEntity.ok(players)
+    }
+
 }
 
 data class RegisteredPlayerJson(val playerId: UUID, val nickname: String)

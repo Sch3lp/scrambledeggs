@@ -27,3 +27,10 @@ suspend fun fetchPlayerStep(playerId: PlayerId): RegisteredPlayerJson {
         contentType(ContentType.Application.Json)
     }
 }
+
+suspend fun fetchAllPlayersStep(): List<RegisteredPlayerJson> {
+    return client.get {
+        url("$baseUrl/player")
+        contentType(ContentType.Application.Json)
+    }
+}

@@ -5,6 +5,7 @@ import org.scrambled.domain.core.api.challenging.PlayerId
 interface QueryablePlayers {
     fun getById(id: PlayerId): QueryablePlayer?
     fun store(player: QueryablePlayer)
+    fun all(): List<QueryablePlayer>
 }
 
 data class QueryablePlayer(

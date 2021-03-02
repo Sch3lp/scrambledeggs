@@ -10,6 +10,8 @@ import org.scrambled.adapter.eventsourcing.api.Event
 import org.scrambled.adapter.eventsourcing.api.filterEvents
 import org.scrambled.adapter.eventsourcing.eventstore.PostgresEventStore
 import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
+import org.scrambled.adapter.restapi.players.RegisteredPlayerJson
+import org.scrambled.scenariotests.steps.core.fetchAllPlayersStep
 import org.scrambled.scenariotests.steps.core.fetchPlayerStep
 import org.scrambled.scenariotests.steps.core.registerPlayerStep
 import org.scrambled.scenariotests.steps.leaderboard.fetchLeaderboardStep
@@ -41,6 +43,10 @@ class RegistrationScenario {
             val playerId = registerPlayerStep(playerNickname)
             val registeredPlayer = fetchPlayerStep(playerId)
             assertThat(registeredPlayer.nickname).isEqualTo("Sch3lp")
+            val registeredPlayers = fetchAllPlayersStep()
+            assertThat(registeredPlayers)
+                .extracting<String> { it.nickname }
+                .containsExactly("Sch3lp")
         }
         runBlocking {
             val firstPlayerRegistered = eventStream.filterEvents<Event.PlayerRegistered>().first()
@@ -57,8 +63,8 @@ class RegistrationScenario {
         val handle = jdbi.open()
         handle.execute(
             """
-                delete from registered_players where 1=1;
-                delete from most_challenges_done_leaderboard where 1=1;
+                delete from registered_players;
+                delete from most_challenges_done_leaderboard;
                   """
         )
 
