@@ -22,7 +22,7 @@ import Element.Input as Input
 import Html
 import Html.Events
 import Http
-import Json.Decode
+import Json.Decode as D exposing (Decoder)
 import Json.Encode
 import List
 import Url
@@ -59,7 +59,7 @@ init _ =
 
 
 type alias Model =
-    { users : List RegisteredPlayer
+    { registeredPlayers : List RegisteredPlayer
     , registrationStatus : RegistrationState
     , registerInput : String
     }
@@ -67,12 +67,7 @@ type alias Model =
 
 emptyModel : Model
 emptyModel =
-    { users =
-        -- Prefill for testing
-        [ { username = "Henkie" }
-        , { username = "Bertie" }
-        , { username = "Jos" }
-        ]
+    { registeredPlayers = []
     , registrationStatus = NotRegistered
     , registerInput = ""
     }
@@ -104,8 +99,8 @@ type Msg
     = NoOp
     | UpdateRegisterInput String
     | RegisterButtonClicked
-    | GotUser (Result ApiError String)
-
+    | GotRegisterPlayerResponse (Result ApiError String)
+    | GotFetchPlayersResponse (Result ApiError (List RegisteredPlayer))
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -121,9 +116,11 @@ update msg model =
             , Cmd.none
             )
 
-        GotUser result ->
+        GotRegisterPlayerResponse result ->
             handleRegisterPlayerResponse model result
 
+        GotFetchPlayersResponse result ->
+            handleFetchPlayersResponse model result
 
 
 -- HTTP requests & helper functions
@@ -147,10 +144,9 @@ registerPlayer model =
     , Http.post
         { url = "/api/register"
         , body = Http.jsonBody playerNameJson
-        , expect = expectStringWithErrorHandling GotUser
+        , expect = expectStringWithErrorHandling GotRegisterPlayerResponse
         }
     )
-
 
 expectStringWithErrorHandling : (Result ApiError String -> msg) -> Http.Expect msg
 expectStringWithErrorHandling toMsg =
@@ -173,20 +169,67 @@ expectStringWithErrorHandling toMsg =
                     Ok body
         )
 
+expectJsonWithErrorHandling : Decoder a -> (Result ApiError a -> msg)  -> Http.Expect msg
+expectJsonWithErrorHandling decoder toMsg =
+    Http.expectStringResponse toMsg
+        (\response ->
+            case response of
+                Http.BadUrl_ url ->
+                    Err (BadUrl url)
+
+                Http.Timeout_ ->
+                    Err Timeout
+
+                Http.NetworkError_ ->
+                    Err NetworkError
+
+                Http.BadStatus_ metadata body ->
+                    Err (BadRequest body)
+
+                Http.GoodStatus_ metadata body ->
+                    case D.decodeString decoder body of
+                        Ok value -> Ok value
+                        Err err -> Err (BadRequest (D.errorToString err))
+        )
+
+
+performFetchPlayers =
+    Http.get
+        { url = "/api/player"
+        , expect = expectJsonWithErrorHandling registeredPlayersDecoder GotFetchPlayersResponse
+        }
+
+registeredPlayersDecoder: Decoder (List RegisteredPlayer)
+registeredPlayersDecoder =
+    D.list registeredPlayerDecoder
+
+registeredPlayerDecoder: Decoder RegisteredPlayer
+registeredPlayerDecoder =
+    D.map RegisteredPlayer
+        <| D.field "nickname" D.string
+
 
 handleRegisterPlayerResponse : Model -> Result ApiError String -> ( Model, Cmd Msg )
 handleRegisterPlayerResponse model result =
     case result of
-        Ok userStr ->
-            ( { model
-                | users = { username = userStr } :: model.users -- push user onto list
-                , registrationStatus = Registered
-              }
-            , Cmd.none
+        Ok _ ->
+            ( { model | registrationStatus = Registered }
+            ,  performFetchPlayers
             )
 
-        Err err ->
-            case err of
+        Err err -> handleApiError err model
+
+
+handleFetchPlayersResponse: Model -> Result ApiError (List RegisteredPlayer) -> ( Model, Cmd Msg)
+handleFetchPlayersResponse model result =
+    case result of
+        Ok newlyFetchedPlayers -> ( { model | registeredPlayers = newlyFetchedPlayers }, Cmd.none )
+        Err err -> handleApiError err model
+
+
+handleApiError : ApiError -> Model -> (Model, Cmd msg)
+handleApiError err model =
+    case err of
                 BadRequest str ->
                     ( { model | registrationStatus = Failed str }, Cmd.none )
 
@@ -199,8 +242,6 @@ handleRegisterPlayerResponse model result =
                 BadUrl a ->
                     ( { model | registrationStatus = Failed a }, Cmd.none )
 
-
-
 --    -- When it's a BadRequest, we care about the response, because it contains an insightful error message.
 --         Err (BadRequest errorMsg) ->
 --             ( { model | registrationStatus = Failed errorMsg }, Cmd.none )
@@ -209,9 +250,9 @@ handleRegisterPlayerResponse model result =
 --             ( { model | registrationStatus = Failed "Something went wrong." }, Cmd.none )
 
 
-userDecoder : Json.Decode.Decoder RegisteredPlayer
+userDecoder : D.Decoder RegisteredPlayer
 userDecoder =
-    Json.Decode.map RegisteredPlayer (Json.Decode.field "username" Json.Decode.string)
+    D.map RegisteredPlayer (D.field "username" D.string)
 
 
 userEncoder : String -> Json.Encode.Value
@@ -309,14 +350,14 @@ view model =
             [ viewRegisterInput model.registerInput
             , viewRegisterButton (model.registerInput == "")
             , viewStatusMessage model.registrationStatus
-            , viewLeaderboards model.users
+            , viewRegisteredPlayers model.registeredPlayers
             , infoFooter
             ]
         )
 
 
-viewLeaderboards : List RegisteredPlayer -> Ui.Element Msg
-viewLeaderboards userList =
+viewRegisteredPlayers : List RegisteredPlayer -> Ui.Element Msg
+viewRegisteredPlayers userList =
     Ui.column [ Ui.centerX ]
         (List.map
             (\u -> Ui.row [] [ Ui.text u.username ])
@@ -418,14 +459,14 @@ onEnter : msg -> Ui.Attribute msg
 onEnter msg =
     Ui.htmlAttribute
         (Html.Events.on "keyup"
-            (Json.Decode.field "key" Json.Decode.string
-                |> Json.Decode.andThen
+            (D.field "key" D.string
+                |> D.andThen
                     (\key ->
                         if key == "Enter" then
-                            Json.Decode.succeed msg
+                            D.succeed msg
 
                         else
-                            Json.Decode.fail "Not the enter key"
+                            D.fail "Not the enter key"
                     )
             )
         )
