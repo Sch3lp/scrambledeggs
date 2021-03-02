@@ -138,7 +138,7 @@ registerPlayer model =
     let
         playerNameJson =
             model.registerInput
-                |> userEncoder
+                |> registerPlayerEncoder
     in
     ( { model | registrationStatus = CallingAPI }
     , Http.post
@@ -249,8 +249,8 @@ handleApiError err model =
 --         _ ->
 --             ( { model | registrationStatus = Failed "Something went wrong." }, Cmd.none )
 
-userEncoder : String -> Json.Encode.Value
-userEncoder name =
+registerPlayerEncoder : String -> Json.Encode.Value
+registerPlayerEncoder name =
     Json.Encode.object [ ( "nickname", Json.Encode.string name ) ]
 
 
