@@ -52,6 +52,7 @@ class RegistrationScenario {
             val firstPlayerRegistered = eventStream.filterEvents<Event.PlayerRegistered>().first()
             assertThat(firstPlayerRegistered.nickname).isEqualTo("Sch3lp")
         }
+        //TODO : expose a manual trigger regeneration endpoint, this will solve the Thread.sleep and is also practical for manual testing
         Thread.sleep(1000L)
         runBlocking {
             val leaderboard: List<LeaderboardEntryJson> = fetchLeaderboardStep()
@@ -60,6 +61,7 @@ class RegistrationScenario {
     }
 
     private fun wipeDatabases() {
+        println("🚨Wiping database🚨")
         val handle = jdbi.open()
         handle.execute(
             """

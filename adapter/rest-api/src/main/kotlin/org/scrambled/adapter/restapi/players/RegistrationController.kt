@@ -26,13 +26,13 @@ class RegistrationController(
         // and somebody completely different logs in with Google, and also gets sub 1234
         // both of these people (who are physically different people, aka different players) will be able to log in to each others account
 
-        val registerPlayer = RegisterPlayer(nickname = registrationInfo.username)
+        val registerPlayer = RegisterPlayer(nickname = registrationInfo.nickname)
         val registeredPlayer = commandExecutor.execute(registerPlayer)
 
         val locationUri = builder.path("/api/player/{id}").buildAndExpand(registeredPlayer.id).toUri()
 
-        return ResponseEntity.created(locationUri).body(registrationInfo.username)
+        return ResponseEntity.created(locationUri).body(registrationInfo.nickname)
     }
 }
 
-data class RegisterPlayerJson(val username: String)
+data class RegisterPlayerJson(val nickname: String)

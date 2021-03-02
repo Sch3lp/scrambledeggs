@@ -39,7 +39,7 @@ internal class RegistrationControllerTest {
 
         val result = mvc.perform {
             post("/api/register")
-                .content("""{ "username": "Snarf" }""")
+                .content("""{ "nickname": "Snarf" }""")
                 .contentType(MediaType.APPLICATION_JSON)
                 .buildRequest(it)
         }.andExpect(status().isCreated)

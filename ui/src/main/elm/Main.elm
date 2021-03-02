@@ -85,7 +85,7 @@ type RegistrationState
 
 
 type alias RegisteredPlayer =
-    { username : String
+    { nickname : String
 
     -- Other stuff can go here, such as email, avatar
     }
@@ -249,15 +249,9 @@ handleApiError err model =
 --         _ ->
 --             ( { model | registrationStatus = Failed "Something went wrong." }, Cmd.none )
 
-
-userDecoder : D.Decoder RegisteredPlayer
-userDecoder =
-    D.map RegisteredPlayer (D.field "username" D.string)
-
-
 userEncoder : String -> Json.Encode.Value
 userEncoder name =
-    Json.Encode.object [ ( "username", Json.Encode.string name ) ]
+    Json.Encode.object [ ( "nickname", Json.Encode.string name ) ]
 
 
 httpErrorToString : Http.Error -> String
@@ -357,11 +351,11 @@ view model =
 
 
 viewRegisteredPlayers : List RegisteredPlayer -> Ui.Element Msg
-viewRegisteredPlayers userList =
+viewRegisteredPlayers registeredPlayers =
     Ui.column [ Ui.centerX ]
         (List.map
-            (\u -> Ui.row [] [ Ui.text u.username ])
-            userList
+            (\u -> Ui.row [] [ Ui.text u.nickname ])
+            registeredPlayers
         )
 
 
@@ -372,7 +366,7 @@ viewRegisterInput value =
         (Input.text
             [ onEnter RegisterButtonClicked
             ]
-            { label = Input.labelLeft [] (Ui.text "Username")
+            { label = Input.labelLeft [] (Ui.text "Nickname")
             , onChange = UpdateRegisterInput
             , placeholder = Just (Input.placeholder [] (Ui.text "L33tSn!per69"))
             , text = value
@@ -403,7 +397,7 @@ viewRegisterButton isDisabled =
                 , Font.color (Ui.rgb255 100 100 100)
                 ]
             )
-            { label = Ui.text "Please enter a username", onPress = Just NoOp }
+            { label = Ui.text "Please enter a nickname", onPress = Just NoOp }
 
     else
         Input.button

@@ -82,6 +82,7 @@ class MostChallengesDonePolicy(
 
     @Scheduled(fixedDelay = 1000 * 60 * 5) // Every 5 minutes
 //    @Scheduled(fixedDelay = 500)
+    //TODO : expose a manual trigger regeneration endpoint, this will solve the Thread.sleep and is also practical for manual testing
     fun regenerateLeaderboard() {
         val events: List<BroadcastEvent> = broadcastEvents.findAll()
 
