@@ -213,7 +213,7 @@ handleRegisterPlayerResponse : Model -> Result ApiError String -> ( Model, Cmd M
 handleRegisterPlayerResponse model result =
     case result of
         Ok _ ->
-            ( { model | registrationStatus = Registered }
+            ( { model | registrationStatus = Registered, registerInput = "" }
             ,  performFetchPlayers
             )
 
