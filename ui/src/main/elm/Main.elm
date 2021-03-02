@@ -49,7 +49,7 @@ main =
 init : Maybe String -> ( Model, Cmd Msg )
 init _ =
     ( emptyModel
-    , Cmd.none
+    , performFetchPlayers
     )
 
 
