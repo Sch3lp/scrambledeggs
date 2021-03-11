@@ -91,7 +91,7 @@ class MostChallengesDonePolicy(
             .regenerate()
     }
 
-    fun List<ProjectedPlayer>.regenerate() {
+    private fun List<ProjectedPlayer>.regenerate() {
         logger.info("Regenerate triggered with $size players")
         mostChallengesDoneProjection.wipe()
         mostChallengesDoneProjection.store(this)
