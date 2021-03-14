@@ -102,6 +102,7 @@ type Msg
     | GotRegisterPlayerResponse (Result ApiError ())
     | GotFetchPlayersResponse (Result ApiError (List RegisteredPlayer))
 
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -121,6 +122,7 @@ update msg model =
 
         GotFetchPlayersResponse result ->
             handleFetchPlayersResponse model result
+
 
 
 -- HTTP requests & helper functions
@@ -148,6 +150,7 @@ registerPlayer model =
         }
     )
 
+
 expectStringWithErrorHandling : (Result ApiError () -> msg) -> Http.Expect msg
 expectStringWithErrorHandling toMsg =
     Http.expectStringResponse toMsg
@@ -169,7 +172,8 @@ expectStringWithErrorHandling toMsg =
                     Ok ()
         )
 
-expectJsonWithErrorHandling : Decoder a -> (Result ApiError a -> msg)  -> Http.Expect msg
+
+expectJsonWithErrorHandling : Decoder a -> (Result ApiError a -> msg) -> Http.Expect msg
 expectJsonWithErrorHandling decoder toMsg =
     Http.expectStringResponse toMsg
         (\response ->
@@ -188,8 +192,11 @@ expectJsonWithErrorHandling decoder toMsg =
 
                 Http.GoodStatus_ metadata body ->
                     case D.decodeString decoder body of
-                        Ok value -> Ok value
-                        Err err -> Err (BadRequest (D.errorToString err))
+                        Ok value ->
+                            Ok value
+
+                        Err err ->
+                            Err (BadRequest (D.errorToString err))
         )
 
 
@@ -199,14 +206,16 @@ performFetchPlayers =
         , expect = expectJsonWithErrorHandling registeredPlayersDecoder GotFetchPlayersResponse
         }
 
-registeredPlayersDecoder: Decoder (List RegisteredPlayer)
+
+registeredPlayersDecoder : Decoder (List RegisteredPlayer)
 registeredPlayersDecoder =
     D.list registeredPlayerDecoder
 
-registeredPlayerDecoder: Decoder RegisteredPlayer
+
+registeredPlayerDecoder : Decoder RegisteredPlayer
 registeredPlayerDecoder =
-    D.map RegisteredPlayer
-        <| D.field "nickname" D.string
+    D.map RegisteredPlayer <|
+        D.field "nickname" D.string
 
 
 handleRegisterPlayerResponse : Model -> Result ApiError () -> ( Model, Cmd Msg )
@@ -214,33 +223,39 @@ handleRegisterPlayerResponse model result =
     case result of
         Ok _ ->
             ( { model | registrationStatus = Registered, registerInput = "" }
-            ,  performFetchPlayers
+            , performFetchPlayers
             )
 
-        Err err -> handleApiError err model
+        Err err ->
+            handleApiError err model
 
 
-handleFetchPlayersResponse: Model -> Result ApiError (List RegisteredPlayer) -> ( Model, Cmd Msg)
+handleFetchPlayersResponse : Model -> Result ApiError (List RegisteredPlayer) -> ( Model, Cmd Msg )
 handleFetchPlayersResponse model result =
     case result of
-        Ok newlyFetchedPlayers -> ( { model | registeredPlayers = newlyFetchedPlayers }, Cmd.none )
-        Err err -> handleApiError err model
+        Ok newlyFetchedPlayers ->
+            ( { model | registeredPlayers = newlyFetchedPlayers }, Cmd.none )
+
+        Err err ->
+            handleApiError err model
 
 
-handleApiError : ApiError -> Model -> (Model, Cmd msg)
+handleApiError : ApiError -> Model -> ( Model, Cmd msg )
 handleApiError err model =
     case err of
-                BadRequest str ->
-                    ( { model | registrationStatus = Failed str }, Cmd.none )
+        BadRequest str ->
+            ( { model | registrationStatus = Failed str }, Cmd.none )
 
-                NetworkError ->
-                    ( { model | registrationStatus = Failed "Network Error" }, Cmd.none )
+        NetworkError ->
+            ( { model | registrationStatus = Failed "Network Error" }, Cmd.none )
 
-                Timeout ->
-                    ( { model | registrationStatus = Failed "Timeout" }, Cmd.none )
+        Timeout ->
+            ( { model | registrationStatus = Failed "Timeout" }, Cmd.none )
 
-                BadUrl a ->
-                    ( { model | registrationStatus = Failed a }, Cmd.none )
+        BadUrl a ->
+            ( { model | registrationStatus = Failed a }, Cmd.none )
+
+
 
 --    -- When it's a BadRequest, we care about the response, because it contains an insightful error message.
 --         Err (BadRequest errorMsg) ->
@@ -248,6 +263,7 @@ handleApiError err model =
 --         -- When it's any other ApiError we don't care about specifics.
 --         _ ->
 --             ( { model | registrationStatus = Failed "Something went wrong." }, Cmd.none )
+
 
 registerPlayerEncoder : String -> Json.Encode.Value
 registerPlayerEncoder name =
@@ -325,29 +341,103 @@ parseRoute =
 -- VIEW
 
 
+type alias Palette =
+    { font : Ui.Color, bg : Ui.Color }
+
+
+palette : Palette
+palette =
+    { font =
+        Ui.rgb255 41 46 54
+    , bg =
+        Ui.rgb 222 230 255
+    }
+
+
+contrasted : Palette -> Palette
+contrasted _ =
+    { font = Ui.rgb 0xEE 0xEE 0xEE
+    , bg = Ui.rgb255 51 67 92
+    }
+
+
 view : Model -> Html.Html Msg
 view model =
     Ui.layout
-        [ Background.color
-            (Ui.rgb 222 230 255)
+        [ Background.color <| palette.bg
         ]
         (Ui.column
             [ Ui.height Ui.fill
             , Ui.width Ui.fill
             , Ui.centerX
-            , Ui.paddingEach { top = 150, left = 0, right = 0, bottom = 0 }
-            , Ui.spacing 16
-            , Font.color (Ui.rgb255 41 46 54)
-
-            -- , explain Debug.todo -- Awesome layout debugging
+            , Ui.alignTop
+            , Font.color <| palette.font
             ]
-            [ viewRegisterInput model.registerInput
-            , viewRegisterButton (model.registerInput == "")
-            , viewStatusMessage model.registrationStatus
-            , viewRegisteredPlayers model.registeredPlayers
-            , infoFooter
-            ]
+         <|
+            viewHeader model
+                ++ viewMainContent model
+                ++ viewFooter model
         )
+
+
+viewHeader model =
+    [ Ui.el
+        [ Ui.alignTop
+        , Ui.centerX
+        , Ui.centerY
+        , Ui.width Ui.fill
+        , Ui.height Ui.shrink
+        , Background.color <| .bg <| contrasted palette
+        , Font.color <| .font <| contrasted palette
+        , Font.size 32
+        , Ui.padding 25
+        ]
+        header
+    ]
+
+
+header =
+    Ui.text "Scramblede.gg"
+
+
+viewFooter model =
+    [ Ui.el
+        [ Ui.alignBottom
+        , Ui.centerX
+        , Ui.width Ui.fill
+        , Background.color <| .bg <| contrasted palette
+        , Font.color <| .font <| contrasted palette
+        , Font.size 14
+        , Ui.paddingXY 16 32
+        ]
+        footer
+    ]
+
+
+footer : Ui.Element msg
+footer =
+    Ui.text "Diabotical District -- Where passionate trashy nerds align their goals"
+
+
+viewMainContent model =
+    [ Ui.row [ Ui.width Ui.fill, Ui.height Ui.fill ]
+        [ Ui.column
+            [ Ui.width Ui.fill
+            , Ui.height Ui.fill
+            , Ui.paddingEach { top = 25, left = 0, right = 0, bottom = 0 }
+            , Ui.spacing 16
+            ]
+            (mainContent model)
+        ]
+    ]
+
+
+mainContent model =
+    [ viewRegisterInput model.registerInput
+    , viewRegisterButton (model.registerInput == "")
+    , viewStatusMessage model.registrationStatus
+    , viewRegisteredPlayers model.registeredPlayers
+    ]
 
 
 viewRegisteredPlayers : List RegisteredPlayer -> Ui.Element Msg
@@ -429,20 +519,6 @@ viewStatusMessage registrationStatus =
         Failed errorMessage ->
             Ui.paragraph sharedAttributes
                 [ Ui.text errorMessage ]
-
-
-infoFooter : Ui.Element msg
-infoFooter =
-    Ui.el
-        [ Ui.alignBottom
-        , Ui.centerX
-        , Background.color (Ui.rgb255 51 67 92)
-        , Font.color (Ui.rgb 0xEE 0xEE 0xEE) -- Hex color example
-        , Ui.width Ui.fill
-        , Ui.paddingXY 16 32
-        , Font.size 14
-        ]
-        (Ui.text "Diabotical District -- Where passionate trashy nerds align their goals")
 
 
 
