@@ -405,51 +405,17 @@ parseRoute =
 -- VIEW
 
 
-type alias Palette =
-    { font : Ui.Color, bg : Ui.Color }
-
-
-gray =
-    Ui.rgb255 41 46 54
-
-
-offwhite =
-    Ui.rgb 222 230 255
-
-
-white =
-    Ui.rgb 238 238 238
-
-
-royalBlue =
-    Ui.rgb255 51 67 92
-
-
-palette : Palette
-palette =
-    { font = gray
-    , bg = offwhite
-    }
-
-
-contrasted : Palette -> Palette
-contrasted _ =
-    { font = white
-    , bg = royalBlue
-    }
-
-
 view : Model -> Html.Html Msg
 view model =
     Ui.layout
-        [ Background.color <| palette.bg
+        [ Background.color <| Base.palette.bg
         ]
         (Ui.column
             [ Ui.height Ui.fill
             , Ui.width Ui.fill
             , Ui.centerX
             , Ui.alignTop
-            , Font.color <| palette.font
+            , Font.color <| Base.palette.font
             ]
          <|
             viewHeader model
@@ -464,8 +430,8 @@ viewHeader model =
          , Ui.centerX
          , Ui.centerY
          , Ui.width Ui.fill
-         , Background.color <| .bg <| contrasted palette
-         , Font.color <| .font <| contrasted palette
+         , Background.color <| .bg <| Base.contrastedPalette
+         , Font.color <| .font <| Base.contrastedPalette
          , Ui.padding 25
          ]
             ++ Typo.h1
@@ -483,8 +449,8 @@ viewFooter model =
         [ Ui.alignBottom
         , Ui.centerX
         , Ui.width Ui.fill
-        , Background.color <| .bg <| contrasted palette
-        , Font.color <| .font <| contrasted palette
+        , Background.color <| .bg <| Base.contrastedPalette
+        , Font.color <| .font <| Base.contrastedPalette
         , Font.size 14
         , Ui.paddingXY 16 32
         ]
@@ -704,3 +670,4 @@ onEnter msg =
 -- * [ ] Extract the API stuff (fetching players, fetching leaderboard, registering new player) into its own module
 -- * [ ] Fetch both the registeredPlayers and the leaderboard at the same time; look at Task thing in Elm again
 -- * [ ] Split up Main.elm into a registration page and an anonymous home page
+-- * [ ] Replace our own palette with that of Material somehow

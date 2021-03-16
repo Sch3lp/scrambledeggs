@@ -1,4 +1,4 @@
-module Base exposing (ButtonProps, button)
+module Base exposing (ButtonProps, button, contrastedPalette, palette)
 
 import Element as Ui
 import Element.Background as Background
@@ -23,18 +23,51 @@ button { isDisabled, label } msg =
     in
     if isDisabled == True then
         Input.button
-            (List.append
-                sharedAttributes
-                [ Background.color (Ui.rgb255 200 200 200)
-                , Font.color (Ui.rgb255 100 100 100)
-                ]
+            ([ Background.color palette.bgDisabled
+             , Font.color palette.fontDisabled
+             ]
+                ++ sharedAttributes
             )
             { label = Ui.text label, onPress = Nothing }
 
     else
         Input.button
-            (List.append
-                sharedAttributes
-                [ Background.color (Ui.rgb 150 150 150) ]
+            ([ Background.color palette.primary
+             , Font.color palette.font
+             ]
+                ++ sharedAttributes
             )
             { label = Ui.text label, onPress = Just msg }
+
+
+type alias Palette =
+    { font : Ui.Color
+    , fontDisabled : Ui.Color
+    , bg : Ui.Color
+    , bgDisabled : Ui.Color
+    , primary : Ui.Color
+    }
+
+
+palette : Palette
+palette =
+    { font = Ui.rgb255 41 46 54
+    , fontDisabled = Ui.rgb255 100 100 100
+    , bg = Ui.rgb 222 230 255
+    , bgDisabled = Ui.rgb255 200 200 200
+    , primary = Ui.rgb 150 150 150
+    }
+
+
+contrastedPalette =
+    contrast palette
+
+
+contrast : Palette -> Palette
+contrast _ =
+    { font = Ui.rgb 238 238 238
+    , fontDisabled = Ui.rgb 222 230 255
+    , bg = Ui.rgb255 51 67 92
+    , bgDisabled = Ui.rgb255 51 67 92
+    , primary = Ui.rgb 150 150 150
+    }
