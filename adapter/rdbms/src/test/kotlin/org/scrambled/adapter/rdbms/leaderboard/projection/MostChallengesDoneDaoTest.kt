@@ -34,6 +34,19 @@ class MostChallengesDoneDaoTest {
         assertThat(players).contains(lionO)
     }
 
+    @Test
+    fun `getRanking returns players sorted by rank`() {
+        val snarf = ProjectedPlayer(rank = 2, nickname = "Snarf", score = 0)
+        val lionO = ProjectedPlayer(rank = null, nickname = "Lion-O", score = 0)
+        val elFips = ProjectedPlayer(rank = 1, nickname = "elFips", score = 0)
+
+        projection.store(listOf(snarf, lionO, elFips))
+
+        val ranking = projection.getRanking()
+
+        assertThat(ranking).containsExactly(elFips, snarf, lionO)
+    }
+
     private inline fun <reified T : Any> String.runQuery(): List<T> {
         val handle = jdbi.open()
         return handle.createQuery(this).mapTo<T>().list()
