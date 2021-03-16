@@ -7,12 +7,12 @@ import Element.Font as Font
 import Element.Input as Input
 
 
-type alias ButtonProps a =
-    { isDisabled : Bool, label : String, msg : a }
+type alias ButtonProps =
+    { isDisabled : Bool, label : String }
 
 
-button : ButtonProps a -> Ui.Element a
-button { isDisabled, label, msg } =
+button : ButtonProps -> msg -> Ui.Element msg
+button { isDisabled, label } msg =
     let
         sharedAttributes =
             [ Ui.centerX

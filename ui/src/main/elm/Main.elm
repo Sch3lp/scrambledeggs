@@ -593,8 +593,8 @@ registrationRedirectButton isDisabled =
     Base.button
         { isDisabled = isDisabled
         , label = "Register"
-        , msg = RegistrationRedirectButtonClicked
         }
+        RegistrationRedirectButtonClicked
 
 
 viewRegistration model =
@@ -650,8 +650,8 @@ viewRegisterButton isDisabled =
     Base.button
         { isDisabled = isDisabled
         , label = "Register"
-        , msg = RegisterButtonClicked
         }
+        RegisterButtonClicked
 
 
 viewStatusMessage : RegistrationState -> Ui.Element Msg
