@@ -121,6 +121,7 @@ type Msg
     = NoOp
     | UpdateRegisterInput String
     | RegisterButtonClicked
+    | RegistrationRedirectButtonClicked
     | GotRegisterPlayerResponse (Result ApiError ())
     | GotFetchPlayersResponse (Result ApiError (List RegisteredPlayer))
     | GotFetchLeaderboardResponse (Result ApiError Leaderboard)
@@ -132,14 +133,18 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        RegisterButtonClicked ->
-            registerPlayer model
-
         UpdateRegisterInput str ->
             ( { model | registerInput = str }
             , Cmd.none
             )
 
+        RegisterButtonClicked ->
+            registerPlayer model
+
+        RegistrationRedirectButtonClicked ->
+            ( model, Cmd.none )
+
+        -- Todo actually implement redirecting to register screen
         GotRegisterPlayerResponse result ->
             handleRegisterPlayerResponse model result
 
@@ -584,31 +589,11 @@ viewRegistrationRedirectButton =
 
 
 registrationRedirectButton isDisabled =
-    let
-        sharedAttributes =
-            [ Ui.centerX
-            , Border.width 1
-            , Border.rounded 8
-            , Ui.paddingXY 16 8
-            ]
-    in
-    if isDisabled == True then
-        Input.button
-            (List.append
-                sharedAttributes
-                [ Background.color (Ui.rgb255 200 200 200)
-                , Font.color (Ui.rgb255 100 100 100)
-                ]
-            )
-            { label = Ui.text "Please enter a nickname", onPress = Just NoOp }
-
-    else
-        Input.button
-            (List.append
-                sharedAttributes
-                [ Background.color (Ui.rgb 150 150 150) ]
-            )
-            { label = Ui.text "Register", onPress = Just RegisterButtonClicked }
+    baseButton
+        { isDisabled = isDisabled
+        , label = "Register"
+        , msg = RegistrationRedirectButtonClicked
+        }
 
 
 viewRegistration model =
@@ -661,6 +646,19 @@ viewRegisterInput value =
 
 viewRegisterButton : Bool -> Ui.Element Msg
 viewRegisterButton isDisabled =
+    baseButton
+        { isDisabled = isDisabled
+        , label = "Register"
+        , msg = RegisterButtonClicked
+        }
+
+
+type alias BaseButtonProps =
+    { isDisabled : Bool, label : String, msg : Msg }
+
+
+baseButton : BaseButtonProps -> Ui.Element Msg
+baseButton { isDisabled, label, msg } =
     let
         sharedAttributes =
             [ Ui.centerX
@@ -677,7 +675,7 @@ viewRegisterButton isDisabled =
                 , Font.color (Ui.rgb255 100 100 100)
                 ]
             )
-            { label = Ui.text "Please enter a nickname", onPress = Just NoOp }
+            { label = Ui.text label, onPress = Just NoOp }
 
     else
         Input.button
@@ -685,7 +683,7 @@ viewRegisterButton isDisabled =
                 sharedAttributes
                 [ Background.color (Ui.rgb 150 150 150) ]
             )
-            { label = Ui.text "Register", onPress = Just RegisterButtonClicked }
+            { label = Ui.text label, onPress = Just msg }
 
 
 viewStatusMessage : RegistrationState -> Ui.Element Msg
@@ -730,3 +728,11 @@ onEnter msg =
                     )
             )
         )
+
+
+
+-- TODO
+-- * [x] Extract button helper function so that our buttons will always look the same
+-- * [ ] Extract the API stuff (fetching players, fetching leaderboard, registering new player) into its own module
+-- * [ ] Fetch both the registeredPlayers and the leaderboard at the same time; look at Task thing in Elm again
+-- * [ ] Split up Main.elm into a registration page and an anonymous home page
