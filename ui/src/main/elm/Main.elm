@@ -52,7 +52,7 @@ main =
 init : Maybe String -> ( Model, Cmd Msg )
 init _ =
     ( emptyModel
-    , performFetchPlayers
+    , performFetchLeaderboard
     )
 
 
@@ -88,7 +88,7 @@ initialLeaderboard =
 
 emptyModel : Model
 emptyModel =
-    { leaderboard = initialLeaderboard
+    { leaderboard = []
     , registeredPlayers = []
     , registrationStatus = NotRegistered
     , registerInput = ""
@@ -123,6 +123,7 @@ type Msg
     | RegisterButtonClicked
     | GotRegisterPlayerResponse (Result ApiError ())
     | GotFetchPlayersResponse (Result ApiError (List RegisteredPlayer))
+    | GotFetchLeaderboardResponse (Result ApiError Leaderboard)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -145,6 +146,9 @@ update msg model =
         GotFetchPlayersResponse result ->
             handleFetchPlayersResponse model result
 
+        GotFetchLeaderboardResponse result ->
+            handleFetchLeaderboardResponse model result
+
 
 
 -- HTTP requests & helper functions
@@ -155,22 +159,6 @@ type ApiError
     | NetworkError
     | Timeout
     | BadUrl String
-
-
-registerPlayer : Model -> ( Model, Cmd Msg )
-registerPlayer model =
-    let
-        playerNameJson =
-            model.registerInput
-                |> registerPlayerEncoder
-    in
-    ( { model | registrationStatus = CallingAPI }
-    , Http.post
-        { url = "/api/register"
-        , body = Http.jsonBody playerNameJson
-        , expect = expectStringWithErrorHandling GotRegisterPlayerResponse
-        }
-    )
 
 
 expectStringWithErrorHandling : (Result ApiError () -> msg) -> Http.Expect msg
@@ -222,46 +210,6 @@ expectJsonWithErrorHandling decoder toMsg =
         )
 
 
-performFetchPlayers =
-    Http.get
-        { url = "/api/player"
-        , expect = expectJsonWithErrorHandling registeredPlayersDecoder GotFetchPlayersResponse
-        }
-
-
-registeredPlayersDecoder : Decoder (List RegisteredPlayer)
-registeredPlayersDecoder =
-    D.list registeredPlayerDecoder
-
-
-registeredPlayerDecoder : Decoder RegisteredPlayer
-registeredPlayerDecoder =
-    D.map RegisteredPlayer <|
-        D.field "nickname" D.string
-
-
-handleRegisterPlayerResponse : Model -> Result ApiError () -> ( Model, Cmd Msg )
-handleRegisterPlayerResponse model result =
-    case result of
-        Ok _ ->
-            ( { model | registrationStatus = Registered, registerInput = "" }
-            , performFetchPlayers
-            )
-
-        Err err ->
-            handleApiError err model
-
-
-handleFetchPlayersResponse : Model -> Result ApiError (List RegisteredPlayer) -> ( Model, Cmd Msg )
-handleFetchPlayersResponse model result =
-    case result of
-        Ok newlyFetchedPlayers ->
-            ( { model | registeredPlayers = newlyFetchedPlayers }, Cmd.none )
-
-        Err err ->
-            handleApiError err model
-
-
 handleApiError : ApiError -> Model -> ( Model, Cmd msg )
 handleApiError err model =
     case err of
@@ -276,20 +224,6 @@ handleApiError err model =
 
         BadUrl a ->
             ( { model | registrationStatus = Failed a }, Cmd.none )
-
-
-
---    -- When it's a BadRequest, we care about the response, because it contains an insightful error message.
---         Err (BadRequest errorMsg) ->
---             ( { model | registrationStatus = Failed errorMsg }, Cmd.none )
---         -- When it's any other ApiError we don't care about specifics.
---         _ ->
---             ( { model | registrationStatus = Failed "Something went wrong." }, Cmd.none )
-
-
-registerPlayerEncoder : String -> Json.Encode.Value
-registerPlayerEncoder name =
-    Json.Encode.object [ ( "nickname", Json.Encode.string name ) ]
 
 
 httpErrorToString : Http.Error -> String
@@ -315,6 +249,108 @@ httpErrorToString error =
 
         Http.BadBody errorMessage ->
             errorMessage
+
+
+
+-- Fetching Leaderboard
+
+
+performFetchLeaderboard =
+    Http.get
+        { url = "/api/leaderboard"
+        , expect = expectJsonWithErrorHandling leaderboardDecoder GotFetchLeaderboardResponse
+        }
+
+
+leaderboardDecoder : Decoder Leaderboard
+leaderboardDecoder =
+    D.list leaderboardEntryDecoder
+
+
+leaderboardEntryDecoder : Decoder LeaderboardEntry
+leaderboardEntryDecoder =
+    D.map2 LeaderboardEntry
+        (D.maybe (D.field "rank" D.int))
+        (D.field "nickname" D.string)
+
+
+handleFetchLeaderboardResponse : Model -> Result ApiError Leaderboard -> ( Model, Cmd Msg )
+handleFetchLeaderboardResponse model result =
+    case result of
+        Ok newlyFetchedLeaderboard ->
+            ( { model | leaderboard = newlyFetchedLeaderboard }, Cmd.none )
+
+        Err err ->
+            handleApiError err model
+
+
+
+-- Fetching Players
+
+
+performFetchPlayers =
+    Http.get
+        { url = "/api/player"
+        , expect = expectJsonWithErrorHandling registeredPlayersDecoder GotFetchPlayersResponse
+        }
+
+
+registeredPlayersDecoder : Decoder (List RegisteredPlayer)
+registeredPlayersDecoder =
+    D.list registeredPlayerDecoder
+
+
+registeredPlayerDecoder : Decoder RegisteredPlayer
+registeredPlayerDecoder =
+    D.map RegisteredPlayer <|
+        D.field "nickname" D.string
+
+
+handleFetchPlayersResponse : Model -> Result ApiError (List RegisteredPlayer) -> ( Model, Cmd Msg )
+handleFetchPlayersResponse model result =
+    case result of
+        Ok newlyFetchedPlayers ->
+            ( { model | registeredPlayers = newlyFetchedPlayers }, Cmd.none )
+
+        Err err ->
+            handleApiError err model
+
+
+
+-- Registering a new Player
+
+
+registerPlayer : Model -> ( Model, Cmd Msg )
+registerPlayer model =
+    let
+        playerNameJson =
+            model.registerInput
+                |> registerPlayerEncoder
+    in
+    ( { model | registrationStatus = CallingAPI }
+    , Http.post
+        { url = "/api/register"
+        , body = Http.jsonBody playerNameJson
+        , expect = expectStringWithErrorHandling GotRegisterPlayerResponse
+        }
+    )
+
+
+registerPlayerEncoder : String -> Json.Encode.Value
+registerPlayerEncoder name =
+    Json.Encode.object [ ( "nickname", Json.Encode.string name ) ]
+
+
+handleRegisterPlayerResponse : Model -> Result ApiError () -> ( Model, Cmd Msg )
+handleRegisterPlayerResponse model result =
+    case result of
+        Ok _ ->
+            ( { model | registrationStatus = Registered, registerInput = "" }
+            , performFetchPlayers
+            )
+
+        Err err ->
+            handleApiError err model
 
 
 
