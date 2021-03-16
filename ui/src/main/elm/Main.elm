@@ -453,11 +453,15 @@ viewLeaderboard model =
 
 
 viewLeaderboardTable model =
-    Ui.column [] [ Ui.text "here goes the leaderboard" ]
+    Ui.column
+        [ Ui.width Ui.fill, Ui.paddingXY 20 0 ]
+        [ Ui.text "here goes the leaderboard" ]
 
 
 viewRecentMatchesTable model =
-    Ui.column [] [ Ui.text "here goes the recent matches" ]
+    Ui.column
+        [ Ui.width Ui.shrink, Ui.paddingXY 20 0 ]
+        [ Ui.text "here goes the recent matches" ]
 
 
 viewRegistrationRedirectButton =
