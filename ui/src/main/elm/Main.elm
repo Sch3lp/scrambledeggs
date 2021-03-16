@@ -401,7 +401,6 @@ viewHeader model =
          , Ui.centerX
          , Ui.centerY
          , Ui.width Ui.fill
-         , Ui.height Ui.shrink
          , Background.color <| .bg <| contrasted palette
          , Font.color <| .font <| contrasted palette
          , Ui.padding 25
@@ -436,15 +435,79 @@ footer =
 
 
 viewMainContent model =
-    [ Ui.row [ Ui.width Ui.fill, Ui.height Ui.fill ]
-        [ Ui.column
-            [ Ui.width Ui.fill
-            , Ui.height Ui.fill
-            , Ui.paddingEach { top = 25, left = 0, right = 0, bottom = 0 }
-            , Ui.spacing 16
-            ]
-            (mainContent model)
+    viewLeaderboard model
+
+
+viewLeaderboard model =
+    [ Ui.row
+        [ Ui.width Ui.fill
+        , Ui.height Ui.fill
+        , Ui.alignTop
+        , Ui.spacing 16
         ]
+        [ viewLeaderboardTable model
+        , viewRecentMatchesTable model
+        ]
+    , viewRegistrationRedirectButton
+    ]
+
+
+viewLeaderboardTable model =
+    Ui.column [] [ Ui.text "here goes the leaderboard" ]
+
+
+viewRecentMatchesTable model =
+    Ui.column [] [ Ui.text "here goes the recent matches" ]
+
+
+viewRegistrationRedirectButton =
+    Ui.row
+        [ Ui.width Ui.fill
+        , Ui.height Ui.fill
+        , Ui.alignTop
+        , Ui.centerX
+        ]
+        [ Ui.column [ Ui.width Ui.fill, Ui.height Ui.fill ]
+            [ registrationRedirectButton False ]
+        ]
+
+
+registrationRedirectButton isDisabled =
+    let
+        sharedAttributes =
+            [ Ui.centerX
+            , Border.width 1
+            , Border.rounded 8
+            , Ui.paddingXY 16 8
+            ]
+    in
+    if isDisabled == True then
+        Input.button
+            (List.append
+                sharedAttributes
+                [ Background.color (Ui.rgb255 200 200 200)
+                , Font.color (Ui.rgb255 100 100 100)
+                ]
+            )
+            { label = Ui.text "Please enter a nickname", onPress = Just NoOp }
+
+    else
+        Input.button
+            (List.append
+                sharedAttributes
+                [ Background.color (Ui.rgb 150 150 150) ]
+            )
+            { label = Ui.text "Register", onPress = Just RegisterButtonClicked }
+
+
+viewRegistration model =
+    [ Ui.column
+        [ Ui.width Ui.fill
+        , Ui.height Ui.fill
+        , Ui.paddingEach { top = 25, left = 0, right = 0, bottom = 0 }
+        , Ui.spacing 16
+        ]
+        (mainContent model)
     ]
 
 
