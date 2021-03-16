@@ -27,6 +27,7 @@ import Json.Encode
 import List
 import Url
 import Url.Parser as Parser
+import Widget.Material.Typography as Typo
 
 
 
@@ -345,19 +346,33 @@ type alias Palette =
     { font : Ui.Color, bg : Ui.Color }
 
 
+gray =
+    Ui.rgb255 41 46 54
+
+
+offwhite =
+    Ui.rgb 222 230 255
+
+
+white =
+    Ui.rgb 0xEE 0xEE 0xEE
+
+
+royalBlue =
+    Ui.rgb255 51 67 92
+
+
 palette : Palette
 palette =
-    { font =
-        Ui.rgb255 41 46 54
-    , bg =
-        Ui.rgb 222 230 255
+    { font = gray
+    , bg = offwhite
     }
 
 
 contrasted : Palette -> Palette
 contrasted _ =
-    { font = Ui.rgb 0xEE 0xEE 0xEE
-    , bg = Ui.rgb255 51 67 92
+    { font = white
+    , bg = royalBlue
     }
 
 
@@ -382,16 +397,17 @@ view model =
 
 viewHeader model =
     [ Ui.el
-        [ Ui.alignTop
-        , Ui.centerX
-        , Ui.centerY
-        , Ui.width Ui.fill
-        , Ui.height Ui.shrink
-        , Background.color <| .bg <| contrasted palette
-        , Font.color <| .font <| contrasted palette
-        , Font.size 32
-        , Ui.padding 25
-        ]
+        ([ Ui.alignTop
+         , Ui.centerX
+         , Ui.centerY
+         , Ui.width Ui.fill
+         , Ui.height Ui.shrink
+         , Background.color <| .bg <| contrasted palette
+         , Font.color <| .font <| contrasted palette
+         , Ui.padding 25
+         ]
+            ++ Typo.h1
+        )
         header
     ]
 
