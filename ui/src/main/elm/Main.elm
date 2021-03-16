@@ -13,6 +13,7 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 
 -}
 
+import Base
 import Browser
 import Element as Ui
 import Element.Background as Background
@@ -589,7 +590,7 @@ viewRegistrationRedirectButton =
 
 
 registrationRedirectButton isDisabled =
-    baseButton
+    Base.button
         { isDisabled = isDisabled
         , label = "Register"
         , msg = RegistrationRedirectButtonClicked
@@ -646,44 +647,11 @@ viewRegisterInput value =
 
 viewRegisterButton : Bool -> Ui.Element Msg
 viewRegisterButton isDisabled =
-    baseButton
+    Base.button
         { isDisabled = isDisabled
         , label = "Register"
         , msg = RegisterButtonClicked
         }
-
-
-type alias BaseButtonProps =
-    { isDisabled : Bool, label : String, msg : Msg }
-
-
-baseButton : BaseButtonProps -> Ui.Element Msg
-baseButton { isDisabled, label, msg } =
-    let
-        sharedAttributes =
-            [ Ui.centerX
-            , Border.width 1
-            , Border.rounded 8
-            , Ui.paddingXY 16 8
-            ]
-    in
-    if isDisabled == True then
-        Input.button
-            (List.append
-                sharedAttributes
-                [ Background.color (Ui.rgb255 200 200 200)
-                , Font.color (Ui.rgb255 100 100 100)
-                ]
-            )
-            { label = Ui.text label, onPress = Just NoOp }
-
-    else
-        Input.button
-            (List.append
-                sharedAttributes
-                [ Background.color (Ui.rgb 150 150 150) ]
-            )
-            { label = Ui.text label, onPress = Just msg }
 
 
 viewStatusMessage : RegistrationState -> Ui.Element Msg
