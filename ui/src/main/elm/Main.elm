@@ -61,16 +61,35 @@ init _ =
 -- The full application state of our app.
 
 
+type alias LeaderboardEntry =
+    { rank : Maybe Int, nickname : String }
+
+
+type alias Leaderboard =
+    List LeaderboardEntry
+
+
 type alias Model =
-    { registeredPlayers : List RegisteredPlayer
+    { leaderboard : Leaderboard
+    , registeredPlayers : List RegisteredPlayer
     , registrationStatus : RegistrationState
     , registerInput : String
     }
 
 
+initialLeaderboard : Leaderboard
+initialLeaderboard =
+    [ { rank = Just 1, nickname = "Sch3lp" }
+    , { rank = Just 2, nickname = "CoreDusk" }
+    , { rank = Just 3, nickname = "ElFips" }
+    , { rank = Nothing, nickname = "Evsie" }
+    ]
+
+
 emptyModel : Model
 emptyModel =
-    { registeredPlayers = []
+    { leaderboard = initialLeaderboard
+    , registeredPlayers = []
     , registrationStatus = NotRegistered
     , registerInput = ""
     }
@@ -462,12 +481,7 @@ viewLeaderboardTable model =
 
 leaderboard model =
     Widget.sortTable (Material.sortTable Material.defaultPalette)
-        { content =
-            [ { rank = Just 1, nickname = "Sch3lp" }
-            , { rank = Just 2, nickname = "CoreDusk" }
-            , { rank = Just 3, nickname = "ElFips" }
-            , { rank = Nothing, nickname = "Evsie" }
-            ]
+        { content = model.leaderboard
         , columns =
             [ Widget.unsortableColumn
                 { title = "Rank"
