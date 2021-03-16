@@ -463,16 +463,15 @@ viewLeaderboardTable model =
 leaderboard model =
     Widget.sortTable (Material.sortTable Material.defaultPalette)
         { content =
-            [ { rank = 1, nickname = "Sch3lp" }
-            , { rank = 2, nickname = "CoreDusk" }
-            , { rank = 3, nickname = "Evsie" }
-            , { rank = 4, nickname = "ElFips" }
+            [ { rank = Just 1, nickname = "Sch3lp" }
+            , { rank = Just 2, nickname = "CoreDusk" }
+            , { rank = Just 3, nickname = "ElFips" }
+            , { rank = Nothing, nickname = "Evsie" }
             ]
         , columns =
-            [ Widget.intColumn
+            [ Widget.unsortableColumn
                 { title = "Rank"
-                , value = .rank
-                , toString = \int -> "#" ++ String.fromInt int
+                , toString = \{ rank } -> rankToString rank
                 , width = Ui.fill
                 }
             , Widget.stringColumn
@@ -486,6 +485,13 @@ leaderboard model =
         , sortBy = "Rank"
         , onChange = \_ -> NoOp
         }
+
+
+rankToString : Maybe Int -> String
+rankToString maybeInt =
+    maybeInt
+        |> Maybe.map (\int -> "#" ++ String.fromInt int)
+        |> Maybe.withDefault ""
 
 
 viewRecentMatchesTable model =
