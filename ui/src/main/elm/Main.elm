@@ -355,7 +355,7 @@ offwhite =
 
 
 white =
-    Ui.rgb 0xEE 0xEE 0xEE
+    Ui.rgb 238 238 238
 
 
 royalBlue =
