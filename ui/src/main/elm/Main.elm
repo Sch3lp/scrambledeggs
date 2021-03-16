@@ -27,6 +27,8 @@ import Json.Encode
 import List
 import Url
 import Url.Parser as Parser
+import Widget
+import Widget.Material as Material
 import Widget.Material.Typography as Typo
 
 
@@ -455,13 +457,62 @@ viewLeaderboard model =
 viewLeaderboardTable model =
     Ui.column
         [ Ui.width Ui.fill, Ui.paddingXY 20 0 ]
-        [ Ui.text "here goes the leaderboard" ]
+        [ leaderboard model ]
+
+
+leaderboard model =
+    Widget.sortTable (Material.sortTable Material.defaultPalette)
+        { content =
+            [ { rank = 1, nickname = "Sch3lp" }
+            , { rank = 2, nickname = "CoreDusk" }
+            , { rank = 3, nickname = "Evsie" }
+            , { rank = 4, nickname = "ElFips" }
+            ]
+        , columns =
+            [ Widget.intColumn
+                { title = "Rank"
+                , value = .rank
+                , toString = \int -> "#" ++ String.fromInt int
+                , width = Ui.fill
+                }
+            , Widget.stringColumn
+                { title = "NickName"
+                , value = .nickname
+                , toString = identity
+                , width = Ui.fill
+                }
+            ]
+        , asc = True
+        , sortBy = "Rank"
+        , onChange = \_ -> NoOp
+        }
 
 
 viewRecentMatchesTable model =
     Ui.column
-        [ Ui.width Ui.shrink, Ui.paddingXY 20 0 ]
-        [ Ui.text "here goes the recent matches" ]
+        [ Ui.width Ui.fill ]
+        [ recentMatchesTable model ]
+
+
+recentMatchesTable model =
+    Widget.sortTable (Material.sortTable Material.defaultPalette)
+        { content =
+            [ "Evsie 9 vs. 7 Sch3lp | Duel"
+            , "Sch3lp 10 vs. 9 Evsie | Duel"
+            , "MUR! 8 vs. 3 NUT5! | CTF"
+            ]
+        , columns =
+            [ Widget.stringColumn
+                { title = "Recent matches"
+                , value = identity
+                , toString = identity
+                , width = Ui.fill
+                }
+            ]
+        , asc = True
+        , sortBy = "Recent matches"
+        , onChange = \_ -> NoOp
+        }
 
 
 viewRegistrationRedirectButton =
