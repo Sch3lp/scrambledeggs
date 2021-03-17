@@ -17,7 +17,6 @@ import Base
 import Browser
 import Element as Ui
 import Element.Background as Background
-import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Html
@@ -408,14 +407,14 @@ parseRoute =
 view : Model -> Html.Html Msg
 view model =
     Ui.layout
-        [ Background.color <| Base.palette.bg
+        [ Background.color Base.palette.bg
         ]
         (Ui.column
             [ Ui.height Ui.fill
             , Ui.width Ui.fill
             , Ui.centerX
             , Ui.alignTop
-            , Font.color <| Base.palette.font
+            , Font.color Base.palette.font
             ]
          <|
             viewHeader model
@@ -430,8 +429,8 @@ viewHeader model =
          , Ui.centerX
          , Ui.centerY
          , Ui.width Ui.fill
-         , Background.color <| .bg <| Base.contrastedPalette
-         , Font.color <| .font <| Base.contrastedPalette
+         , Background.color <| Base.contrastedPalette.bg
+         , Font.color <| Base.contrastedPalette.font
          , Ui.padding 25
          ]
             ++ Typo.h1
@@ -449,8 +448,8 @@ viewFooter model =
         [ Ui.alignBottom
         , Ui.centerX
         , Ui.width Ui.fill
-        , Background.color <| .bg <| Base.contrastedPalette
-        , Font.color <| .font <| Base.contrastedPalette
+        , Background.color <| Base.contrastedPalette.bg
+        , Font.color <| Base.contrastedPalette.font
         , Font.size 14
         , Ui.paddingXY 16 32
         ]
