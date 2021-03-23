@@ -19,15 +19,12 @@ import Browser
 import Element as Ui
 import Element.Background as Background
 import Element.Font as Font
+import Home exposing (viewHome)
 import Html
-import Http
-import Json.Decode as D exposing (Decoder)
 import List
-import Registration exposing (RegisteredPlayer, RegistrationState(..), viewRegistration)
+import Registration exposing (RegisteredPlayer, RegistrationState(..))
 import Url
 import Url.Parser as Parser
-import Widget
-import Widget.Material as Material
 import Widget.Material.Typography as Typo
 
 
@@ -51,7 +48,7 @@ main =
 init : Maybe String -> ( Model, Cmd Msg )
 init _ =
     ( emptyModel
-    , performFetchLeaderboard
+    , Cmd.map HomeMsg Home.performFetchLeaderboard
     )
 
 
@@ -60,16 +57,8 @@ init _ =
 -- The full application state of our app.
 
 
-type alias LeaderboardEntry =
-    { rank : Maybe Int, nickname : String }
-
-
-type alias Leaderboard =
-    List LeaderboardEntry
-
-
 type alias Model =
-    { homeModel : HomeModel
+    { homeModel : Home.Model
     , registrationModel : Registration.Model
     }
 
@@ -79,52 +68,14 @@ setRegistrationModel newRegModel model =
     { model | registrationModel = newRegModel }
 
 
-setHomeModel : HomeModel -> Model -> Model
+setHomeModel : Home.Model -> Model -> Model
 setHomeModel newHomeModel model =
     { model | homeModel = newHomeModel }
 
 
-asHomeModelIn : Model -> HomeModel -> Model
-asHomeModelIn model newHomeModel =
-    setHomeModel newHomeModel model
-
-
 emptyModel =
-    { homeModel = emptyHomeModel
+    { homeModel = Home.emptyModel
     , registrationModel = Registration.emptyModel
-    }
-
-
-type alias HomeModel =
-    { leaderboard : Leaderboard
-    , apiFailure : Maybe String
-    }
-
-
-setApiFailure : String -> HomeModel -> HomeModel
-setApiFailure str homeModel =
-    { homeModel | apiFailure = Just str }
-
-
-asApiFailureIn : HomeModel -> String -> HomeModel
-asApiFailureIn homeModel str =
-    setApiFailure str homeModel
-
-
-setLeaderboard : Leaderboard -> HomeModel -> HomeModel
-setLeaderboard newLeaderboard homeModel =
-    { homeModel | leaderboard = newLeaderboard }
-
-
-asLeaderboardIn : HomeModel -> Leaderboard -> HomeModel
-asLeaderboardIn homeModel newLeaderboard =
-    setLeaderboard newLeaderboard homeModel
-
-
-emptyHomeModel : HomeModel
-emptyHomeModel =
-    { leaderboard = []
-    , apiFailure = Nothing
     }
 
 
@@ -133,106 +84,30 @@ emptyHomeModel =
 
 
 type Msg
-    = NoOp
-    | RegistrationRedirectButtonClicked
-    | GotFetchLeaderboardResponse (Result ApiError Leaderboard)
-    | RegistrationMsg Registration.Msg
+    = RegistrationMsg Registration.Msg
+    | HomeMsg Home.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        RegistrationMsg regMsg ->
+        RegistrationMsg m ->
             let
                 ( newRegistrationModel, newRegistrationMsg ) =
-                    Registration.update regMsg model.registrationModel
+                    Registration.update m model.registrationModel
             in
             ( setRegistrationModel newRegistrationModel model
             , Cmd.map RegistrationMsg newRegistrationMsg
             )
 
-        RegistrationRedirectButtonClicked ->
-            ( model, Cmd.none )
-
-        GotFetchLeaderboardResponse result ->
-            handleFetchLeaderboardResponse model result
-
-        NoOp ->
-            ( model, Cmd.none )
-
-
-
--- HTTP requests & helper functions
-
-
-type alias ApiError =
-    Api.ApiError
-
-
-expectJsonWithErrorHandling =
-    Api.expectJsonWithErrorHandling
-
-
-handleApiError : ApiError -> Model -> ( Model, Cmd msg )
-handleApiError err model =
-    let
-        failureStr =
-            case err of
-                BadRequest str ->
-                    str
-
-                NetworkError ->
-                    "Network Error"
-
-                Timeout ->
-                    "Timeout"
-
-                BadUrl str ->
-                    str
-
-        updatedModel =
-            failureStr
-                |> asApiFailureIn model.homeModel
-                |> asHomeModelIn model
-    in
-    ( updatedModel, Cmd.none )
-
-
-
--- Fetching Leaderboard
-
-
-performFetchLeaderboard =
-    Http.get
-        { url = "/api/leaderboard"
-        , expect = expectJsonWithErrorHandling leaderboardDecoder GotFetchLeaderboardResponse
-        }
-
-
-leaderboardDecoder : Decoder Leaderboard
-leaderboardDecoder =
-    D.list leaderboardEntryDecoder
-
-
-leaderboardEntryDecoder : Decoder LeaderboardEntry
-leaderboardEntryDecoder =
-    D.map2 LeaderboardEntry
-        (D.maybe (D.field "rank" D.int))
-        (D.field "nickname" D.string)
-
-
-handleFetchLeaderboardResponse : Model -> Result ApiError Leaderboard -> ( Model, Cmd Msg )
-handleFetchLeaderboardResponse model result =
-    case result of
-        Ok newlyFetchedLeaderboard ->
-            ( newlyFetchedLeaderboard
-                |> asLeaderboardIn model.homeModel
-                |> asHomeModelIn model
-            , Cmd.none
+        HomeMsg m ->
+            let
+                ( newHomeModel, newHomeMsg ) =
+                    Home.update m model.homeModel
+            in
+            ( setHomeModel newHomeModel model
+            , Cmd.map HomeMsg newHomeMsg
             )
-
-        Err err ->
-            handleApiError err model
 
 
 
@@ -245,9 +120,7 @@ subscriptions _ =
 
 
 
--- APP ROUTING
--- I don't fucking get this
--- Does nothing atm
+-- Todo APP ROUTING
 
 
 type Route
@@ -341,110 +214,18 @@ footer =
 
 viewMainContent : Model -> List (Ui.Element Msg)
 viewMainContent model =
-    viewRegistration model.registrationModel
-        |> List.map (Ui.map RegistrationMsg)
-
-
-viewLeaderboard model =
-    [ Ui.row
-        [ Ui.width Ui.fill
-        , Ui.height Ui.fill
-        , Ui.alignTop
-        , Ui.spacing 16
-        ]
-        [ viewLeaderboardTable model
-        , viewRecentMatchesTable model
-        ]
-    , viewRegistrationRedirectButton
-    ]
-
-
-viewLeaderboardTable model =
-    Ui.column
-        [ Ui.width Ui.fill, Ui.paddingXY 20 0 ]
-        [ leaderboard model ]
-
-
-leaderboard model =
-    Widget.sortTable (Material.sortTable Material.defaultPalette)
-        { content = model.leaderboard
-        , columns =
-            [ Widget.unsortableColumn
-                { title = "Rank"
-                , toString = \{ rank } -> rankToString rank
-                , width = Ui.fill
-                }
-            , Widget.stringColumn
-                { title = "NickName"
-                , value = .nickname
-                , toString = identity
-                , width = Ui.fill
-                }
-            ]
-        , asc = True
-        , sortBy = "Rank"
-        , onChange = \_ -> NoOp
-        }
-
-
-rankToString : Maybe Int -> String
-rankToString maybeInt =
-    maybeInt
-        |> Maybe.map (\int -> "#" ++ String.fromInt int)
-        |> Maybe.withDefault ""
-
-
-viewRecentMatchesTable model =
-    Ui.column
-        [ Ui.width Ui.fill ]
-        [ recentMatchesTable model ]
-
-
-recentMatchesTable model =
-    Widget.sortTable (Material.sortTable Material.defaultPalette)
-        { content =
-            [ "Evsie 9 vs. 7 Sch3lp | Duel"
-            , "Sch3lp 10 vs. 9 Evsie | Duel"
-            , "MUR! 8 vs. 3 NUT5! | CTF"
-            ]
-        , columns =
-            [ Widget.stringColumn
-                { title = "Recent matches"
-                , value = identity
-                , toString = identity
-                , width = Ui.fill
-                }
-            ]
-        , asc = True
-        , sortBy = "Recent matches"
-        , onChange = \_ -> NoOp
-        }
-
-
-viewRegistrationRedirectButton =
-    Ui.row
-        [ Ui.width Ui.fill
-        , Ui.height Ui.fill
-        , Ui.alignTop
-        , Ui.centerX
-        ]
-        [ Ui.column [ Ui.width Ui.fill, Ui.height Ui.fill ]
-            [ registrationRedirectButton False ]
-        ]
-
-
-registrationRedirectButton isDisabled =
-    Base.button
-        { isDisabled = isDisabled
-        , label = "Register"
-        }
-        RegistrationRedirectButtonClicked
+    -- Todo: implement routing (based on url)
+    --viewRegistration model.registrationModel
+    --    |> List.map (Ui.map RegistrationMsg)
+    viewHome model.homeModel
+        |> List.map (Ui.map HomeMsg)
 
 
 
 -- TODO
 -- * [x] Extract button helper function so that our buttons will always look the same
--- * [ ] Split up Main.elm into a registration page and an anonymous home page
+-- * [x] Split up Main.elm into a registration page and an anonymous home page
+-- * [ ] Add routing based on Url
 -- * [ ] Fetch both the registeredPlayers and the leaderboard at the same time; look at Task thing in Elm again
 -- * [ ] Replace our own palette with that of Material somehow
 -- * [ ] Extract the API stuff (fetching players, fetching leaderboard, registering new player) into its own module
