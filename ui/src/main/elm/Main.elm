@@ -13,18 +13,17 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 
 -}
 
+import Api exposing (ApiError(..))
 import Base
 import Browser
 import Element as Ui
 import Element.Background as Background
 import Element.Font as Font
-import Element.Input as Input
 import Html
-import Html.Events
 import Http
 import Json.Decode as D exposing (Decoder)
-import Json.Encode
 import List
+import Registration exposing (RegisteredPlayer, RegistrationState(..), viewRegistration)
 import Url
 import Url.Parser as Parser
 import Widget
@@ -70,46 +69,62 @@ type alias Leaderboard =
 
 
 type alias Model =
-    { leaderboard : Leaderboard
-    , registeredPlayers : List RegisteredPlayer
-    , registrationStatus : RegistrationState
-    , registerInput : String
+    { homeModel : HomeModel
+    , registrationModel : Registration.Model
     }
 
 
-initialLeaderboard : Leaderboard
-initialLeaderboard =
-    [ { rank = Just 1, nickname = "Sch3lp" }
-    , { rank = Just 2, nickname = "CoreDusk" }
-    , { rank = Just 3, nickname = "ElFips" }
-    , { rank = Nothing, nickname = "Evsie" }
-    ]
+setRegistrationModel : Registration.Model -> Model -> Model
+setRegistrationModel newRegModel model =
+    { model | registrationModel = newRegModel }
 
 
-emptyModel : Model
+setHomeModel : HomeModel -> Model -> Model
+setHomeModel newHomeModel model =
+    { model | homeModel = newHomeModel }
+
+
+asHomeModelIn : Model -> HomeModel -> Model
+asHomeModelIn model newHomeModel =
+    setHomeModel newHomeModel model
+
+
 emptyModel =
-    { leaderboard = []
-    , registeredPlayers = []
-    , registrationStatus = NotRegistered
-    , registerInput = ""
+    { homeModel = emptyHomeModel
+    , registrationModel = Registration.emptyModel
     }
 
 
-
--- Types
-
-
-type RegistrationState
-    = NotRegistered
-    | Registered
-    | Failed String
-    | CallingAPI
+type alias HomeModel =
+    { leaderboard : Leaderboard
+    , apiFailure : Maybe String
+    }
 
 
-type alias RegisteredPlayer =
-    { nickname : String
+setApiFailure : String -> HomeModel -> HomeModel
+setApiFailure str homeModel =
+    { homeModel | apiFailure = Just str }
 
-    -- Other stuff can go here, such as email, avatar
+
+asApiFailureIn : HomeModel -> String -> HomeModel
+asApiFailureIn homeModel str =
+    setApiFailure str homeModel
+
+
+setLeaderboard : Leaderboard -> HomeModel -> HomeModel
+setLeaderboard newLeaderboard homeModel =
+    { homeModel | leaderboard = newLeaderboard }
+
+
+asLeaderboardIn : HomeModel -> Leaderboard -> HomeModel
+asLeaderboardIn homeModel newLeaderboard =
+    setLeaderboard newLeaderboard homeModel
+
+
+emptyHomeModel : HomeModel
+emptyHomeModel =
+    { leaderboard = []
+    , apiFailure = Nothing
     }
 
 
@@ -119,141 +134,68 @@ type alias RegisteredPlayer =
 
 type Msg
     = NoOp
-    | UpdateRegisterInput String
-    | RegisterButtonClicked
     | RegistrationRedirectButtonClicked
-    | GotRegisterPlayerResponse (Result ApiError ())
-    | GotFetchPlayersResponse (Result ApiError (List RegisteredPlayer))
     | GotFetchLeaderboardResponse (Result ApiError Leaderboard)
+    | RegistrationMsg Registration.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
-
-        UpdateRegisterInput str ->
-            ( { model | registerInput = str }
-            , Cmd.none
+        RegistrationMsg regMsg ->
+            let
+                ( newRegistrationModel, newRegistrationMsg ) =
+                    Registration.update regMsg model.registrationModel
+            in
+            ( setRegistrationModel newRegistrationModel model
+            , Cmd.map RegistrationMsg newRegistrationMsg
             )
-
-        RegisterButtonClicked ->
-            registerPlayer model
 
         RegistrationRedirectButtonClicked ->
             ( model, Cmd.none )
 
-        -- Todo actually implement redirecting to register screen
-        GotRegisterPlayerResponse result ->
-            handleRegisterPlayerResponse model result
-
-        GotFetchPlayersResponse result ->
-            handleFetchPlayersResponse model result
-
         GotFetchLeaderboardResponse result ->
             handleFetchLeaderboardResponse model result
+
+        NoOp ->
+            ( model, Cmd.none )
 
 
 
 -- HTTP requests & helper functions
 
 
-type ApiError
-    = BadRequest String
-    | NetworkError
-    | Timeout
-    | BadUrl String
+type alias ApiError =
+    Api.ApiError
 
 
-expectStringWithErrorHandling : (Result ApiError () -> msg) -> Http.Expect msg
-expectStringWithErrorHandling toMsg =
-    Http.expectStringResponse toMsg
-        (\response ->
-            case response of
-                Http.BadUrl_ url ->
-                    Err (BadUrl url)
-
-                Http.Timeout_ ->
-                    Err Timeout
-
-                Http.NetworkError_ ->
-                    Err NetworkError
-
-                Http.BadStatus_ metadata body ->
-                    Err (BadRequest body)
-
-                Http.GoodStatus_ metadata _ ->
-                    Ok ()
-        )
-
-
-expectJsonWithErrorHandling : Decoder a -> (Result ApiError a -> msg) -> Http.Expect msg
-expectJsonWithErrorHandling decoder toMsg =
-    Http.expectStringResponse toMsg
-        (\response ->
-            case response of
-                Http.BadUrl_ url ->
-                    Err (BadUrl url)
-
-                Http.Timeout_ ->
-                    Err Timeout
-
-                Http.NetworkError_ ->
-                    Err NetworkError
-
-                Http.BadStatus_ metadata body ->
-                    Err (BadRequest body)
-
-                Http.GoodStatus_ metadata body ->
-                    case D.decodeString decoder body of
-                        Ok value ->
-                            Ok value
-
-                        Err err ->
-                            Err (BadRequest (D.errorToString err))
-        )
+expectJsonWithErrorHandling =
+    Api.expectJsonWithErrorHandling
 
 
 handleApiError : ApiError -> Model -> ( Model, Cmd msg )
 handleApiError err model =
-    case err of
-        BadRequest str ->
-            ( { model | registrationStatus = Failed str }, Cmd.none )
+    let
+        failureStr =
+            case err of
+                BadRequest str ->
+                    str
 
-        NetworkError ->
-            ( { model | registrationStatus = Failed "Network Error" }, Cmd.none )
+                NetworkError ->
+                    "Network Error"
 
-        Timeout ->
-            ( { model | registrationStatus = Failed "Timeout" }, Cmd.none )
+                Timeout ->
+                    "Timeout"
 
-        BadUrl a ->
-            ( { model | registrationStatus = Failed a }, Cmd.none )
+                BadUrl str ->
+                    str
 
-
-httpErrorToString : Http.Error -> String
-httpErrorToString error =
-    case error of
-        Http.BadUrl url ->
-            "The URL " ++ url ++ " was invalid"
-
-        Http.Timeout ->
-            "Unable to reach the server, try again"
-
-        Http.NetworkError ->
-            "Unable to reach the server, check your network connection"
-
-        Http.BadStatus 500 ->
-            "The server had a problem, try again later"
-
-        Http.BadStatus 400 ->
-            "Verify your information and try again"
-
-        Http.BadStatus x ->
-            "Unknown error: " ++ String.fromInt x
-
-        Http.BadBody errorMessage ->
-            errorMessage
+        updatedModel =
+            failureStr
+                |> asApiFailureIn model.homeModel
+                |> asHomeModelIn model
+    in
+    ( updatedModel, Cmd.none )
 
 
 
@@ -283,75 +225,10 @@ handleFetchLeaderboardResponse : Model -> Result ApiError Leaderboard -> ( Model
 handleFetchLeaderboardResponse model result =
     case result of
         Ok newlyFetchedLeaderboard ->
-            ( { model | leaderboard = newlyFetchedLeaderboard }, Cmd.none )
-
-        Err err ->
-            handleApiError err model
-
-
-
--- Fetching Players
-
-
-performFetchPlayers =
-    Http.get
-        { url = "/api/player"
-        , expect = expectJsonWithErrorHandling registeredPlayersDecoder GotFetchPlayersResponse
-        }
-
-
-registeredPlayersDecoder : Decoder (List RegisteredPlayer)
-registeredPlayersDecoder =
-    D.list registeredPlayerDecoder
-
-
-registeredPlayerDecoder : Decoder RegisteredPlayer
-registeredPlayerDecoder =
-    D.map RegisteredPlayer <|
-        D.field "nickname" D.string
-
-
-handleFetchPlayersResponse : Model -> Result ApiError (List RegisteredPlayer) -> ( Model, Cmd Msg )
-handleFetchPlayersResponse model result =
-    case result of
-        Ok newlyFetchedPlayers ->
-            ( { model | registeredPlayers = newlyFetchedPlayers }, Cmd.none )
-
-        Err err ->
-            handleApiError err model
-
-
-
--- Registering a new Player
-
-
-registerPlayer : Model -> ( Model, Cmd Msg )
-registerPlayer model =
-    let
-        playerNameJson =
-            model.registerInput
-                |> registerPlayerEncoder
-    in
-    ( { model | registrationStatus = CallingAPI }
-    , Http.post
-        { url = "/api/register"
-        , body = Http.jsonBody playerNameJson
-        , expect = expectStringWithErrorHandling GotRegisterPlayerResponse
-        }
-    )
-
-
-registerPlayerEncoder : String -> Json.Encode.Value
-registerPlayerEncoder name =
-    Json.Encode.object [ ( "nickname", Json.Encode.string name ) ]
-
-
-handleRegisterPlayerResponse : Model -> Result ApiError () -> ( Model, Cmd Msg )
-handleRegisterPlayerResponse model result =
-    case result of
-        Ok _ ->
-            ( { model | registrationStatus = Registered, registerInput = "" }
-            , performFetchPlayers
+            ( newlyFetchedLeaderboard
+                |> asLeaderboardIn model.homeModel
+                |> asHomeModelIn model
+            , Cmd.none
             )
 
         Err err ->
@@ -462,8 +339,10 @@ footer =
     Ui.text "Diabotical District -- Where passionate trashy nerds align their goals"
 
 
+viewMainContent : Model -> List (Ui.Element Msg)
 viewMainContent model =
-    viewLeaderboard model
+    viewRegistration model.registrationModel
+        |> List.map (Ui.map RegistrationMsg)
 
 
 viewLeaderboard model =
@@ -562,111 +441,11 @@ registrationRedirectButton isDisabled =
         RegistrationRedirectButtonClicked
 
 
-viewRegistration model =
-    [ Ui.column
-        [ Ui.width Ui.fill
-        , Ui.height Ui.fill
-        , Ui.paddingEach { top = 25, left = 0, right = 0, bottom = 0 }
-        , Ui.spacing 16
-        ]
-        (mainContent model)
-    ]
-
-
-mainContent model =
-    [ viewRegisterInput model.registerInput
-    , viewRegisterButton (model.registerInput == "")
-    , viewStatusMessage model.registrationStatus
-    , viewRegisteredPlayers model.registeredPlayers
-    ]
-
-
-viewRegisteredPlayers : List RegisteredPlayer -> Ui.Element Msg
-viewRegisteredPlayers registeredPlayers =
-    Ui.column [ Ui.centerX ]
-        (List.map
-            (\u -> Ui.row [] [ Ui.text u.nickname ])
-            registeredPlayers
-        )
-
-
-viewRegisterInput : String -> Ui.Element Msg
-viewRegisterInput value =
-    Ui.el
-        [ Ui.centerX ]
-        (Input.text
-            [ onEnter RegisterButtonClicked
-            ]
-            { label = Input.labelLeft [] (Ui.text "Nickname")
-            , onChange = UpdateRegisterInput
-            , placeholder = Just (Input.placeholder [] (Ui.text "L33tSn!per69"))
-            , text = value
-            }
-        )
-
-
-
--- The docs basically say not to use disable for accessibility reasons https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/Element-Input#disabling-inputs
--- This button does nothing when disabled, otherwise sends RegisterButtonClicked msg
-
-
-viewRegisterButton : Bool -> Ui.Element Msg
-viewRegisterButton isDisabled =
-    Base.button
-        { isDisabled = isDisabled
-        , label = "Register"
-        }
-        RegisterButtonClicked
-
-
-viewStatusMessage : RegistrationState -> Ui.Element Msg
-viewStatusMessage registrationStatus =
-    let
-        sharedAttributes =
-            [ Ui.width (Ui.fill |> Ui.maximum 600), Ui.centerX, Font.center ]
-    in
-    case registrationStatus of
-        NotRegistered ->
-            Ui.none
-
-        Registered ->
-            Ui.paragraph sharedAttributes
-                [ Ui.text "Yay! You are now registered for the Scramble Ladder." ]
-
-        CallingAPI ->
-            Ui.paragraph sharedAttributes
-                [ Ui.text "Loading" ]
-
-        Failed errorMessage ->
-            Ui.paragraph sharedAttributes
-                [ Ui.text errorMessage ]
-
-
-
--- View helper functions
-
-
-onEnter : msg -> Ui.Attribute msg
-onEnter msg =
-    Ui.htmlAttribute
-        (Html.Events.on "keyup"
-            (D.field "key" D.string
-                |> D.andThen
-                    (\key ->
-                        if key == "Enter" then
-                            D.succeed msg
-
-                        else
-                            D.fail "Not the enter key"
-                    )
-            )
-        )
-
-
 
 -- TODO
 -- * [x] Extract button helper function so that our buttons will always look the same
--- * [ ] Extract the API stuff (fetching players, fetching leaderboard, registering new player) into its own module
--- * [ ] Fetch both the registeredPlayers and the leaderboard at the same time; look at Task thing in Elm again
 -- * [ ] Split up Main.elm into a registration page and an anonymous home page
+-- * [ ] Fetch both the registeredPlayers and the leaderboard at the same time; look at Task thing in Elm again
 -- * [ ] Replace our own palette with that of Material somehow
+-- * [ ] Extract the API stuff (fetching players, fetching leaderboard, registering new player) into its own module
+-- * [ ] Splitting Api calls from a component/module is interesting if we can unit test the model without having to worry about actually performing http

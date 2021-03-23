@@ -1,10 +1,12 @@
-module Base exposing (ButtonProps, button, contrastedPalette, palette)
+module Base exposing (ButtonProps, button, contrastedPalette, onEnter, palette)
 
 import Element as Ui
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import Html.Events
+import Json.Decode as D
 
 
 type alias ButtonProps =
@@ -38,6 +40,27 @@ button { isDisabled, label } msg =
                 ++ sharedAttributes
             )
             { label = Ui.text label, onPress = Just msg }
+
+
+
+-- View helper functions
+
+
+onEnter : msg -> Ui.Attribute msg
+onEnter msg =
+    Ui.htmlAttribute
+        (Html.Events.on "keyup"
+            (D.field "key" D.string
+                |> D.andThen
+                    (\key ->
+                        if key == "Enter" then
+                            D.succeed msg
+
+                        else
+                            D.fail "Not the enter key"
+                    )
+            )
+        )
 
 
 type alias Palette =
