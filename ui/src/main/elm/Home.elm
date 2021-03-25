@@ -69,6 +69,7 @@ update msg model =
             handleFetchLeaderboardResponse model result
 
 
+viewHome : Model -> List (Ui.Element Msg)
 viewHome model =
     [ Ui.row
         [ Ui.width Ui.fill

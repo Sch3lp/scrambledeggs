@@ -13,16 +13,15 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 
 -}
 
-import Api exposing (ApiError(..))
 import Base
 import Browser
 import Element as Ui
 import Element.Background as Background
 import Element.Font as Font
-import Home exposing (viewHome)
+import Home
 import Html
 import List
-import Registration exposing (RegisteredPlayer, RegistrationState(..))
+import Registration
 import Url
 import Url.Parser as Parser
 import Widget.Material.Typography as Typo
@@ -215,9 +214,9 @@ footer =
 viewMainContent : Model -> List (Ui.Element Msg)
 viewMainContent model =
     -- Todo: implement routing (based on url)
-    --viewRegistration model.registrationModel
+    --Registration.viewRegistration model.registrationModel
     --    |> List.map (Ui.map RegistrationMsg)
-    viewHome model.homeModel
+    Home.viewHome model.homeModel
         |> List.map (Ui.map HomeMsg)
 
 
