@@ -1,5 +1,5 @@
 plugins {
-    id("scrambledeggs.kotlin-library-conventions")
+    id("scrambledeggs.kotlin.library-conventions")
 }
 
 dependencies {

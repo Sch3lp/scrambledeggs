@@ -1,8 +1,11 @@
+package scrambledeggs.spring
+
 import gradle.kotlin.dsl.accessors._13f50cb83ed9fe49f0bc787f9febfffd.implementation
+import org.gradle.kotlin.dsl.dependencies
 
 plugins {
-    id("scrambledeggs.kotlin-common-conventions")
-    id("scrambledeggs.spring-common-conventions")
+    id("scrambledeggs.kotlin.common-conventions")
+    id("scrambledeggs.spring.common-conventions")
 }
 
 dependencies {
