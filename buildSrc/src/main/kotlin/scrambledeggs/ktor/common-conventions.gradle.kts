@@ -20,7 +20,9 @@ dependencies {
 
     implementation("io.ktor:ktor-server-core:${Versions.ktorVersion}")
     implementation("io.ktor:ktor-server-netty:${Versions.ktorVersion}")
-//    runtime("ch.qos.logback:logback-classic:1.2.3")
+    
+    runtimeOnly("ch.qos.logback:logback-classic:1.2.3")
+
     testImplementation( "io.ktor:ktor-server-test-host:${Versions.ktorVersion}")
 
 }
