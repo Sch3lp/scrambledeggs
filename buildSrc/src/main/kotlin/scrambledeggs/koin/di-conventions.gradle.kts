@@ -8,7 +8,7 @@ import org.gradle.kotlin.dsl.`java-test-fixtures`
 import org.gradle.kotlin.dsl.dependencies
 
 plugins {
-    id("scrambledeggs.kotlin-common-conventions")
+    id("scrambledeggs.kotlin.common-conventions")
     `java-library`
     `java-test-fixtures`
 }
@@ -18,9 +18,9 @@ val koinVersion = "2.2.0-rc-4"
 dependencies {
 
     api("org.slf4j:slf4j-api:1.7.30")
-    implementation("org.scrambledeggs.koin:koin-core:$koinVersion")
-    implementation("org.scrambledeggs.koin:koin-scrambledeggs.ktor:$koinVersion")
-    implementation("org.scrambledeggs.koin:koin-logger-slf4j:$koinVersion")
-    testImplementation("org.scrambledeggs.koin:koin-test:$koinVersion")
+    implementation("org.koin:koin-core:$koinVersion")
+    implementation("org.koin:koin-ktor:$koinVersion")
+    implementation("org.koin:koin-logger-slf4j:$koinVersion")
+    testImplementation("org.koin:koin-test:$koinVersion")
 
 }

@@ -17,7 +17,7 @@ plugins {
 dependencies {
     api("org.slf4j:slf4j-api:1.7.30")
 
-    implementation("io.scrambledeggs.ktor:ktor-jackson:${Versions.ktorVersion}")
+    implementation("io.ktor:ktor-jackson:${Versions.ktorVersion}")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:${Versions.jacksonVersion}")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${Versions.jacksonVersion}")

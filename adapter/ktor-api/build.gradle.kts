@@ -1,6 +1,6 @@
 plugins {
     id("scrambledeggs.kotlin.library-conventions")
-    id("scrambledeggs.scrambledeggs.ktor-conventions")
+    id("scrambledeggs.ktor.web-conventions")
 }
 
 dependencies {

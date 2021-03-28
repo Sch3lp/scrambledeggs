@@ -9,7 +9,7 @@ import org.gradle.kotlin.dsl.`java-test-fixtures`
 import org.gradle.kotlin.dsl.dependencies
 
 plugins {
-    id("scrambledeggs.kotlin-common-conventions")
+    id("scrambledeggs.kotlin.common-conventions")
     `java-library`
     `java-test-fixtures`
 }
@@ -18,9 +18,9 @@ dependencies {
 
     api("org.slf4j:slf4j-api:1.7.30")
 
-    implementation("io.scrambledeggs.ktor:ktor-server-core:${Versions.ktorVersion}")
-    implementation("io.scrambledeggs.ktor:ktor-server-netty:${Versions.ktorVersion}")
+    implementation("io.ktor:ktor-server-core:${Versions.ktorVersion}")
+    implementation("io.ktor:ktor-server-netty:${Versions.ktorVersion}")
 //    runtime("ch.qos.logback:logback-classic:1.2.3")
-    testImplementation( "io.scrambledeggs.ktor:ktor-server-test-host:${Versions.ktorVersion}")
+    testImplementation( "io.ktor:ktor-server-test-host:${Versions.ktorVersion}")
 
 }
