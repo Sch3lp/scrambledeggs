@@ -7,7 +7,7 @@ import org.gradle.kotlin.dsl.`java-test-fixtures`
 import org.gradle.kotlin.dsl.dependencies
 
 plugins {
-    id("scrambledeggs.kotlin-common-conventions")
+    id("scrambledeggs.kotlin.common-conventions")
     id("scrambledeggs.ktor.common-conventions")
     `java-library`
     `java-test-fixtures`

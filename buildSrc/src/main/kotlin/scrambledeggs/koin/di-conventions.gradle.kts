@@ -15,6 +15,10 @@ plugins {
 
 val koinVersion = "2.2.0-rc-4"
 
+repositories {
+    jcenter()
+}
+
 dependencies {
 
     api("org.slf4j:slf4j-api:1.7.30")
