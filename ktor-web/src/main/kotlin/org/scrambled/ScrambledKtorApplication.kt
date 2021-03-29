@@ -8,6 +8,7 @@ import org.koin.dsl.module
 import org.koin.experimental.builder.singleBy
 import org.koin.ktor.ext.Koin
 import org.koin.logger.slf4jLogger
+import org.scrambled.adapter.rdbms.koin.rdbmsModule
 import org.scrambled.core.impl.players.FetchAllRegisteredPlayersQueryHandler
 import org.scrambled.core.impl.players.RegisterPlayerHandler
 import org.scrambled.core.impl.players.RegisteredPlayerRepository
@@ -26,11 +27,26 @@ fun main() {
         factory = Netty,
         port = 8080,
         module = createScrambledKtorModule(
-            inMemDbModule(),
+//            inMemDbModule(),
+            rdbmsModule(),
             domainModule(),
             infraModule(),
         )
     ).start(wait = true)
+}
+
+fun createScrambledKtorModule(vararg koinModules: Module): Application.() -> Unit {
+
+    fun Application.main() {
+        install(Koin) {
+            slf4jLogger()
+            modules(*koinModules)
+        }
+
+        ktorApi()
+
+    }
+    return Application::main
 }
 
 fun inMemDbModule() = module(createdAtStart = true) {
@@ -55,21 +71,6 @@ fun infraModule() = module(createdAtStart = true) {
     singleBy<IDomainEventBroadcaster, DomainEventsInMem>()
 }
 
-
-fun createScrambledKtorModule(vararg koinModules: Module): Application.() -> Unit {
-
-    fun Application.main() {
-        install(Koin) {
-            slf4jLogger()
-            modules(*koinModules)
-        }
-
-        ktorApi()
-//            initDb()
-
-    }
-    return Application::main
-}
 
 class PlayersInMem(private val _players: MutableList<QueryablePlayer> = mutableListOf())
     : QueryablePlayers {

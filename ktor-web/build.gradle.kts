@@ -7,7 +7,7 @@ plugins {
 dependencies {
     api(project(":adapter:ktor-api"))
 //    api(project(":adapter:eventsourcing")) //todo dupe and replace spring deps with koin
-//    api(project(":adapter:rdbms")) //todo dupe and replace spring deps with koin
+    api(project(":adapter:rdbms"))
     api(project(":domain:core"))
     api(project(":domain:core-api"))
     api(project(":domain:leaderboards"))
