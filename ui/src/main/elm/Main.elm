@@ -42,19 +42,9 @@ main =
                 { title = "Scramble • Diabotical Ladder", body = [ view model ] }
         , update = update
         , subscriptions = subscriptions
-        , onUrlRequest = onUrlRequest
-        , onUrlChange = onUrlChange
+        , onUrlRequest = LinkClicked
+        , onUrlChange = UrlChanged
         }
-
-
-onUrlRequest : UrlRequest -> Msg
-onUrlRequest =
-    LinkClicked
-
-
-onUrlChange : Url -> Msg
-onUrlChange url =
-    UrlChanged url
 
 
 type Route
