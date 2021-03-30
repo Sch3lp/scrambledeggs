@@ -6,6 +6,7 @@ import Browser.Navigation as Nav
 import Element as Ui
 import Http
 import Json.Decode as D exposing (Decoder)
+import Registration
 import Widget
 import Widget.Material as Material
 
@@ -66,7 +67,7 @@ update msg model =
             handleFetchLeaderboardResponse model result
 
         RegistrationRedirectButtonClicked ->
-            ( model, Nav.pushUrl model.key "http://localhost:8000/register" )
+            ( model, Nav.pushUrl model.key Registration.url )
 
 
 viewHome : Model -> List (Ui.Element Msg)

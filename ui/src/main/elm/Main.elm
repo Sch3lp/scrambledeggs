@@ -255,7 +255,7 @@ isRegistrationActive model =
 -- TODO
 -- * [x] Extract button helper function so that our buttons will always look the same
 -- * [x] Split up Main.elm into a registration page and an anonymous home page
--- * [ ] Add routing based on Url
+-- * [x] Add routing based on Url
 -- * [ ] Fetch both the recentMatches and the leaderboard at the same time; look at Task thing in Elm again
 -- * [ ] Replace our own palette with that of Material somehow
 -- * [ ] Extract the API stuff (fetching players, fetching leaderboard, registering new player) into its own module

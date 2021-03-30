@@ -9,6 +9,12 @@ import Element.Input as Input
 import Http
 import Json.Decode as D exposing (Decoder)
 import Json.Encode
+import Url.Builder
+
+
+url : String
+url =
+    Url.Builder.relative [ "register" ] []
 
 
 type Msg
