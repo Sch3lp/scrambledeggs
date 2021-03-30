@@ -232,22 +232,14 @@ footer =
 
 viewMainContent : Model -> List (Ui.Element Msg)
 viewMainContent model =
-    -- Todo: implement routing (based on url)
-    let
-        viewRoute =
-            if isRegistrationActive model then
-                Registration.viewRegistration model.registrationModel
-                    |> List.map (Ui.map RegistrationMsg)
+    case model.currentRoute of
+        Registration ->
+            Registration.viewRegistration model.registrationModel
+                |> List.map (Ui.map RegistrationMsg)
 
-            else
-                Home.viewHome model.homeModel
-                    |> List.map (Ui.map HomeMsg)
-    in
-    viewRoute
-
-
-isRegistrationActive model =
-    model.currentRoute == Registration
+        AnonymousHomepage ->
+            Home.viewHome model.homeModel
+                |> List.map (Ui.map HomeMsg)
 
 
 
