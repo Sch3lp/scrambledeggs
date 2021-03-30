@@ -62,11 +62,11 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        RegistrationRedirectButtonClicked ->
-            ( model, Cmd.none )
-
         GotFetchLeaderboardResponse result ->
             handleFetchLeaderboardResponse model result
+
+        RegistrationRedirectButtonClicked ->
+            ( model, Cmd.none )
 
 
 viewHome : Model -> List (Ui.Element Msg)

@@ -14,7 +14,8 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 -}
 
 import Base
-import Browser
+import Browser exposing (UrlRequest)
+import Browser.Navigation exposing (Key)
 import Element as Ui
 import Element.Background as Background
 import Element.Font as Font
@@ -22,7 +23,7 @@ import Home
 import Html
 import List
 import Registration
-import Url
+import Url exposing (Url)
 import Url.Parser as Parser
 import Widget.Material.Typography as Typo
 
@@ -34,18 +35,30 @@ import Widget.Material.Typography as Typo
 
 main : Program (Maybe String) Model Msg
 main =
-    Browser.document
+    Browser.application
         { init = init
         , view =
             \model ->
                 { title = "Scramble • Diabotical Ladder", body = [ view model ] }
         , update = update
         , subscriptions = subscriptions
+        , onUrlRequest = onUrlRequest
+        , onUrlChange = onUrlChange
         }
 
 
-init : Maybe String -> ( Model, Cmd Msg )
-init _ =
+onUrlRequest : UrlRequest -> Msg
+onUrlRequest derp =
+    NoOp
+
+
+onUrlChange : Url -> Msg
+onUrlChange url =
+    NoOp
+
+
+init : Maybe String -> Url -> Key -> ( Model, Cmd Msg )
+init s url key =
     ( emptyModel
     , Cmd.map HomeMsg Home.performFetchLeaderboard
     )
@@ -59,6 +72,7 @@ init _ =
 type alias Model =
     { homeModel : Home.Model
     , registrationModel : Registration.Model
+    , currentRoute : Route
     }
 
 
@@ -75,6 +89,7 @@ setHomeModel newHomeModel model =
 emptyModel =
     { homeModel = Home.emptyModel
     , registrationModel = Registration.emptyModel
+    , currentRoute = AnonymousHomepage
     }
 
 
@@ -85,6 +100,7 @@ emptyModel =
 type Msg
     = RegistrationMsg Registration.Msg
     | HomeMsg Home.Msg
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -100,13 +116,21 @@ update msg model =
             )
 
         HomeMsg m ->
-            let
-                ( newHomeModel, newHomeMsg ) =
-                    Home.update m model.homeModel
-            in
-            ( setHomeModel newHomeModel model
-            , Cmd.map HomeMsg newHomeMsg
-            )
+            case m of
+                Home.RegistrationRedirectButtonClicked ->
+                    ( { model | currentRoute = Registration }, Cmd.none )
+
+                _ ->
+                    let
+                        ( newHomeModel, newHomeMsg ) =
+                            Home.update m model.homeModel
+                    in
+                    ( setHomeModel newHomeModel model
+                    , Cmd.map HomeMsg newHomeMsg
+                    )
+
+        NoOp ->
+            ( model, Cmd.none )
 
 
 
@@ -123,11 +147,8 @@ subscriptions _ =
 
 
 type Route
-    = Register
-    | Leaderboards
-    | ChallengePlayer
-    | Report
-    | NotFound
+    = AnonymousHomepage
+    | Registration
 
 
 parseUrl : Url.Url -> Route
@@ -137,15 +158,14 @@ parseUrl url =
             route
 
         Nothing ->
-            Leaderboards
+            AnonymousHomepage
 
 
 parseRoute : Parser.Parser (Route -> a) a
 parseRoute =
     Parser.oneOf
-        [ Parser.map Register Parser.top
-        , Parser.map Leaderboards (Parser.s "leaderboards")
-        , Parser.map Report (Parser.s "reports")
+        [ Parser.map AnonymousHomepage Parser.top
+        , Parser.map Registration (Parser.s "register")
         ]
 
 
@@ -214,10 +234,21 @@ footer =
 viewMainContent : Model -> List (Ui.Element Msg)
 viewMainContent model =
     -- Todo: implement routing (based on url)
-    --Registration.viewRegistration model.registrationModel
-    --    |> List.map (Ui.map RegistrationMsg)
-    Home.viewHome model.homeModel
-        |> List.map (Ui.map HomeMsg)
+    let
+        viewRoute =
+            if isRegistrationActive model then
+                Registration.viewRegistration model.registrationModel
+                    |> List.map (Ui.map RegistrationMsg)
+
+            else
+                Home.viewHome model.homeModel
+                    |> List.map (Ui.map HomeMsg)
+    in
+    viewRoute
+
+
+isRegistrationActive model =
+    model.currentRoute == Registration
 
 
 
