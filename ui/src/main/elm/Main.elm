@@ -82,7 +82,7 @@ parseRoute =
 
 init : Maybe String -> Url -> Key -> ( Model, Cmd Msg )
 init s url key =
-    ( emptyModel key url
+    ( emptyModel (parseUrl url) key
     , Cmd.map HomeMsg Home.performFetchLeaderboard
     )
 
@@ -97,7 +97,6 @@ type alias Model =
     , registrationModel : Registration.Model
     , currentRoute : Route
     , key : Key
-    , url : Url
     }
 
 
@@ -111,9 +110,9 @@ setHomeModel newHomeModel model =
     { model | homeModel = newHomeModel }
 
 
-emptyModel : Nav.Key -> Url -> Model
-emptyModel key url =
-    Model (Home.emptyModel key) (Registration.emptyModel key) AnonymousHomepage key url
+emptyModel : Route -> Nav.Key -> Model
+emptyModel route key =
+    Model (Home.emptyModel key) (Registration.emptyModel key) route key
 
 
 
@@ -256,7 +255,6 @@ isRegistrationActive model =
 -- * [x] Extract button helper function so that our buttons will always look the same
 -- * [x] Split up Main.elm into a registration page and an anonymous home page
 -- * [x] Add routing based on Url
--- * [ ] Fetch both the recentMatches and the leaderboard at the same time; look at Task thing in Elm again
+-- * [ ] Fetch both the recentMatches and the leaderboard at the same time; look at Cmd.batch and Task thing in Elm again
 -- * [ ] Replace our own palette with that of Material somehow
--- * [ ] Extract the API stuff (fetching players, fetching leaderboard, registering new player) into its own module
 -- * [ ] Splitting Api calls from a component/module is interesting if we can unit test the model without having to worry about actually performing http

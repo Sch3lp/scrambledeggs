@@ -4,7 +4,7 @@
   "description": "Contains all Elm source files.",
   "main": "index.js",
   "scripts": {
-    "start": "elm-live src/main/elm/Main.elm --open -d src/main/resources --start-page=index.html --proxy-host=http://localhost:8080/api --proxy-prefix=/api -- --output=src/main/resources/main.js --debug",
+    "start": "elm-live src/main/elm/Main.elm --open -d src/main/resources --start-page=index.html --pushstate --proxy-host=http://localhost:8080/api --proxy-prefix=/api -- --output=src/main/resources/main.js --debug",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
