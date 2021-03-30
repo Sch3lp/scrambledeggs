@@ -115,7 +115,7 @@ viewRegisterButton : Bool -> Ui.Element Msg
 viewRegisterButton isDisabled =
     Base.button
         { isDisabled = isDisabled
-        , label = "Register"
+        , label = "Join the fr(a)y"
         }
         RegisterButtonClicked
 
