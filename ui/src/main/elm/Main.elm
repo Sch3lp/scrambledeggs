@@ -15,7 +15,7 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 
 import Base
 import Browser exposing (UrlRequest)
-import Browser.Navigation exposing (Key)
+import Browser.Navigation as Nav exposing (Key, pushUrl)
 import Element as Ui
 import Element.Background as Background
 import Element.Font as Font
@@ -48,102 +48,13 @@ main =
 
 
 onUrlRequest : UrlRequest -> Msg
-onUrlRequest derp =
-    NoOp
+onUrlRequest =
+    LinkClicked
 
 
 onUrlChange : Url -> Msg
 onUrlChange url =
-    NoOp
-
-
-init : Maybe String -> Url -> Key -> ( Model, Cmd Msg )
-init s url key =
-    ( emptyModel
-    , Cmd.map HomeMsg Home.performFetchLeaderboard
-    )
-
-
-
--- MODEL
--- The full application state of our app.
-
-
-type alias Model =
-    { homeModel : Home.Model
-    , registrationModel : Registration.Model
-    , currentRoute : Route
-    }
-
-
-setRegistrationModel : Registration.Model -> Model -> Model
-setRegistrationModel newRegModel model =
-    { model | registrationModel = newRegModel }
-
-
-setHomeModel : Home.Model -> Model -> Model
-setHomeModel newHomeModel model =
-    { model | homeModel = newHomeModel }
-
-
-emptyModel =
-    { homeModel = Home.emptyModel
-    , registrationModel = Registration.emptyModel
-    , currentRoute = AnonymousHomepage
-    }
-
-
-
--- UPDATE
-
-
-type Msg
-    = RegistrationMsg Registration.Msg
-    | HomeMsg Home.Msg
-    | NoOp
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        RegistrationMsg m ->
-            let
-                ( newRegistrationModel, newRegistrationMsg ) =
-                    Registration.update m model.registrationModel
-            in
-            ( setRegistrationModel newRegistrationModel model
-            , Cmd.map RegistrationMsg newRegistrationMsg
-            )
-
-        HomeMsg m ->
-            case m of
-                Home.RegistrationRedirectButtonClicked ->
-                    ( { model | currentRoute = Registration }, Cmd.none )
-
-                _ ->
-                    let
-                        ( newHomeModel, newHomeMsg ) =
-                            Home.update m model.homeModel
-                    in
-                    ( setHomeModel newHomeModel model
-                    , Cmd.map HomeMsg newHomeMsg
-                    )
-
-        NoOp ->
-            ( model, Cmd.none )
-
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
-
-
-
--- Todo APP ROUTING
+    UrlChanged url
 
 
 type Route
@@ -167,6 +78,95 @@ parseRoute =
         [ Parser.map AnonymousHomepage Parser.top
         , Parser.map Registration (Parser.s "register")
         ]
+
+
+init : Maybe String -> Url -> Key -> ( Model, Cmd Msg )
+init s url key =
+    ( emptyModel key url
+    , Cmd.map HomeMsg Home.performFetchLeaderboard
+    )
+
+
+
+-- MODEL
+-- The full application state of our app.
+
+
+type alias Model =
+    { homeModel : Home.Model
+    , registrationModel : Registration.Model
+    , currentRoute : Route
+    , key : Key
+    , url : Url
+    }
+
+
+setRegistrationModel : Registration.Model -> Model -> Model
+setRegistrationModel newRegModel model =
+    { model | registrationModel = newRegModel }
+
+
+setHomeModel : Home.Model -> Model -> Model
+setHomeModel newHomeModel model =
+    { model | homeModel = newHomeModel }
+
+
+emptyModel : Nav.Key -> Url -> Model
+emptyModel key url =
+    Model (Home.emptyModel key) (Registration.emptyModel key) AnonymousHomepage key url
+
+
+
+-- UPDATE
+
+
+type Msg
+    = RegistrationMsg Registration.Msg
+    | HomeMsg Home.Msg
+    | UrlChanged Url
+    | LinkClicked UrlRequest
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        RegistrationMsg subMsg ->
+            let
+                ( newRegistrationModel, newRegistrationMsg ) =
+                    Registration.update subMsg model.registrationModel
+            in
+            ( setRegistrationModel newRegistrationModel model
+            , Cmd.map RegistrationMsg newRegistrationMsg
+            )
+
+        HomeMsg subMsg ->
+            let
+                ( newHomeModel, newHomeMsg ) =
+                    Home.update subMsg model.homeModel
+            in
+            ( setHomeModel newHomeModel model
+            , Cmd.map HomeMsg newHomeMsg
+            )
+
+        UrlChanged url ->
+            ( { model | currentRoute = parseUrl url }, Cmd.none )
+
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model, Nav.pushUrl model.key (Url.toString url) )
+
+                Browser.External href ->
+                    ( model, Nav.load href )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none
 
 
 

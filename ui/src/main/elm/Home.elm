@@ -2,6 +2,7 @@ module Home exposing (..)
 
 import Api exposing (ApiError(..), expectJsonWithErrorHandling)
 import Base
+import Browser.Navigation as Nav
 import Element as Ui
 import Http
 import Json.Decode as D exposing (Decoder)
@@ -26,6 +27,7 @@ type alias Leaderboard =
 type alias Model =
     { leaderboard : Leaderboard
     , apiFailure : Maybe String
+    , key : Nav.Key
     }
 
 
@@ -49,11 +51,9 @@ asLeaderboardIn homeModel newLeaderboard =
     setLeaderboard newLeaderboard homeModel
 
 
-emptyModel : Model
+emptyModel : Nav.Key -> Model
 emptyModel =
-    { leaderboard = []
-    , apiFailure = Nothing
-    }
+    Model [] Nothing
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -66,7 +66,7 @@ update msg model =
             handleFetchLeaderboardResponse model result
 
         RegistrationRedirectButtonClicked ->
-            ( model, Cmd.none )
+            ( model, Nav.pushUrl model.key "http://localhost:8000/register" )
 
 
 viewHome : Model -> List (Ui.Element Msg)

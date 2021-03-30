@@ -2,6 +2,7 @@ module Registration exposing (..)
 
 import Api exposing (ApiError(..), expectJsonWithErrorHandling, expectStringWithErrorHandling)
 import Base
+import Browser.Navigation as Nav
 import Element as Ui
 import Element.Font as Font
 import Element.Input as Input
@@ -22,16 +23,13 @@ type alias Model =
     , registrationStatus : RegistrationState
     , registeredPlayers : List RegisteredPlayer
     , apiFailure : Maybe String
+    , key : Nav.Key
     }
 
 
-emptyModel : Model
+emptyModel : Nav.Key -> Model
 emptyModel =
-    { registeredPlayers = []
-    , registrationStatus = NotRegistered
-    , registerInput = ""
-    , apiFailure = Nothing
-    }
+    Model "" NotRegistered [] Nothing
 
 
 type RegistrationState
