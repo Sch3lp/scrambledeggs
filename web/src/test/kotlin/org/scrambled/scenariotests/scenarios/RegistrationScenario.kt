@@ -3,6 +3,7 @@ package org.scrambled.scenariotests.scenarios
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.jdbi.v3.core.Jdbi
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -10,7 +11,8 @@ import org.scrambled.adapter.eventsourcing.api.Event
 import org.scrambled.adapter.eventsourcing.api.filterEvents
 import org.scrambled.adapter.eventsourcing.eventstore.PostgresEventStore
 import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
-import org.scrambled.adapter.restapi.players.RegisteredPlayerJson
+import org.scrambled.scenariotests.steps.client.ApiResult
+import org.scrambled.scenariotests.steps.client.ApiResult.Success
 import org.scrambled.scenariotests.steps.core.fetchAllPlayersStep
 import org.scrambled.scenariotests.steps.core.fetchPlayerStep
 import org.scrambled.scenariotests.steps.core.registerPlayerStep
@@ -28,6 +30,7 @@ class RegistrationScenario {
 
     @Autowired
     private lateinit var jdbi: Jdbi
+
     @Autowired
     private lateinit var client: DatabaseClient
 
@@ -40,7 +43,8 @@ class RegistrationScenario {
     fun `An anonymous user registers themselves and becomes a Registered Player, and a Leaderboard is regenerated with them in it`() {
         val playerNickname = "Sch3lp"
         runBlocking {
-            val playerId = registerPlayerStep(playerNickname)
+            val jwtInfo = "epic" to "schlep"
+            val playerId = registerPlayerStep(playerNickname, jwtInfo).expectSuccess() //temporary until we implement actual OAuth
             val registeredPlayer = fetchPlayerStep(playerId)
             assertThat(registeredPlayer.nickname).isEqualTo("Sch3lp")
             val registeredPlayers = fetchAllPlayersStep()
@@ -57,6 +61,27 @@ class RegistrationScenario {
         runBlocking {
             val leaderboard: List<LeaderboardEntryJson> = fetchLeaderboardStep()
             assertThat(leaderboard).containsExactly(LeaderboardEntryJson(rank = null, nickname = "Sch3lp", score = 0))
+        }
+    }
+
+    @Test
+    fun `An anonymous user registers themselves twice with the same external account ref and receives an error`() {
+        val playerNickname = "Snarf"
+        runBlocking {
+            val jwtInfo = "epic" to "schlep"
+            val playerId = registerPlayerStep(playerNickname, jwtInfo).expectSuccess() //temporary until we implement actual OAuth
+            val registeredPlayer = fetchPlayerStep(playerId)
+            assertThat(registeredPlayer.nickname).isEqualTo("Snarf")
+            val errorMessage = registerPlayerStep(playerNickname, "epic" to "sn4rf").expectFailure()
+            assertThat(errorMessage).isEqualTo("You can only register once with the same Epic account")
+        }
+        runBlocking {
+            val firstPlayerRegistered = eventStream.filterEvents<Event.PlayerRegistered>().first()
+            assertThat(firstPlayerRegistered.nickname).isEqualTo("Snarf")
+        }
+        runBlocking {
+            val leaderboard: List<LeaderboardEntryJson> = fetchLeaderboardStep()
+            assertThat(leaderboard).containsExactly(LeaderboardEntryJson(rank = null, nickname = "Snarf", score = 0))
         }
     }
 

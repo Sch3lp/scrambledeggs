@@ -7,6 +7,7 @@ import org.scrambled.domain.core.api.challenging.PlayerNickname
 import org.scrambled.domain.core.api.players.FetchAllRegisteredPlayers
 import org.scrambled.domain.core.api.players.PlayerById
 import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
+import org.scrambled.domain.core.api.registration.ExternalAccountRef
 import org.scrambled.domain.core.api.registration.PlayerRegistered
 import org.scrambled.domain.core.api.registration.RegisterPlayer
 import org.scrambled.infra.cqrs.CommandHandler
@@ -14,15 +15,12 @@ import org.scrambled.infra.cqrs.QueryHandler
 import org.springframework.stereotype.Component
 import java.util.*
 
-
 data class RegisteredPlayer(
     val id: PlayerId,
-    val nickName: PlayerNickname
+    val nickName: PlayerNickname,
+    val externalAccountRef: ExternalAccountRef
 ) {
-    private lateinit var challengedPlayers: List<PlayerId>
-
     fun challenge(otherPlayerId: PlayerId): PlayerChallenged {
-        this.challengedPlayers += otherPlayerId
         return PlayerChallenged(this.id, otherPlayerId)
     }
 }
@@ -34,7 +32,7 @@ class RegisterPlayerHandler(
     override val commandType = RegisterPlayer::class
 
     override fun handle(cmd: RegisterPlayer): Pair<RegisteredPlayerRepresentation, PlayerRegistered> {
-        val registeredPlayer = RegisteredPlayer(generatePlayerId(), cmd.nickname)
+        val registeredPlayer = RegisteredPlayer(generatePlayerId(), cmd.nickname, cmd.externalAccountRef)
 
         registeredPlayer.save()
 

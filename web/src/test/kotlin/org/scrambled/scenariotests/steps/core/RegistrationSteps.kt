@@ -7,18 +7,20 @@ import org.scrambled.adapter.restapi.players.RegisterPlayerJson
 import org.scrambled.adapter.restapi.players.RegisteredPlayerJson
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.extensions.toPlayerId
+import org.scrambled.scenariotests.steps.client.ApiResult
+import org.scrambled.scenariotests.steps.client.asApiResult
 import org.scrambled.scenariotests.steps.client.baseUrl
 import org.scrambled.scenariotests.steps.client.client
 
-suspend fun registerPlayerStep(playerNickname: String): PlayerId {
+suspend fun registerPlayerStep(playerNickname: String, jwtInfo: Pair<String, String>): ApiResult<PlayerId> {
     val response = client.post<HttpResponse> {
         url("$baseUrl/register")
         contentType(ContentType.Application.Json)
-        body = RegisterPlayerJson(playerNickname)
+        body = RegisterPlayerJson(playerNickname, jwtInfo.first, jwtInfo.second)
     }
     val locationHeader = response.headers["Location"]
-    return locationHeader?.takeLast(36)?.toPlayerId()
-        ?: throw RuntimeException("Registering $playerNickname failed with status ${response.status}")
+    return locationHeader?.takeLast(36)?.toPlayerId().asApiResult(response)
+//        throw ApiError("Registering $playerNickname failed with status ${response.status}", response)
 }
 
 suspend fun fetchPlayerStep(playerId: PlayerId): RegisteredPlayerJson {

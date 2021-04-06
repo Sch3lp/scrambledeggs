@@ -9,6 +9,9 @@ import io.ktor.routing.*
 import org.koin.ktor.ext.inject
 import org.scrambled.domain.core.api.players.FetchAllRegisteredPlayers
 import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
+import org.scrambled.domain.core.api.registration.ExternalAccountRef
+import org.scrambled.domain.core.api.registration.JwtIss
+import org.scrambled.domain.core.api.registration.JwtSub
 import org.scrambled.domain.core.api.registration.RegisterPlayer
 import org.scrambled.infra.cqrs.CommandExecutor
 import org.scrambled.infra.cqrs.QueryExecutor
@@ -21,13 +24,13 @@ fun Routing.registrationRoutes() {
 
         post("") {
             val registrationInfo = call.receive<RegisterPlayerJson>()
-            val registerPlayer = RegisterPlayer(nickname = registrationInfo.nickname)
+            val registerPlayer = RegisterPlayer(nickname = registrationInfo.nickname, externalAccountRef = ExternalAccountRef(registrationInfo.jwtIss, registrationInfo.jwtSub))
             val registeredPlayer = commandExecutor.execute(registerPlayer)
             call.respond(Created)
         }
     }
 }
-data class RegisterPlayerJson(val nickname: String)
+data class RegisterPlayerJson(val nickname: String, val jwtIss: JwtIss, val jwtSub: JwtSub)
 
 fun Routing.playerRoutes() {
     val queryExecutor by inject<QueryExecutor>()
