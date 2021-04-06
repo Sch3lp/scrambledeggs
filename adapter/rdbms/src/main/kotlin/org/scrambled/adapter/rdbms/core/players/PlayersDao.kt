@@ -8,6 +8,8 @@ import org.jdbi.v3.sqlobject.statement.SqlUpdate
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.players.QueryablePlayers
 import org.scrambled.domain.core.api.players.QueryablePlayer
+import org.scrambled.domain.core.api.registration.JwtIss
+import org.scrambled.domain.core.api.registration.JwtSub
 
 
 @RegisterKotlinMapper(value = QueryablePlayer::class)
@@ -20,4 +22,7 @@ interface PlayersDao : QueryablePlayers {
 
     @SqlQuery("SELECT id, nickname, jwtiss, jwtsub FROM REGISTERED_PLAYERS")
     override fun all(): List<QueryablePlayer>
+
+    @SqlQuery("SELECT EXISTS(SELECT 1 FROM REGISTERED_PLAYERS where jwtiss = :jwtIss and jwtsub = :jwtSub)")
+    override fun existsByExternalAccountRef(jwtIss: JwtIss, jwtSub: JwtSub): Boolean
 }

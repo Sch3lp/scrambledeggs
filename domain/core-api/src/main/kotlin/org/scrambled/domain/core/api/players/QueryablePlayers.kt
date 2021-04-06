@@ -8,6 +8,7 @@ interface QueryablePlayers {
     fun getById(id: PlayerId): QueryablePlayer?
     fun store(player: QueryablePlayer)
     fun all(): List<QueryablePlayer>
+    fun existsByExternalAccountRef(jwtIss: JwtIss, jwtSub: JwtSub): Boolean
 }
 
 data class QueryablePlayer(

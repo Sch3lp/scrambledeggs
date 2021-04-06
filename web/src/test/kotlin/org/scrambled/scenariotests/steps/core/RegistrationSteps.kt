@@ -1,5 +1,6 @@
 package org.scrambled.scenariotests.steps.core
 
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -17,10 +18,10 @@ suspend fun registerPlayerStep(playerNickname: String, jwtInfo: Pair<String, Str
         url("$baseUrl/register")
         contentType(ContentType.Application.Json)
         body = RegisterPlayerJson(playerNickname, jwtInfo.first, jwtInfo.second)
+        expectSuccess = false
     }
     val locationHeader = response.headers["Location"]
     return locationHeader?.takeLast(36)?.toPlayerId().asApiResult(response)
-//        throw ApiError("Registering $playerNickname failed with status ${response.status}", response)
 }
 
 suspend fun fetchPlayerStep(playerId: PlayerId): RegisteredPlayerJson {

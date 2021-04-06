@@ -53,7 +53,7 @@ sealed class ApiResult<T> {
         }
 }
 
-fun <T> Any?.asApiResult(response: HttpResponse): ApiResult<T> =
+internal fun <T> Any?.asApiResult(response: HttpResponse): ApiResult<T> =
     if (this != null) {
         ApiResult.Success(this as T)
     } else ApiResult.ApiError(

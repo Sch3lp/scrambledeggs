@@ -15,6 +15,8 @@ import org.scrambled.core.impl.players.RegisteredPlayerRepository
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.players.QueryablePlayer
 import org.scrambled.domain.core.api.players.QueryablePlayers
+import org.scrambled.domain.core.api.registration.JwtIss
+import org.scrambled.domain.core.api.registration.JwtSub
 import org.scrambled.infra.cqrs.CommandExecutor
 import org.scrambled.infra.cqrs.QueryExecutor
 import org.scrambled.infra.domainevents.DomainEvent
@@ -84,6 +86,9 @@ class PlayersInMem(private val _players: MutableList<QueryablePlayer> = mutableL
 
     override fun all(): List<QueryablePlayer>
         = _players
+
+    override fun existsByExternalAccountRef(jwtIss: JwtIss, jwtSub: JwtSub): Boolean
+        = _players.any { it.jwtIss == jwtIss && it.jwtSub == jwtSub }
 
 }
 

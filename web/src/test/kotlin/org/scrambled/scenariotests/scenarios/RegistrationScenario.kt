@@ -66,22 +66,24 @@ class RegistrationScenario {
 
     @Test
     fun `An anonymous user registers themselves twice with the same external account ref and receives an error`() {
-        val playerNickname = "Snarf"
+        val playerNickname = "CoredusK"
         runBlocking {
-            val jwtInfo = "epic" to "schlep"
+            val jwtInfo = "epic" to "leaderboardOverflow"
             val playerId = registerPlayerStep(playerNickname, jwtInfo).expectSuccess() //temporary until we implement actual OAuth
             val registeredPlayer = fetchPlayerStep(playerId)
-            assertThat(registeredPlayer.nickname).isEqualTo("Snarf")
-            val errorMessage = registerPlayerStep(playerNickname, "epic" to "sn4rf").expectFailure()
+            assertThat(registeredPlayer.nickname).isEqualTo("CoredusK")
+            val errorMessage = registerPlayerStep(playerNickname, jwtInfo).expectFailure()
             assertThat(errorMessage).isEqualTo("You can only register once with the same Epic account")
         }
         runBlocking {
             val firstPlayerRegistered = eventStream.filterEvents<Event.PlayerRegistered>().first()
-            assertThat(firstPlayerRegistered.nickname).isEqualTo("Snarf")
+            assertThat(firstPlayerRegistered.nickname).isEqualTo("CoredusK")
         }
+        //TODO : expose a manual trigger regeneration endpoint, this will solve the Thread.sleep and is also practical for manual testing
+        Thread.sleep(1000L)
         runBlocking {
             val leaderboard: List<LeaderboardEntryJson> = fetchLeaderboardStep()
-            assertThat(leaderboard).containsExactly(LeaderboardEntryJson(rank = null, nickname = "Snarf", score = 0))
+            assertThat(leaderboard).containsExactly(LeaderboardEntryJson(rank = null, nickname = "CoredusK", score = 0))
         }
     }
 

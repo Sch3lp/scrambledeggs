@@ -27,6 +27,10 @@ class RegisteredPlayerRepository(
 
     fun getAll() = players.all().toRegisteredPlayers()
 
+    fun existsByExternalAccountRef(externalAccountRef: ExternalAccountRef): Boolean {
+        return players.existsByExternalAccountRef(externalAccountRef.jwtIss, externalAccountRef.jwtSub)
+    }
+
     private fun QueryablePlayer.save() = players.store(this)
     private fun QueryablePlayer.toRegisteredPlayer() = RegisteredPlayer(this.id, this.nickname, ExternalAccountRef(this.jwtIss, this.jwtSub))
     private fun List<QueryablePlayer>.toRegisteredPlayers() = this.map { it.toRegisteredPlayer() }

@@ -4,6 +4,7 @@ import org.scrambled.domain.core.api.challenging.ChallengePlayer
 import org.scrambled.domain.core.api.challenging.PlayerChallenged
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.challenging.PlayerNickname
+import org.scrambled.domain.core.api.exceptions.DomainRuntimeException
 import org.scrambled.domain.core.api.players.FetchAllRegisteredPlayers
 import org.scrambled.domain.core.api.players.PlayerById
 import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
@@ -32,6 +33,10 @@ class RegisterPlayerHandler(
     override val commandType = RegisterPlayer::class
 
     override fun handle(cmd: RegisterPlayer): Pair<RegisteredPlayerRepresentation, PlayerRegistered> {
+        if (playerRepository.existsByExternalAccountRef(cmd.externalAccountRef)) {
+            throw DomainRuntimeException("You can only register once with the same Epic account")
+        }
+
         val registeredPlayer = RegisteredPlayer(generatePlayerId(), cmd.nickname, cmd.externalAccountRef)
 
         registeredPlayer.save()
