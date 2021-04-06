@@ -10,3 +10,10 @@ suspend fun fetchLeaderboardStep(): List<LeaderboardEntryJson> = client.get {
     url("$baseUrl/leaderboard")
     contentType(ContentType.Application.Json)
 }
+
+suspend fun triggerLeaderboardRehydration() {
+    client.post<Any> {
+        url("$baseUrl/leaderboard/rehydrate")
+        contentType(ContentType.Application.Json)
+    }
+}

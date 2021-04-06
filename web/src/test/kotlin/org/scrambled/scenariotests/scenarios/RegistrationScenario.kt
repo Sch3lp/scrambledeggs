@@ -17,6 +17,7 @@ import org.scrambled.scenariotests.steps.core.fetchAllPlayersStep
 import org.scrambled.scenariotests.steps.core.fetchPlayerStep
 import org.scrambled.scenariotests.steps.core.registerPlayerStep
 import org.scrambled.scenariotests.steps.leaderboard.fetchLeaderboardStep
+import org.scrambled.scenariotests.steps.leaderboard.triggerLeaderboardRehydration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.r2dbc.core.DatabaseClient
@@ -56,8 +57,7 @@ class RegistrationScenario {
             val firstPlayerRegistered = eventStream.filterEvents<Event.PlayerRegistered>().first()
             assertThat(firstPlayerRegistered.nickname).isEqualTo("Sch3lp")
         }
-        //TODO : expose a manual trigger regeneration endpoint, this will solve the Thread.sleep and is also practical for manual testing
-        Thread.sleep(1000L)
+        runBlocking { triggerLeaderboardRehydration() }
         runBlocking {
             val leaderboard: List<LeaderboardEntryJson> = fetchLeaderboardStep()
             assertThat(leaderboard).containsExactly(LeaderboardEntryJson(rank = null, nickname = "Sch3lp", score = 0))
@@ -79,8 +79,9 @@ class RegistrationScenario {
             val firstPlayerRegistered = eventStream.filterEvents<Event.PlayerRegistered>().first()
             assertThat(firstPlayerRegistered.nickname).isEqualTo("CoredusK")
         }
-        //TODO : expose a manual trigger regeneration endpoint, this will solve the Thread.sleep and is also practical for manual testing
-        Thread.sleep(1000L)
+
+        runBlocking { triggerLeaderboardRehydration() }
+
         runBlocking {
             val leaderboard: List<LeaderboardEntryJson> = fetchLeaderboardStep()
             assertThat(leaderboard).containsExactly(LeaderboardEntryJson(rank = null, nickname = "CoredusK", score = 0))

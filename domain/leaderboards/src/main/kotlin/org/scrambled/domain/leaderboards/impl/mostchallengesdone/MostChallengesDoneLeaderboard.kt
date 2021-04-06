@@ -3,6 +3,8 @@ package org.scrambled.domain.leaderboards.impl.mostchallengesdone
 import org.scrambled.domain.leaderboards.api.infra.BroadcastEvent
 import org.scrambled.domain.leaderboards.api.infra.BroadcastEvents
 import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.*
+import org.scrambled.infra.cqrs.CommandHandler
+import org.scrambled.infra.domainevents.DomainEvent
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -80,9 +82,7 @@ class MostChallengesDonePolicy(
 
     private val logger = LoggerFactory.getLogger(MostChallengesDonePolicy::class.java)
 
-//    @Scheduled(fixedDelay = 1000 * 60 * 5) // Every 5 minutes
-    @Scheduled(fixedDelay = 500)
-    //TODO : expose a manual trigger regeneration endpoint, this will solve the Thread.sleep and is also practical for manual testing
+    @Scheduled(fixedDelay = 1000 * 60 * 5) // Every 5 minutes
     fun regenerateLeaderboard() {
         val events: List<BroadcastEvent> = broadcastEvents.findAll()
 
@@ -97,3 +97,19 @@ class MostChallengesDonePolicy(
         mostChallengesDoneProjection.store(this)
     }
 }
+
+@Component
+class RehydrateLeaderboardsHandler(
+    private val mostChallengesDonePolicy: MostChallengesDonePolicy
+) : CommandHandler<Unit, RehydrateLeaderboards> {
+
+    override fun handle(cmd: RehydrateLeaderboards): Pair<Unit, DomainEvent> {
+        mostChallengesDonePolicy.regenerateLeaderboard()
+        return Unit to MostChallengesDoneLeaderboardRehydrated
+    }
+
+    override val commandType
+        get() = RehydrateLeaderboards::class
+}
+
+object MostChallengesDoneLeaderboardRehydrated: DomainEvent()

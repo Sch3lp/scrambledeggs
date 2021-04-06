@@ -1,5 +1,7 @@
 package org.scrambled.domain.leaderboards.api.mostchallengesdone.projections
 
+import org.scrambled.infra.cqrs.Command
+
 typealias Rank = Int
 typealias Nickname = String
 typealias Score = Int
@@ -15,3 +17,5 @@ interface MostChallengesDoneLeaderboardProjection {
     fun getRanking(): List<ProjectedPlayer>
     fun wipe()
 }
+
+object RehydrateLeaderboards: Command<Unit>
