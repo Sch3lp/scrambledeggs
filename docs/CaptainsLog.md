@@ -2,6 +2,13 @@
 
 This log serves to document all design decisions and problems we ran in to.
 
+## 2021, April 6th - We'll keep a single external account ref instead of multiple for one registered player
+So if somebody wants to both link their google AND their epic games accounts to the same ScrambledEggs account, they won't be able to.
+
+We'll make sure people register using Epic Games only, so we'll get easier future integration.
+
+Migrating towards having multiple accounts isn't impossible either, so we'll cross that bridge when we get there.
+
 ## 2021, February 28th - Gradle Spring Cleaning!
 Ha! Wow! Much pun!
 
