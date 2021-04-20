@@ -25,7 +25,7 @@ class RegistrationController(
         builder: UriComponentsBuilder
     ): ResponseEntity<Any> {
         // TODO extract sub + iss from authenticated JWT token
-        val registerPlayer = RegisterPlayer(nickname = registrationInfo.nickname, externalAccountRef = ExternalAccountRef(registrationInfo.jwtIss, registrationInfo.jwtSub))
+        val registerPlayer = RegisterPlayer(nickname = registrationInfo.nickname, externalAccountRef = ExternalAccountRef(registrationInfo.jwtIss?: "someiss", registrationInfo.jwtSub?: "123"))
         val registeredPlayer = commandExecutor.execute(registerPlayer)
 
         val locationUri = builder.path("/api/player/{id}").buildAndExpand(registeredPlayer.id).toUri()
@@ -34,4 +34,4 @@ class RegistrationController(
     }
 }
 
-data class RegisterPlayerJson(val nickname: String, val jwtIss: JwtIss, val jwtSub: JwtSub)
+data class RegisterPlayerJson(val nickname: String, val jwtIss: JwtIss?, val jwtSub: JwtSub?)

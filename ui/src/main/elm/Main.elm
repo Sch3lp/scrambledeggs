@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 {-| TodoMVC implemented in Elm, using plain HTML and CSS for rendering.
 
@@ -19,10 +19,14 @@ import Browser.Navigation as Nav exposing (Key, pushUrl)
 import Element as Ui
 import Element.Background as Background
 import Element.Font as Font
-import Home
+import Home exposing (Msg(..))
 import Html
+import Json.Decode as Json
 import List
+import OAuth
+import OAuth.Implicit as OAuth
 import Registration
+import Security exposing (convertBytes, defaultHttpsUrl)
 import Url exposing (Url)
 import Url.Parser as Parser
 import Widget.Material.Typography as Typo
@@ -33,10 +37,10 @@ import Widget.Material.Typography as Typo
 -- App init
 
 
-main : Program (Maybe String) Model Msg
+main : Program (Maybe (List Int)) Model Msg
 main =
     Browser.application
-        { init = init
+        { init = Maybe.map convertBytes >> init
         , view =
             \model ->
                 { title = "Scramble • Diabotical Ladder", body = [ view model ] }
@@ -70,15 +74,97 @@ parseRoute =
         ]
 
 
-init : Maybe String -> Url -> Key -> ( Model, Cmd Msg )
-init s url key =
-    ( emptyModel (parseUrl url) key
-    , Cmd.map HomeMsg Home.performFetchLeaderboard
-    )
+emptyModel url key authFlow redirectUri =
+    Model (Home.emptyModel key) (Registration.emptyModel key) (parseUrl url) key authFlow redirectUri
+
+
+init : Maybe { state : String } -> Url -> Key -> ( Model, Cmd Msg )
+init mflags url key =
+    let
+        redirectUri =
+            { url | query = Nothing, fragment = Nothing }
+
+        clearUrl =
+            Nav.replaceUrl key (Url.toString redirectUri)
+
+        fetchLeaderboard =
+            Cmd.map HomeMsg Home.performFetchLeaderboard
+    in
+    case OAuth.parseToken url of
+        OAuth.Empty ->
+            ( emptyModel url key Idle redirectUri
+            , fetchLeaderboard
+            )
+
+        -- It is important to set a `state` when making the authorization request
+        -- and to verify it after the redirection. The state can be anything but its primary
+        -- usage is to prevent cross-site request forgery; at minima, it should be a short,
+        -- non-guessable string, generated on the fly.
+        --
+        -- We remember any previously generated state  state using the browser's local storage
+        -- and give it back (if present) to the elm application upon start
+        OAuth.Success { token, state } ->
+            case mflags of
+                Nothing ->
+                    ( emptyModel url key (Errored ErrStateMismatch) redirectUri
+                    , Cmd.batch [ clearUrl, fetchLeaderboard ]
+                    )
+
+                Just flags ->
+                    if state /= Just flags.state then
+                        ( emptyModel url key (Errored ErrStateMismatch) redirectUri
+                        , Cmd.batch [ clearUrl, fetchLeaderboard ]
+                        )
+
+                    else
+                        ( emptyModel url key (Authorized token) redirectUri
+                        , Cmd.batch
+                            -- Artificial delay to make the live demo easier to follow.
+                            -- In practice, the access token could be requested right here.
+                            [ Cmd.none --after 750 Millisecond UserInfoRequested
+                            , clearUrl
+                            , fetchLeaderboard
+                            ]
+                        )
+
+        OAuth.Error error ->
+            ( emptyModel url key (Errored <| ErrAuthorization error) redirectUri
+            , Cmd.batch [ clearUrl, fetchLeaderboard ]
+            )
 
 
 
 -- MODEL
+-- The stuff needed for OIDC flow
+
+
+type AuthFlow
+    = Idle
+    | Authorized OAuth.Token
+    | Done UserInfo
+    | Errored Error
+
+
+type Error
+    = ErrStateMismatch
+    | ErrAuthorization OAuth.AuthorizationError
+    | ErrHTTPGetUserInfo
+
+
+type alias UserInfo =
+    { name : String
+    , picture : String
+    }
+
+
+signInRequested : Model -> ( Model, Cmd Msg )
+signInRequested model =
+    ( { model | authFlow = Idle }
+    , genRandomBytes 16
+    )
+
+
+
 -- The full application state of our app.
 
 
@@ -87,6 +173,8 @@ type alias Model =
     , registrationModel : Registration.Model
     , currentRoute : Route
     , key : Key
+    , authFlow : AuthFlow
+    , redirectUri : Url
     }
 
 
@@ -100,11 +188,6 @@ setHomeModel newHomeModel model =
     { model | homeModel = newHomeModel }
 
 
-emptyModel : Route -> Nav.Key -> Model
-emptyModel route key =
-    Model (Home.emptyModel key) (Registration.emptyModel key) route key
-
-
 
 -- UPDATE
 
@@ -114,12 +197,13 @@ type Msg
     | HomeMsg Home.Msg
     | UrlChanged Url
     | LinkClicked UrlRequest
+    | GotRandomBytes (List Int)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        RegistrationMsg subMsg ->
+    case ( model.authFlow, msg ) of
+        ( _, RegistrationMsg subMsg ) ->
             let
                 ( newRegistrationModel, newRegistrationMsg ) =
                     Registration.update subMsg model.registrationModel
@@ -128,7 +212,10 @@ update msg model =
             , Cmd.map RegistrationMsg newRegistrationMsg
             )
 
-        HomeMsg subMsg ->
+        ( _, HomeMsg RegistrationRedirectButtonClicked ) ->
+            signInRequested model
+
+        ( _, HomeMsg subMsg ) ->
             let
                 ( newHomeModel, newHomeMsg ) =
                     Home.update subMsg model.homeModel
@@ -137,16 +224,19 @@ update msg model =
             , Cmd.map HomeMsg newHomeMsg
             )
 
-        UrlChanged url ->
+        ( _, UrlChanged url ) ->
             ( { model | currentRoute = parseUrl url }, Cmd.none )
 
-        LinkClicked urlRequest ->
+        ( _, LinkClicked urlRequest ) ->
             case urlRequest of
                 Browser.Internal url ->
                     ( model, Nav.pushUrl model.key (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )
+
+        ( _, GotRandomBytes bytes ) ->
+            gotRandomBytes model bytes
 
 
 
@@ -155,7 +245,65 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    randomBytes GotRandomBytes
+
+
+{-| OAuth configuration.
+Note that this demo also fetches basic user information with the obtained access token,
+hence the user info endpoint and JSON decoder
+-}
+type alias Configuration =
+    { authorizationEndpoint : Url
+    , userInfoEndpoint : Url
+    , userInfoDecoder : Json.Decoder UserInfo
+    , clientId : String
+    , scope : List String
+    }
+
+
+configuration : Configuration
+configuration =
+    { authorizationEndpoint =
+        { defaultHttpsUrl | host = "elm-oauth2.eu.auth0.com", path = "/authorize" }
+    , userInfoEndpoint =
+        { defaultHttpsUrl | host = "elm-oauth2.eu.auth0.com", path = "/userinfo" }
+    , userInfoDecoder =
+        Json.map2 UserInfo
+            (Json.field "name" Json.string)
+            (Json.field "picture" Json.string)
+    , clientId =
+        "AbRrXEIRBPgkDrqR4RgdXuHoAd1mDetT"
+    , scope =
+        [ "openid", "profile" ]
+    }
+
+
+gotRandomBytes : Model -> List Int -> ( Model, Cmd Msg )
+gotRandomBytes model bytes =
+    let
+        { state } =
+            convertBytes bytes
+
+        authorization =
+            { clientId = configuration.clientId
+            , redirectUri = model.redirectUri
+            , scope = configuration.scope
+            , state = Just state
+            , url = configuration.authorizationEndpoint
+            }
+    in
+    ( { model | authFlow = Idle }
+    , authorization
+        |> OAuth.makeAuthorizationUrl
+        |> Url.toString
+        |> Nav.load
+    )
+
+
+port genRandomBytes : Int -> Cmd msg
+
+
+port randomBytes : (List Int -> msg) -> Sub msg
 
 
 
@@ -237,6 +385,8 @@ viewMainContent model =
 -- * [x] Extract button helper function so that our buttons will always look the same
 -- * [x] Split up Main.elm into a registration page and an anonymous home page
 -- * [x] Add routing based on Url
+-- * [x] Use an OAuth2 elm library that takes care of redirecting and parsing tokens
+-- * [ ] Verify the JWT Token on successful login, using Auth0 or whatever IDP I can set up.
 -- * [ ] Fetch both the recentMatches and the leaderboard at the same time; look at Cmd.batch and Task thing in Elm again
 -- * [ ] Replace our own palette with that of Material somehow
 -- * [ ] Splitting Api calls from a component/module is interesting if we can unit test the model without having to worry about actually performing http
