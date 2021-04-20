@@ -1,0 +1,22 @@
+version: '3'
+services:
+  idp:
+    image: jboss/keycloak:12.0.4
+    ports:
+      - "7070:8080"
+    environment:
+      KEYCLOAK_USER: bruce
+      KEYCLOAK_PASSWORD: i<3bats
+      DB_VENDOR: postgres
+      DB_ADDR: "keycloak_db:7654"
+      POSTGRES_DB: keycloakdb
+      DB_USER: snarf
+      DB_PASSWORD: Lion-0!
+  keycloak_db:
+    image: library/postgres:13.1-alpine
+    ports:
+      - "7654:5432"
+    environment:
+      POSTGRES_DB: keycloakdb
+      POSTGRES_USER: snarf
+      POSTGRES_PASSWORD: Lion-0!
