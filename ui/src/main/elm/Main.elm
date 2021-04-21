@@ -26,7 +26,7 @@ import List
 import OAuth
 import OAuth.Implicit as OAuth
 import Registration
-import Security exposing (convertBytes, defaultHttpsUrl)
+import Security exposing (convertBytes, defaultHttpUrl, defaultHttpsUrl)
 import Url exposing (Url)
 import Url.Parser as Parser
 import Widget.Material.Typography as Typo
@@ -278,6 +278,42 @@ configuration =
     }
 
 
+localKeycloakConfiguration : Configuration
+localKeycloakConfiguration =
+    let
+        issuerUrl =
+            "/auth/realms/scrambled"
+
+        authorization_endpoint =
+            issuerUrl ++ "/protocol/openid-connect/auth"
+
+        token_endpoint =
+            issuerUrl ++ "/protocol/openid-connect/token"
+
+        introspection_endpoint =
+            issuerUrl ++ "/protocol/openid-connect/token/introspect"
+
+        userinfo_endpoint =
+            issuerUrl ++ "/protocol/openid-connect/userinfo"
+
+        end_session_endpoint =
+            issuerUrl ++ "/protocol/openid-connect/logout"
+    in
+    { authorizationEndpoint =
+        { defaultHttpUrl | host = "localhost", port_ = Just 7070, path = authorization_endpoint }
+    , userInfoEndpoint =
+        { defaultHttpUrl | host = "localhost", port_ = Just 7070, path = userinfo_endpoint }
+    , userInfoDecoder =
+        Json.map2 UserInfo
+            (Json.field "name" Json.string)
+            (Json.field "picture" Json.string)
+    , clientId =
+        "scrambled-ui"
+    , scope =
+        [ "openid", "profile" ]
+    }
+
+
 gotRandomBytes : Model -> List Int -> ( Model, Cmd Msg )
 gotRandomBytes model bytes =
     let
@@ -285,11 +321,11 @@ gotRandomBytes model bytes =
             convertBytes bytes
 
         authorization =
-            { clientId = configuration.clientId
+            { clientId = localKeycloakConfiguration.clientId
             , redirectUri = model.redirectUri
-            , scope = configuration.scope
+            , scope = localKeycloakConfiguration.scope
             , state = Just state
-            , url = configuration.authorizationEndpoint
+            , url = localKeycloakConfiguration.authorizationEndpoint
             }
     in
     ( { model | authFlow = Idle }

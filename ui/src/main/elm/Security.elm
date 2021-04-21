@@ -30,3 +30,14 @@ defaultHttpsUrl =
     , query = Nothing
     , fragment = Nothing
     }
+
+
+defaultHttpUrl : Url
+defaultHttpUrl =
+    { protocol = Http
+    , host = ""
+    , path = ""
+    , port_ = Nothing
+    , query = Nothing
+    , fragment = Nothing
+    }
