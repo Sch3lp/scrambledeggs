@@ -332,8 +332,13 @@ gotRandomBytes model bytes =
     , authorization
         |> OAuth.makeAuthorizationUrl
         |> Url.toString
+        |> appendDummyNonce
         |> Nav.load
     )
+
+
+appendDummyNonce s =
+    s ++ "&nonce=1234"
 
 
 port genRandomBytes : Int -> Cmd msg
@@ -366,7 +371,8 @@ view model =
 
 
 viewHeader model =
-    [ Ui.el
+    [ viewAuthError model
+    , Ui.el
         ([ Ui.alignTop
          , Ui.centerX
          , Ui.centerY
@@ -383,6 +389,20 @@ viewHeader model =
 
 header =
     Ui.text "Scramblede.gg"
+
+
+viewAuthError : Model -> Ui.Element msg
+viewAuthError model =
+    let
+        errorMsg =
+            case model.authFlow of
+                Errored (ErrAuthorization errorRecord) ->
+                    Maybe.withDefault "" errorRecord.errorDescription
+
+                _ ->
+                    ""
+    in
+    Ui.text errorMsg
 
 
 viewFooter model =
