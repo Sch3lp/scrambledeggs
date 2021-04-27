@@ -195,22 +195,9 @@ gotUserInfo model userInfoResponse =
 
 signOutRequested : Model -> ( Model, Cmd Msg )
 signOutRequested model =
-    case model.token of
-        Just token ->
-            ( { model | authFlow = Idle, token = Nothing }
-            , Http.request
-                { method = "POST"
-                , headers = OAuth.useToken token []
-                , body = Http.emptyBody
-                , url = Url.toString localKeycloakConfiguration.endSessionEndpoint
-                , expect = Http.expectWhatever SignOutCompleted
-                , timeout = Nothing
-                , tracker = Nothing
-                }
-            )
-
-        _ ->
-            ( model, Cmd.none )
+    ( { model | authFlow = Idle, token = Nothing }
+    , Cmd.none
+    )
 
 
 
@@ -250,7 +237,6 @@ type Msg
     | GotRandomBytes (List Int)
     | GotUserInfo (Result Http.Error UserInfo)
     | SignOutRequested
-    | SignOutCompleted (Result Http.Error ())
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -296,9 +282,6 @@ update msg model =
 
         ( _, SignOutRequested ) ->
             signOutRequested model
-
-        ( _, SignOutCompleted _ ) ->
-            ( { model | authFlow = Idle }, Cmd.none )
 
 
 
