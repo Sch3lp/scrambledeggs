@@ -15,12 +15,13 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 
 import Base
 import Browser exposing (UrlRequest)
-import Browser.Navigation as Nav exposing (Key, pushUrl)
+import Browser.Navigation as Nav exposing (Key)
 import Element as Ui
 import Element.Background as Background
 import Element.Font as Font
 import Home exposing (Msg(..))
 import Html
+import Http
 import Json.Decode as Json
 import List
 import OAuth
@@ -119,9 +120,7 @@ init mflags url key =
                     else
                         ( emptyModel url key (Authorized token) redirectUri
                         , Cmd.batch
-                            -- Artificial delay to make the live demo easier to follow.
-                            -- In practice, the access token could be requested right here.
-                            [ Cmd.none --after 750 Millisecond UserInfoRequested
+                            [ getUserInfo localKeycloakConfiguration token
                             , clearUrl
                             , fetchLeaderboard
                             ]
@@ -153,7 +152,6 @@ type Error
 
 type alias UserInfo =
     { name : String
-    , picture : String
     }
 
 
@@ -161,6 +159,40 @@ signInRequested : Model -> ( Model, Cmd Msg )
 signInRequested model =
     ( { model | authFlow = Idle }
     , genRandomBytes 16
+    )
+
+
+getUserInfo : Configuration -> OAuth.Token -> Cmd Msg
+getUserInfo { userInfoDecoder, userInfoEndpoint } token =
+    Http.request
+        { method = "GET"
+        , body = Http.emptyBody
+        , headers = OAuth.useToken token []
+        , url = Url.toString userInfoEndpoint
+        , expect = Http.expectJson GotUserInfo userInfoDecoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+gotUserInfo : Model -> Result Http.Error UserInfo -> ( Model, Cmd Msg )
+gotUserInfo model userInfoResponse =
+    case userInfoResponse of
+        Err _ ->
+            ( { model | authFlow = Errored ErrHTTPGetUserInfo }
+            , Cmd.none
+            )
+
+        Ok userInfo ->
+            ( { model | authFlow = Done userInfo }
+            , Cmd.none
+            )
+
+
+signOutRequested : Model -> ( Model, Cmd Msg )
+signOutRequested model =
+    ( { model | authFlow = Idle }
+    , Nav.load (Url.toString model.redirectUri)
     )
 
 
@@ -198,6 +230,11 @@ type Msg
     | UrlChanged Url
     | LinkClicked UrlRequest
     | GotRandomBytes (List Int)
+    | GotUserInfo (Result Http.Error UserInfo)
+
+
+
+--| SignOutRequested
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -238,6 +275,9 @@ update msg model =
         ( _, GotRandomBytes bytes ) ->
             gotRandomBytes model bytes
 
+        ( _, GotUserInfo resp ) ->
+            gotUserInfo model resp
+
 
 
 -- SUBSCRIPTIONS
@@ -258,23 +298,6 @@ type alias Configuration =
     , userInfoDecoder : Json.Decoder UserInfo
     , clientId : String
     , scope : List String
-    }
-
-
-configuration : Configuration
-configuration =
-    { authorizationEndpoint =
-        { defaultHttpsUrl | host = "elm-oauth2.eu.auth0.com", path = "/authorize" }
-    , userInfoEndpoint =
-        { defaultHttpsUrl | host = "elm-oauth2.eu.auth0.com", path = "/userinfo" }
-    , userInfoDecoder =
-        Json.map2 UserInfo
-            (Json.field "name" Json.string)
-            (Json.field "picture" Json.string)
-    , clientId =
-        "AbRrXEIRBPgkDrqR4RgdXuHoAd1mDetT"
-    , scope =
-        [ "openid", "profile" ]
     }
 
 
@@ -304,9 +327,8 @@ localKeycloakConfiguration =
     , userInfoEndpoint =
         { defaultHttpUrl | host = "localhost", port_ = Just 7070, path = userinfo_endpoint }
     , userInfoDecoder =
-        Json.map2 UserInfo
+        Json.map UserInfo
             (Json.field "name" Json.string)
-            (Json.field "picture" Json.string)
     , clientId =
         "scrambled-ui"
     , scope =
@@ -371,7 +393,7 @@ view model =
 
 
 viewHeader model =
-    [ viewAuthError model
+    [ viewAuthInfo model.authFlow
     , Ui.el
         ([ Ui.alignTop
          , Ui.centerX
@@ -391,18 +413,21 @@ header =
     Ui.text "Scramblede.gg"
 
 
-viewAuthError : Model -> Ui.Element msg
-viewAuthError model =
+viewAuthInfo : AuthFlow -> Ui.Element msg
+viewAuthInfo authFlow =
     let
-        errorMsg =
-            case model.authFlow of
+        authInfoAsString =
+            case authFlow of
                 Errored (ErrAuthorization errorRecord) ->
                     Maybe.withDefault "" errorRecord.errorDescription
+
+                Done userInfo ->
+                    "Welcome " ++ userInfo.name ++ ". Happy Fraggin'!"
 
                 _ ->
                     ""
     in
-    Ui.text errorMsg
+    Ui.text authInfoAsString
 
 
 viewFooter model =
