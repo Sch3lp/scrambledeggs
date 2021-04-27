@@ -76,7 +76,11 @@ parseRoute =
 
 
 emptyModel url key authFlow redirectUri =
-    Model (Home.emptyModel key) (Registration.emptyModel key) (parseUrl url) key authFlow redirectUri
+    Model (Home.emptyModel key) (Registration.emptyModel key) (parseUrl url) key authFlow redirectUri Nothing
+
+
+emptyModelWithToken token url key authFlow redirectUri =
+    Model (Home.emptyModel key) (Registration.emptyModel key) (parseUrl url) key authFlow redirectUri (Just token)
 
 
 init : Maybe { state : String } -> Url -> Key -> ( Model, Cmd Msg )
@@ -118,7 +122,7 @@ init mflags url key =
                         )
 
                     else
-                        ( emptyModel url key (Authorized token) redirectUri
+                        ( emptyModelWithToken token url key (Authorized token) redirectUri
                         , Cmd.batch
                             [ getUserInfo localKeycloakConfiguration token
                             , clearUrl
@@ -191,9 +195,22 @@ gotUserInfo model userInfoResponse =
 
 signOutRequested : Model -> ( Model, Cmd Msg )
 signOutRequested model =
-    ( { model | authFlow = Idle }
-    , Nav.load (Url.toString model.redirectUri)
-    )
+    case model.token of
+        Just token ->
+            ( { model | authFlow = Idle, token = Nothing }
+            , Http.request
+                { method = "POST"
+                , headers = OAuth.useToken token []
+                , body = Http.emptyBody
+                , url = Url.toString localKeycloakConfiguration.endSessionEndpoint
+                , expect = Http.expectWhatever SignOutCompleted
+                , timeout = Nothing
+                , tracker = Nothing
+                }
+            )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 
@@ -207,6 +224,7 @@ type alias Model =
     , key : Key
     , authFlow : AuthFlow
     , redirectUri : Url
+    , token : Maybe OAuth.Token
     }
 
 
@@ -231,10 +249,8 @@ type Msg
     | LinkClicked UrlRequest
     | GotRandomBytes (List Int)
     | GotUserInfo (Result Http.Error UserInfo)
-
-
-
---| SignOutRequested
+    | SignOutRequested
+    | SignOutCompleted (Result Http.Error ())
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -278,6 +294,12 @@ update msg model =
         ( _, GotUserInfo resp ) ->
             gotUserInfo model resp
 
+        ( _, SignOutRequested ) ->
+            signOutRequested model
+
+        ( _, SignOutCompleted _ ) ->
+            ( { model | authFlow = Idle }, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -298,6 +320,7 @@ type alias Configuration =
     , userInfoDecoder : Json.Decoder UserInfo
     , clientId : String
     , scope : List String
+    , endSessionEndpoint : Url
     }
 
 
@@ -309,12 +332,6 @@ localKeycloakConfiguration =
 
         authorization_endpoint =
             issuerUrl ++ "/protocol/openid-connect/auth"
-
-        token_endpoint =
-            issuerUrl ++ "/protocol/openid-connect/token"
-
-        introspection_endpoint =
-            issuerUrl ++ "/protocol/openid-connect/token/introspect"
 
         userinfo_endpoint =
             issuerUrl ++ "/protocol/openid-connect/userinfo"
@@ -333,6 +350,8 @@ localKeycloakConfiguration =
         "scrambled-ui"
     , scope =
         [ "openid", "profile" ]
+    , endSessionEndpoint =
+        { defaultHttpUrl | host = "localhost", port_ = Just 7070, path = end_session_endpoint }
     }
 
 
@@ -413,21 +432,32 @@ header =
     Ui.text "Scramblede.gg"
 
 
-viewAuthInfo : AuthFlow -> Ui.Element msg
+viewAuthInfo : AuthFlow -> Ui.Element Msg
 viewAuthInfo authFlow =
     let
-        authInfoAsString =
+        authInfo =
             case authFlow of
                 Errored (ErrAuthorization errorRecord) ->
                     Maybe.withDefault "" errorRecord.errorDescription
+                        |> Ui.text
 
                 Done userInfo ->
-                    "Welcome " ++ userInfo.name ++ ". Happy Fraggin'!"
+                    Ui.row []
+                        [ "Welcome "
+                            ++ userInfo.name
+                            ++ ". Happy Fraggin'!"
+                            |> Ui.text
+                        , Base.button
+                            { isDisabled = False
+                            , label = "Log out"
+                            }
+                            SignOutRequested
+                        ]
 
                 _ ->
-                    ""
+                    Ui.text ""
     in
-    Ui.text authInfoAsString
+    authInfo
 
 
 viewFooter model =
@@ -467,7 +497,8 @@ viewMainContent model =
 -- * [x] Split up Main.elm into a registration page and an anonymous home page
 -- * [x] Add routing based on Url
 -- * [x] Use an OAuth2 elm library that takes care of redirecting and parsing tokens
--- * [ ] Verify the JWT Token on successful login, using Auth0 or whatever IDP I can set up.
+-- * [x] Verify the JWT Token on successful login, using Auth0 or whatever IDP I can set up.
+-- * [x] Make a logout button
 -- * [ ] Fetch both the recentMatches and the leaderboard at the same time; look at Cmd.batch and Task thing in Elm again
 -- * [ ] Replace our own palette with that of Material somehow
 -- * [ ] Splitting Api calls from a component/module is interesting if we can unit test the model without having to worry about actually performing http
