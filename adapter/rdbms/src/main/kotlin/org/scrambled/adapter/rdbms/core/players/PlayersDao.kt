@@ -8,6 +8,7 @@ import org.jdbi.v3.sqlobject.statement.SqlUpdate
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.players.QueryablePlayers
 import org.scrambled.domain.core.api.players.QueryablePlayer
+import org.scrambled.domain.core.api.registration.ExternalAccountRef
 import org.scrambled.domain.core.api.registration.JwtIss
 import org.scrambled.domain.core.api.registration.JwtSub
 
@@ -25,4 +26,7 @@ interface PlayersDao : QueryablePlayers {
 
     @SqlQuery("SELECT EXISTS(SELECT 1 FROM REGISTERED_PLAYERS where jwtiss = :jwtIss and jwtsub = :jwtSub)")
     override fun existsByExternalAccountRef(jwtIss: JwtIss, jwtSub: JwtSub): Boolean
+
+    @SqlQuery("SELECT id, nickname, jwtiss, jwtsub FROM REGISTERED_PLAYERS where jwtiss = :jwtIss and jwtsub = :jwtSub")
+    override fun findByExternalAccountRef(jwtIss: JwtIss, jwtSub: JwtSub): QueryablePlayer?
 }

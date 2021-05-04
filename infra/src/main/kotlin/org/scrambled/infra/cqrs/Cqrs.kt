@@ -11,7 +11,7 @@ typealias AggregateId = UUID
 
 @Component
 class CommandExecutor(
-    private val commandHandlers: List<CommandHandler<*,*>>,
+    private val commandHandlers: List<CommandHandler<*, *>>,
     private val domainEventBroadcaster: IDomainEventBroadcaster
 ) {
     fun <R> execute(command: Command<R>): R {
@@ -20,37 +20,51 @@ class CommandExecutor(
         domainEventBroadcaster.publish(domainEvent)
         return result
     }
-    private inline fun <R, reified Cmd: Command<R>> handlerForCommand(command: Cmd) =
+
+    private inline fun <R, reified Cmd : Command<R>> handlerForCommand(command: Cmd) =
         (commandHandlers as List<CommandHandler<R, Cmd>>)
             .first { handler -> command::class == handler.commandType }
 }
+
 interface Command<R>
 
 @Transactional(transactionManager = "rdbms-tx-mgr")
-interface CommandHandler<R, Cmd: Command<R>> {
+interface CommandHandler<R, Cmd : Command<R>> {
     val commandType: KClass<Cmd>
     fun handle(cmd: Cmd): Pair<R, DomainEvent>
 }
 
 
-
-
 @Component
 class QueryExecutor(private val queryHandlers: List<QueryHandler<*, *>>) {
-    fun <Agg : Any, R> execute(query: Query<Agg>, transform: Agg.() -> R): R {
+    //TODO Refactor to not return R, but rather a Maybe<R>, because we cannot express nullable type information in generics
+    //We can't go like "hey, give me an R? and both an R with the same function name" (function overloading doesn't work with nullable types)
+    fun <Agg, R> execute(query: Query<Agg>, transform: Agg.() -> R): R {
         return handlerForQuery(query)
             .handle(query)
-            .transform()
+            ?.transform()
+            ?: throw GenericNotFoundException("The query's implementation was supposed to throw the not found exception")
     }
-    private inline fun <reified Q: Query<R>, R:Any> handlerForQuery(query: Q) =
+
+    fun <Agg, R> executeOrNull(query: Query<Agg>, transform: Agg.() -> R): R? {
+        return handlerForQuery(query)
+            .handle(query)
+            ?.transform()
+    }
+
+    private inline fun <reified Q : Query<R>, R> handlerForQuery(query: Q) =
         (queryHandlers as List<QueryHandler<Q, R>>)
             .first { handler -> query::class == handler.queryType }
 }
-interface Query<Aggregate : Any> {
+
+interface Query<Aggregate> {
     val id: AggregateId
 }
+
 @Transactional(transactionManager = "rdbms-tx-mgr")
-interface QueryHandler<Q: Query<Representation>, Representation: Any> {
+interface QueryHandler<Q : Query<Representation>, Representation> {
     val queryType: KClass<Q>
-    fun handle(query: Q): Representation
+    fun handle(query: Q): Representation?
 }
+
+class GenericNotFoundException(message: String, cause: Error? = null) : RuntimeException(message, cause)

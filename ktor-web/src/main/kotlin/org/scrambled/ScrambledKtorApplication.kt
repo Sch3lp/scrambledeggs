@@ -15,6 +15,7 @@ import org.scrambled.core.impl.players.RegisteredPlayerRepository
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.players.QueryablePlayer
 import org.scrambled.domain.core.api.players.QueryablePlayers
+import org.scrambled.domain.core.api.registration.ExternalAccountRef
 import org.scrambled.domain.core.api.registration.JwtIss
 import org.scrambled.domain.core.api.registration.JwtSub
 import org.scrambled.infra.cqrs.CommandExecutor
@@ -58,9 +59,9 @@ fun inMemDbModule() = module(createdAtStart = true) {
 }
 
 fun domainModule(): Module = module(createdAtStart = true) {
-    singleBy<RegisterPlayerHandler,RegisterPlayerHandler>()
-    singleBy<FetchAllRegisteredPlayersQueryHandler,FetchAllRegisteredPlayersQueryHandler>()
-    singleBy<RegisteredPlayerRepository,RegisteredPlayerRepository>()
+    singleBy<RegisterPlayerHandler, RegisterPlayerHandler>()
+    singleBy<FetchAllRegisteredPlayersQueryHandler, FetchAllRegisteredPlayersQueryHandler>()
+    singleBy<RegisteredPlayerRepository, RegisteredPlayerRepository>()
 }
 
 fun infraModule() = module(createdAtStart = true) {
@@ -74,21 +75,22 @@ fun infraModule() = module(createdAtStart = true) {
 }
 
 
-class PlayersInMem(private val _players: MutableList<QueryablePlayer> = mutableListOf())
-    : QueryablePlayers {
+class PlayersInMem(private val _players: MutableList<QueryablePlayer> = mutableListOf()) : QueryablePlayers {
 
-    override fun getById(id: PlayerId): QueryablePlayer?
-        = _players.find { it.id == id }
+    override fun getById(id: PlayerId): QueryablePlayer? = _players.find { it.id == id }
+
+    override fun findByExternalAccountRef(externalAccountRef: ExternalAccountRef): QueryablePlayer? {
+        return _players.find { it.jwtIss == externalAccountRef.jwtIss && it.jwtSub == externalAccountRef.jwtSub }
+    }
 
     override fun store(player: QueryablePlayer) {
         _players.add(player)
     }
 
-    override fun all(): List<QueryablePlayer>
-        = _players
+    override fun all(): List<QueryablePlayer> = _players
 
-    override fun existsByExternalAccountRef(jwtIss: JwtIss, jwtSub: JwtSub): Boolean
-        = _players.any { it.jwtIss == jwtIss && it.jwtSub == jwtSub }
+    override fun existsByExternalAccountRef(jwtIss: JwtIss, jwtSub: JwtSub): Boolean =
+        _players.any { it.jwtIss == jwtIss && it.jwtSub == jwtSub }
 
 }
 
@@ -102,6 +104,7 @@ class DomainEventsInMem : IDomainEventBroadcaster {
         events += domainEvent
         logger.info("$domainEvent was broadcast")
     }
+
     fun <T> findEvent(clazz: Class<T>): T? {
         return events.filterIsInstance(clazz).firstOrNull()
     }

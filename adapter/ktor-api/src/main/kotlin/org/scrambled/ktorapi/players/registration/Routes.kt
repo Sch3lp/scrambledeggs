@@ -37,7 +37,7 @@ fun Routing.playerRoutes() {
 
     route("/api/player") {
         get("") {
-            val players: List<RegisteredPlayerJson> = queryExecutor.execute(FetchAllRegisteredPlayers()) {
+            val players: List<RegisteredPlayerJson> = queryExecutor.execute(FetchAllRegisteredPlayers) {
                 this.map(RegisteredPlayerRepresentation::toJson)
             }
 

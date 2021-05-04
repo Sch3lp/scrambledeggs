@@ -6,6 +6,7 @@ import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.challenging.PlayerNickname
 import org.scrambled.domain.core.api.exceptions.DomainRuntimeException
 import org.scrambled.domain.core.api.players.FetchAllRegisteredPlayers
+import org.scrambled.domain.core.api.players.PlayerByExternalAccountRef
 import org.scrambled.domain.core.api.players.PlayerById
 import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
 import org.scrambled.domain.core.api.registration.ExternalAccountRef
@@ -79,6 +80,18 @@ class PlayerByIdQueryHandler(
     override fun handle(query: PlayerById): RegisteredPlayerRepresentation {
         val registeredPlayer = playerRepository.getById(query.id)
         return registeredPlayer.toRepresentation()
+    }
+}
+
+@Component
+class PlayerByExternalAccountRefQueryHandler(
+    private val playerRepository: RegisteredPlayerRepository
+) : QueryHandler<PlayerByExternalAccountRef, RegisteredPlayerRepresentation> {
+    override val queryType = PlayerByExternalAccountRef::class
+
+    override fun handle(query: PlayerByExternalAccountRef): RegisteredPlayerRepresentation? {
+        val registeredPlayer = playerRepository.getByExternalAccountRef(query.externalAccountRef)
+        return registeredPlayer?.toRepresentation()
     }
 }
 
