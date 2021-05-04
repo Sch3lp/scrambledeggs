@@ -13,6 +13,7 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 
 -}
 
+import Api exposing (ApiError, expectJsonWithErrorHandling)
 import Base
 import Browser exposing (UrlRequest)
 import Browser.Navigation as Nav exposing (Key)
@@ -21,12 +22,12 @@ import Element.Background as Background
 import Element.Font as Font
 import Home exposing (Msg(..))
 import Html
-import Http
+import Http exposing (emptyBody)
 import Json.Decode as Json
 import List
 import OAuth
 import OAuth.Implicit as OAuth
-import Registration
+import Registration exposing (RegisteredPlayer, registeredPlayersDecoder)
 import Security exposing (convertBytes, defaultHttpUrl, defaultHttpsUrl)
 import Url exposing (Url)
 import Url.Parser as Parser
@@ -181,13 +182,18 @@ getUserInfo { userInfoDecoder, userInfoEndpoint } token =
 
 gotUserInfo : Model -> Result Http.Error UserInfo -> ( Model, Cmd Msg )
 gotUserInfo model userInfoResponse =
-    case userInfoResponse of
-        Err _ ->
+    case ( userInfoResponse, model.token ) of
+        ( Err _, _ ) ->
             ( { model | authFlow = Errored ErrHTTPGetUserInfo }
             , Cmd.none
             )
 
-        Ok userInfo ->
+        ( Ok userInfo, Just token ) ->
+            ( { model | authFlow = Done userInfo }
+            , performFetchRegisteredPlayerInfo token
+            )
+
+        ( Ok userInfo, Nothing ) ->
             ( { model | authFlow = Done userInfo }
             , Cmd.none
             )
@@ -198,6 +204,38 @@ signOutRequested model =
     ( { model | authFlow = Idle, token = Nothing }
     , Cmd.none
     )
+
+
+performFetchRegisteredPlayerInfo token =
+    Http.request
+        { method = "GET"
+        , headers = OAuth.useToken token []
+        , url = "/api/player/info"
+        , body = emptyBody
+        , expect = expectJsonWithErrorHandling registeredPlayersDecoder GotFetchRegisteredPlayerInfoResponse
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+gotFetchRegisteredPlayerInfoResponse model response =
+    case response of
+        Err _ ->
+            ( model, Cmd.none )
+
+        Ok [] ->
+            routeToRegister model
+
+        Ok _ ->
+            routeToKnownPlayerHome model
+
+
+routeToKnownPlayerHome model =
+    ( model, Cmd.none )
+
+
+routeToRegister model =
+    ( model, Nav.pushUrl model.key Registration.url )
 
 
 
@@ -237,6 +275,7 @@ type Msg
     | GotRandomBytes (List Int)
     | GotUserInfo (Result Http.Error UserInfo)
     | SignOutRequested
+    | GotFetchRegisteredPlayerInfoResponse (Result ApiError (List RegisteredPlayer))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -282,6 +321,9 @@ update msg model =
 
         ( _, SignOutRequested ) ->
             signOutRequested model
+
+        ( _, GotFetchRegisteredPlayerInfoResponse resp ) ->
+            gotFetchRegisteredPlayerInfoResponse model resp
 
 
 
