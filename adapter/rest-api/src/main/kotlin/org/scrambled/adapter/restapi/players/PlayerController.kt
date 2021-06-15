@@ -1,14 +1,12 @@
 package org.scrambled.adapter.restapi.players
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import org.scrambled.adapter.restapi.extensions.toExternalAccountRef
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.players.FetchAllRegisteredPlayers
 import org.scrambled.domain.core.api.players.PlayerByExternalAccountRef
 import org.scrambled.domain.core.api.players.PlayerById
 import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
-import org.scrambled.domain.core.api.registration.ExternalAccountRef
 import org.scrambled.domain.core.api.registration.JwtIss
 import org.scrambled.domain.core.api.registration.JwtSub
 import org.scrambled.infra.cqrs.QueryExecutor
@@ -38,11 +36,7 @@ class PlayerController(
 
     @GetMapping("/info")
     fun getPlayerByExternalAccountRef(@RequestHeader(HttpHeaders.AUTHORIZATION) authHeader: String): ResponseEntity<List<RegisteredPlayerJson>> {
-        val encodedBearerToken = authHeader.substringAfter("Bearer ").split(".")
-        val jwtPayload = encodedBearerToken[1]
-        val decodedJwt = Base64.getUrlDecoder().decode(jwtPayload).decodeToString()
-        val jwt: Jwt = jacksonObjectMapper().readValue(decodedJwt)
-        val externalAccountRef = ExternalAccountRef(jwt.iss, jwt.sub)
+        val externalAccountRef = authHeader.toExternalAccountRef()
         val player = queryExecutor.executeOrNull(
             PlayerByExternalAccountRef(externalAccountRef),
             RegisteredPlayerRepresentation::toJson

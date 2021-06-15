@@ -9,6 +9,7 @@ import Element.Input as Input
 import Http
 import Json.Decode as D exposing (Decoder)
 import Json.Encode
+import OAuth
 import Url.Builder
 
 
@@ -29,13 +30,14 @@ type alias Model =
     , registrationStatus : RegistrationState
     , registeredPlayers : List RegisteredPlayer
     , apiFailure : Maybe String
+    , token : Maybe OAuth.Token
     , key : Nav.Key
     }
 
 
 emptyModel : Nav.Key -> Model
 emptyModel =
-    Model "" NotRegistered [] Nothing
+    Model "" NotRegistered [] Nothing Nothing
 
 
 type RegistrationState
@@ -194,13 +196,27 @@ registerPlayer model =
         playerNameJson =
             model.registerInput
                 |> registerPlayerEncoder
+
+        generalRequest =
+            { method = "POST"
+            , headers = []
+            , url = "/api/register"
+            , body = Http.jsonBody playerNameJson
+            , expect = expectStringWithErrorHandling GotRegisterPlayerResponse
+            , timeout = Nothing
+            , tracker = Nothing
+            }
+
+        request =
+            case model.token of
+                Just t ->
+                    { generalRequest | headers = OAuth.useToken t [] }
+
+                Nothing ->
+                    generalRequest
     in
     ( { model | registrationStatus = CallingAPI }
-    , Http.post
-        { url = "/api/register"
-        , body = Http.jsonBody playerNameJson
-        , expect = expectStringWithErrorHandling GotRegisterPlayerResponse
-        }
+    , Http.request request
     )
 
 

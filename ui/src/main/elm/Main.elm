@@ -255,7 +255,11 @@ type alias Model =
 
 setRegistrationModel : Registration.Model -> Model -> Model
 setRegistrationModel newRegModel model =
-    { model | registrationModel = newRegModel }
+    let
+        tokenEnrichedRegModel =
+            { newRegModel | token = model.token }
+    in
+    { model | registrationModel = tokenEnrichedRegModel }
 
 
 setHomeModel : Home.Model -> Model -> Model
