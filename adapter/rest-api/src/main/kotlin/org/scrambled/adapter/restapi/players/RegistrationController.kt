@@ -24,7 +24,7 @@ class RegistrationController(
         @RequestBody(required = true) registrationInfo: RegisterPlayerJson,
         builder: UriComponentsBuilder
     ): ResponseEntity<Any> {
-        // TODO extract sub + iss from authenticated JWT token
+        // TODO extract sub + iss from authenticated JWT token here instead of in the UI
         val registerPlayer = RegisterPlayer(nickname = registrationInfo.nickname, externalAccountRef = ExternalAccountRef(registrationInfo.jwtIss?: "someiss", registrationInfo.jwtSub?: "123"))
         val registeredPlayer = commandExecutor.execute(registerPlayer)
 
