@@ -20,9 +20,6 @@ import java.util.*
 data class JwtInfo(val jwtIss: JwtIss, val jwtSub: JwtSub)
 
 suspend fun registerPlayerStep(playerNickname: String, jwtInfo: JwtInfo): ApiResult<PlayerId> {
-    if (fetchPlayerByJwtInfoStep(jwtInfo) != null) {
-        fail("You're trying to register a player, but there's already a player registered with the same ExternalAccountRef: $jwtInfo")
-    }
     val response = client.post<HttpResponse> {
         url("$baseUrl/register")
         contentType(ContentType.Application.Json)
