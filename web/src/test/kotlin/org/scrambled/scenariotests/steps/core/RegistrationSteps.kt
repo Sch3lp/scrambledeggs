@@ -23,6 +23,7 @@ suspend fun registerPlayerStep(playerNickname: String, jwtInfo: JwtInfo): ApiRes
     val response = client.post<HttpResponse> {
         url("$baseUrl/register")
         contentType(ContentType.Application.Json)
+        header(HttpHeaders.Authorization, "Bearer ${jwtInfo.asDummyEncodedJwt()}")
         body = RegisterPlayerJson(playerNickname, jwtInfo.jwtIss, jwtInfo.jwtSub)
         expectSuccess = false
     }
@@ -31,11 +32,10 @@ suspend fun registerPlayerStep(playerNickname: String, jwtInfo: JwtInfo): ApiRes
 }
 
 suspend fun fetchPlayerByJwtInfoStep(jwtInfo: JwtInfo): RegisteredPlayerJson? {
-    val dummyJwt = dummyJwt(jwtInfo)
     val players: List<RegisteredPlayerJson> = client.get {
         url("$baseUrl/player/info")
         contentType(ContentType.Application.Json)
-        header(HttpHeaders.Authorization, "Bearer ${dummyJwt.encoded}")
+        header(HttpHeaders.Authorization, "Bearer ${jwtInfo.asDummyEncodedJwt()}")
     }
     return players.firstOrNull()
 }
@@ -53,6 +53,8 @@ suspend fun fetchAllPlayersStep(): List<RegisteredPlayerJson> {
         contentType(ContentType.Application.Json)
     }
 }
+
+private fun JwtInfo.asDummyEncodedJwt(): String = dummyJwt(this).encoded
 
 private fun dummyJwt(jwtInfo: JwtInfo): Jwt = """
 {
