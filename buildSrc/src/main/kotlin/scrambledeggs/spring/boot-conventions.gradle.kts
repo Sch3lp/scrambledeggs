@@ -1,6 +1,5 @@
 package scrambledeggs.spring
 
-import gradle.kotlin.dsl.accessors._13f50cb83ed9fe49f0bc787f9febfffd.implementation
 import org.gradle.kotlin.dsl.dependencies
 
 plugins {

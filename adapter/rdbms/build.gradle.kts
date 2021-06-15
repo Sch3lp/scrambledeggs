@@ -1,7 +1,7 @@
 plugins {
     id("scrambledeggs.kotlin.library-conventions")
     id("scrambledeggs.spring.di-conventions")
-    id("scrambledeggs.koin.di-conventions")
+//    id("scrambledeggs.koin.di-conventions")
 }
 
 dependencies {
