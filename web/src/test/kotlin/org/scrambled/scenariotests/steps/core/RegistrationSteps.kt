@@ -4,7 +4,6 @@ import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import org.junit.jupiter.api.fail
 import org.scrambled.adapter.restapi.players.RegisterPlayerJson
 import org.scrambled.adapter.restapi.players.RegisteredPlayerJson
 import org.scrambled.domain.core.api.challenging.PlayerId
@@ -24,7 +23,7 @@ suspend fun registerPlayerStep(playerNickname: String, jwtInfo: JwtInfo): ApiRes
         url("$baseUrl/register")
         contentType(ContentType.Application.Json)
         header(HttpHeaders.Authorization, "Bearer ${jwtInfo.asDummyEncodedJwt()}")
-        body = RegisterPlayerJson(playerNickname, jwtInfo.jwtIss, jwtInfo.jwtSub)
+        body = RegisterPlayerJson(playerNickname)
         expectSuccess = false
     }
     val locationHeader = response.headers["Location"]

@@ -36,4 +36,4 @@ class RegistrationController(
     }
 }
 
-data class RegisterPlayerJson(val nickname: String, val jwtIss: JwtIss?, val jwtSub: JwtSub?)
+data class RegisterPlayerJson(val nickname: String)
