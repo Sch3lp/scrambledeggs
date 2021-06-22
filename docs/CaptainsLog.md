@@ -2,6 +2,13 @@
 
 This log serves to document all design decisions and problems we ran in to.
 
+## 2021, June 22nd - JWT in cookie or exchange JWT for session in cookie
+To reduce the attack surface, we'll want to send the JWT along with the http requests in a read-only cookie.
+
+This we'll need to do anyway, even if we're exchanging it for a `Session` object. So, the only value the `Session` would bring, is to get a nicer, abstract way of using it in the UI. But it would still need an invalidation feature somehow, and that we _automatically_ get on our JWT.
+
+So, we'll just end up using JWT's in read-only cookies as our sessions.
+
 ## 2021, April 6th - We'll keep a single external account ref instead of multiple for one registered player
 So if somebody wants to both link their google AND their epic games accounts to the same ScrambledEggs account, they won't be able to.
 
