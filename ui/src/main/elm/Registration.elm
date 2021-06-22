@@ -193,15 +193,15 @@ handleFetchPlayersResponse model result =
 registerPlayer : Model -> ( Model, Cmd Msg )
 registerPlayer model =
     let
-        playerNameJson =
+        registrationInfo =
             model.registerInput
-                |> registerPlayerEncoder
+                |> registrationInfoEncoder
 
         generalRequest =
             { method = "POST"
             , headers = []
             , url = "/api/register"
-            , body = Http.jsonBody playerNameJson
+            , body = Http.jsonBody registrationInfo
             , expect = expectStringWithErrorHandling GotRegisterPlayerResponse
             , timeout = Nothing
             , tracker = Nothing
@@ -220,8 +220,8 @@ registerPlayer model =
     )
 
 
-registerPlayerEncoder : String -> Json.Encode.Value
-registerPlayerEncoder name =
+registrationInfoEncoder : String -> Json.Encode.Value
+registrationInfoEncoder name =
     Json.Encode.object [ ( "nickname", Json.Encode.string name ) ]
 
 
