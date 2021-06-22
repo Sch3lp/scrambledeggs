@@ -13,7 +13,6 @@ import Widget.Material as Material
 
 type Msg
     = NoOp
-    | RegistrationRedirectButtonClicked
     | GotFetchLeaderboardResponse (Result ApiError Leaderboard)
 
 
@@ -66,9 +65,6 @@ update msg model =
         GotFetchLeaderboardResponse result ->
             handleFetchLeaderboardResponse model result
 
-        RegistrationRedirectButtonClicked ->
-            ( model, Nav.pushUrl model.key Registration.url )
-
 
 viewHome : Model -> List (Ui.Element Msg)
 viewHome model =
@@ -81,7 +77,6 @@ viewHome model =
         [ viewLeaderboardTable model
         , viewRecentMatchesTable model
         ]
-    , viewRegistrationRedirectButton
     ]
 
 
@@ -145,26 +140,6 @@ recentMatchesTable model =
         , sortBy = "Recent matches"
         , onChange = \_ -> NoOp
         }
-
-
-viewRegistrationRedirectButton =
-    Ui.row
-        [ Ui.width Ui.fill
-        , Ui.height Ui.fill
-        , Ui.alignTop
-        , Ui.centerX
-        ]
-        [ Ui.column [ Ui.width Ui.fill, Ui.height Ui.fill ]
-            [ registrationRedirectButton False ]
-        ]
-
-
-registrationRedirectButton isDisabled =
-    Base.button
-        { isDisabled = isDisabled
-        , label = "Register"
-        }
-        RegistrationRedirectButtonClicked
 
 
 

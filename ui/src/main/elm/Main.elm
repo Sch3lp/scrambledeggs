@@ -274,6 +274,7 @@ setHomeModel newHomeModel model =
 type Msg
     = RegistrationMsg Registration.Msg
     | HomeMsg Home.Msg
+    | RegistrationRedirectButtonClicked
     | UrlChanged Url
     | LinkClicked UrlRequest
     | GotRandomBytes (List Int)
@@ -294,7 +295,7 @@ update msg model =
             , Cmd.map RegistrationMsg newRegistrationMsg
             )
 
-        HomeMsg RegistrationRedirectButtonClicked ->
+        RegistrationRedirectButtonClicked ->
             signInRequested model
 
         HomeMsg subMsg ->
@@ -436,8 +437,35 @@ view model =
          <|
             viewHeader model
                 ++ viewMainContent model
+                ++ viewRegistrationRedirectButton model
                 ++ viewFooter model
         )
+
+
+viewRegistrationRedirectButton : Model -> List (Ui.Element Msg)
+viewRegistrationRedirectButton model =
+    if model.currentRoute == AnonymousHomepage then
+        [ Ui.row
+            [ Ui.width Ui.fill
+            , Ui.height Ui.fill
+            , Ui.alignTop
+            , Ui.centerX
+            ]
+            [ Ui.column [ Ui.width Ui.fill, Ui.height Ui.fill ]
+                [ registrationRedirectButton ]
+            ]
+        ]
+
+    else
+        []
+
+
+registrationRedirectButton =
+    Base.button
+        { isDisabled = False
+        , label = "Register / Log in"
+        }
+        RegistrationRedirectButtonClicked
 
 
 viewHeader model =
