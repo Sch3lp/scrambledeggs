@@ -1,9 +1,5 @@
 package scrambledeggs.kotlin
 
-import gradle.kotlin.dsl.accessors._94658c77fd8a61767179a858a62d95a6.implementation
-import gradle.kotlin.dsl.accessors._94658c77fd8a61767179a858a62d95a6.java
-import gradle.kotlin.dsl.accessors._94658c77fd8a61767179a858a62d95a6.test
-import gradle.kotlin.dsl.accessors._94658c77fd8a61767179a858a62d95a6.testImplementation
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.repositories
 import org.gradle.kotlin.dsl.withType
