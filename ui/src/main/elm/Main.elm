@@ -284,8 +284,8 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( model.authFlow, msg ) of
-        ( _, RegistrationMsg subMsg ) ->
+    case msg of
+        RegistrationMsg subMsg ->
             let
                 ( newRegistrationModel, newRegistrationMsg ) =
                     Registration.update subMsg model.registrationModel
@@ -294,10 +294,10 @@ update msg model =
             , Cmd.map RegistrationMsg newRegistrationMsg
             )
 
-        ( _, HomeMsg RegistrationRedirectButtonClicked ) ->
+        HomeMsg RegistrationRedirectButtonClicked ->
             signInRequested model
 
-        ( _, HomeMsg subMsg ) ->
+        HomeMsg subMsg ->
             let
                 ( newHomeModel, newHomeMsg ) =
                     Home.update subMsg model.homeModel
@@ -306,10 +306,10 @@ update msg model =
             , Cmd.map HomeMsg newHomeMsg
             )
 
-        ( _, UrlChanged url ) ->
+        UrlChanged url ->
             ( { model | currentRoute = parseUrl url }, Cmd.none )
 
-        ( _, LinkClicked urlRequest ) ->
+        LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
                     ( model, Nav.pushUrl model.key (Url.toString url) )
@@ -317,16 +317,16 @@ update msg model =
                 Browser.External href ->
                     ( model, Nav.load href )
 
-        ( _, GotRandomBytes bytes ) ->
+        GotRandomBytes bytes ->
             gotRandomBytes model bytes
 
-        ( _, GotUserInfo resp ) ->
+        GotUserInfo resp ->
             gotUserInfo model resp
 
-        ( _, SignOutRequested ) ->
+        SignOutRequested ->
             signOutRequested model
 
-        ( _, GotFetchRegisteredPlayerInfoResponse resp ) ->
+        GotFetchRegisteredPlayerInfoResponse resp ->
             gotFetchRegisteredPlayerInfoResponse model resp
 
 
