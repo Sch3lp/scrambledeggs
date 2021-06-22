@@ -558,4 +558,3 @@ viewMainContent model =
 -- * [x] Make a logout button
 -- * [ ] Fetch both the recentMatches and the leaderboard at the same time; look at Cmd.batch and Task thing in Elm again
 -- * [ ] Replace our own palette with that of Material somehow
--- * [ ] Splitting Api calls from a component/module is interesting if we can unit test the model without having to worry about actually performing http
