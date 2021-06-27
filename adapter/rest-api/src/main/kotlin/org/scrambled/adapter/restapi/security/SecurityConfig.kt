@@ -1,36 +1,37 @@
 package org.scrambled.adapter.restapi.security
 
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.web.servlet.invoke
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver
+import java.net.URL
 import javax.servlet.http.HttpServletRequest
+
+private const val JwtCookieName = "CRUMBLE"
 
 @EnableWebSecurity
 @Configuration
 class SecurityConfig: WebSecurityConfigurerAdapter() {
+
     override fun configure(http: HttpSecurity?) {
         http {
             authorizeRequests {
                 authorize("/api/**", authenticated)
                 authorize(anyRequest, anonymous)
             }
-            oauth2ResourceServer {}
+            oauth2ResourceServer {
+                jwt {
+                    bearerTokenResolver = CookieBearerTokenResolver()
+                }
+            }
         }
-    }
-
-    @Bean
-    fun bearerTokenResolver(): BearerTokenResolver {
-        return CookieBearerTokenResolver()
     }
 
     class CookieBearerTokenResolver: BearerTokenResolver {
-        override fun resolve(request: HttpServletRequest?): String {
-            TODO("Not yet implemented")
-        }
+        override fun resolve(request: HttpServletRequest?): String? =
+            request?.cookies?.first { it.name == JwtCookieName }?.value
     }
 }
     //JwtAuthenticationProvider
