@@ -10,10 +10,13 @@ import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
 import org.scrambled.domain.core.api.registration.JwtIss
 import org.scrambled.domain.core.api.registration.JwtSub
 import org.scrambled.infra.cqrs.QueryExecutor
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
 @RestController
@@ -35,8 +38,8 @@ class PlayerController(
     }
 
     @GetMapping("/info")
-    fun getPlayerByExternalAccountRef(@RequestHeader(HttpHeaders.AUTHORIZATION) authHeader: String): ResponseEntity<List<RegisteredPlayerJson>> {
-        val externalAccountRef = authHeader.toExternalAccountRef()
+    fun getPlayerByExternalAccountRef(): ResponseEntity<List<RegisteredPlayerJson>> {
+        val externalAccountRef = SecurityContextHolder.getContext().toExternalAccountRef()
         val player = queryExecutor.executeOrNull(
             PlayerByExternalAccountRef(externalAccountRef),
             RegisteredPlayerRepresentation::toJson

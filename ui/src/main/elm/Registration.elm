@@ -197,7 +197,7 @@ registerPlayer model =
             model.registerInput
                 |> registrationInfoEncoder
 
-        generalRequest =
+        request =
             { method = "POST"
             , headers = []
             , url = "/api/register"
@@ -206,14 +206,6 @@ registerPlayer model =
             , timeout = Nothing
             , tracker = Nothing
             }
-
-        request =
-            case model.token of
-                Just t ->
-                    { generalRequest | headers = OAuth.useToken t [] }
-
-                Nothing ->
-                    generalRequest
     in
     ( { model | registrationStatus = CallingAPI }
     , Http.request request

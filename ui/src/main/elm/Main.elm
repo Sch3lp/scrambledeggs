@@ -13,7 +13,7 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 
 -}
 
-import Api exposing (ApiError, expectJsonWithErrorHandling)
+import Api exposing (ApiError, expectJsonWithErrorHandling, expectStringWithErrorHandling)
 import Base
 import Browser exposing (UrlRequest)
 import Browser.Navigation as Nav exposing (Key)
@@ -190,7 +190,7 @@ gotUserInfo model userInfoResponse =
 
         ( Ok userInfo, Just token ) ->
             ( { model | authFlow = Done userInfo }
-            , performFetchRegisteredPlayerInfo token
+            , Cmd.batch [ performExchangeTokenForCookie token, performFetchRegisteredPlayerInfo token ]
             )
 
         ( Ok userInfo, Nothing ) ->
@@ -218,6 +218,18 @@ performFetchRegisteredPlayerInfo token =
         }
 
 
+performExchangeTokenForCookie token =
+    Http.request
+        { method = "GET"
+        , headers = OAuth.useToken token []
+        , url = "/api/session"
+        , body = emptyBody
+        , expect = expectStringWithErrorHandling GotExchangeTokenForCookieResponse
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
 gotFetchRegisteredPlayerInfoResponse model response =
     case response of
         Err _ ->
@@ -228,6 +240,15 @@ gotFetchRegisteredPlayerInfoResponse model response =
 
         Ok _ ->
             routeToKnownPlayerHome model
+
+
+gotExchangeTokenForCookieResponse model =
+    ( model, Cmd.none )
+
+
+
+--TODO do error handling for when the backend server can't deal with the JWT we sent
+-- the Browser actually just sets the cookie we get from the backend
 
 
 routeToKnownPlayerHome model =
@@ -281,6 +302,7 @@ type Msg
     | GotUserInfo (Result Http.Error UserInfo)
     | SignOutRequested
     | GotFetchRegisteredPlayerInfoResponse (Result ApiError (List RegisteredPlayer))
+    | GotExchangeTokenForCookieResponse (Result ApiError ())
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -329,6 +351,9 @@ update msg model =
 
         GotFetchRegisteredPlayerInfoResponse resp ->
             gotFetchRegisteredPlayerInfoResponse model resp
+
+        GotExchangeTokenForCookieResponse _ ->
+            gotExchangeTokenForCookieResponse model
 
 
 
