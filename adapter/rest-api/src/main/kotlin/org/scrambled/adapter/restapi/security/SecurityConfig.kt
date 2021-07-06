@@ -31,7 +31,7 @@ class SecurityConfig: WebSecurityConfigurerAdapter() {
 
     class CookieBearerTokenResolver: BearerTokenResolver {
         override fun resolve(request: HttpServletRequest?): String? =
-            request?.cookies?.first { it.name == JwtCookieName }?.value
+            request?.cookies?.firstOrNull { it.name == JwtCookieName }?.value
     }
 }
     //JwtAuthenticationProvider
