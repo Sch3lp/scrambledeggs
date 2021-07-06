@@ -251,3 +251,6 @@ handleApiError err model =
 
         BadUrl str ->
             ( { model | apiFailure = Just str }, Cmd.none )
+
+        NotAuthorized ->
+            ( { model | apiFailure = Just "Unauthorized! GO AWAY!" }, Cmd.none )

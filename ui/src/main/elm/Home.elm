@@ -195,6 +195,9 @@ handleApiError err model =
                 BadUrl str ->
                     str
 
+                NotAuthorized ->
+                    "Unauthorized! ILLEGAL!"
+
         updatedModel =
             failureStr
                 |> asApiFailureIn model

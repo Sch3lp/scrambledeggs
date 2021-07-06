@@ -6,6 +6,7 @@ import Json.Decode as D exposing (Decoder)
 
 type ApiError
     = BadRequest String
+    | NotAuthorized
     | NetworkError
     | Timeout
     | BadUrl String
@@ -26,7 +27,7 @@ expectStringWithErrorHandling toMsg =
                     Err NetworkError
 
                 Http.BadStatus_ metadata body ->
-                    Err (BadRequest body)
+                    handleBadStatus metadata body
 
                 Http.GoodStatus_ metadata _ ->
                     Ok ()
@@ -48,7 +49,7 @@ expectJsonWithErrorHandling decoder toMsg =
                     Err NetworkError
 
                 Http.BadStatus_ metadata body ->
-                    Err (BadRequest body)
+                    handleBadStatus metadata body
 
                 Http.GoodStatus_ metadata body ->
                     case D.decodeString decoder body of
@@ -58,3 +59,11 @@ expectJsonWithErrorHandling decoder toMsg =
                         Err err ->
                             Err (BadRequest (D.errorToString err))
         )
+
+
+handleBadStatus metadata body =
+    if metadata.statusCode == 401 then
+        Err NotAuthorized
+
+    else
+        Err (BadRequest body)
