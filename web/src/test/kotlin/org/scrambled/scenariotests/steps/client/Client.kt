@@ -6,7 +6,10 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.features.*
+import io.ktor.client.features.cookies.*
 import io.ktor.client.features.json.*
+import io.ktor.client.features.logging.*
 import io.ktor.client.statement.*
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
@@ -18,8 +21,21 @@ val client = HttpClient(CIO) {
             enable(SerializationFeature.INDENT_OUTPUT)
         }
     }
+    install(HttpCookies) {
+        developmentMode = true
+    }
+    install(HttpTimeout) {
+        val timeoutInMillis: Long = 1500
+        requestTimeoutMillis = timeoutInMillis
+        connectTimeoutMillis = timeoutInMillis
+        socketTimeoutMillis = timeoutInMillis
+    }
+    install(Logging) {
+        level = LogLevel.INFO
+    }
 }
-val baseUrl = "http://localhost:9999/api"
+
+const val baseUrl = "http://localhost:9999/api"
 
 sealed class ApiResult<T> {
     fun wasSuccess(): Boolean = this is Success

@@ -1,27 +1,18 @@
 package org.scrambled.adapter.restapi.security
 
+import org.scrambled.adapter.restapi.extensions.asJwt
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpHeaders
-import org.springframework.http.ResponseCookie
-import org.springframework.http.ResponseEntity
+import org.springframework.context.annotation.Profile
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.web.servlet.invoke
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
-import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver
-import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import org.springframework.security.oauth2.jwt.JwtDecoder
 
-
-private const val JwtCookieName = "CRUMBLE"
 
 @EnableWebSecurity
 @Configuration
+@Profile("!scenario")
 class SecurityConfig : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity?) {
@@ -37,31 +28,28 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
             }
         }
     }
-
-    class CookieBearerTokenResolver : BearerTokenResolver {
-        override fun resolve(request: HttpServletRequest?): String? =
-            request?.cookies?.firstOrNull { it.name == JwtCookieName }?.value
-                ?: DefaultBearerTokenResolver().resolve(request)
-    }
 }
 
-@RestController
-@RequestMapping("/api/session")
-class SessionController() {
-    @GetMapping
-    fun exchangeAuthHeaderForCookie(): ResponseEntity<Any> {
-        //TODO: maybe make this more explicit with types at least?
-        val jwtAsString = (SecurityContextHolder.getContext().authentication as JwtAuthenticationToken).token.tokenValue
-        val crumble = ResponseCookie.from(JwtCookieName, jwtAsString)
-            .httpOnly(true)
-            .secure(true)
-            .path("/")
-            .maxAge(6000) //TODO: align with JWT ttl?
-            .domain("localhost")
-            .build()
-        return ResponseEntity.accepted()
-            .header(HttpHeaders.SET_COOKIE, crumble.toString())
-            .build()
+@EnableWebSecurity
+@Configuration
+@Profile("scenario")
+class SecurityConfigForScenario : WebSecurityConfigurerAdapter() {
+
+    override fun configure(http: HttpSecurity?) {
+        http {
+            authorizeRequests {
+                authorize("/api/**", authenticated)
+                authorize(anyRequest, anonymous)
+            }
+            oauth2ResourceServer {
+                jwt {
+                    bearerTokenResolver = CookieBearerTokenResolverForTest()
+                    jwtDecoder = JwtDecoder {
+                        it.asJwt()
+                    }
+                }
+            }
+        }
     }
 }
 //JwtAuthenticationProvider

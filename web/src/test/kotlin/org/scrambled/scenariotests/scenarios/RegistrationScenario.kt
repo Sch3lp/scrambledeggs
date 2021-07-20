@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.scrambled.adapter.eventsourcing.api.Event
 import org.scrambled.adapter.eventsourcing.api.filterEvents
 import org.scrambled.adapter.eventsourcing.eventstore.PostgresEventStore
+import org.scrambled.adapter.restapi.JwtInfo
 import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
 import org.scrambled.scenariotests.steps.core.*
 import org.scrambled.scenariotests.steps.leaderboard.fetchLeaderboardStep
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.await
+import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class RegistrationScenario {
@@ -38,10 +40,11 @@ class RegistrationScenario {
     @Test
     fun `An anonymous user registers themselves and becomes a Registered Player, and a Leaderboard is regenerated with them in it`() {
         val playerNickname = "Sch3lp"
-        val jwtInfo = JwtInfo("epic", "schlep")
+        val jwtInfo = JwtInfo("http://google.com", "schlep")
         runBlocking {
+            exchangeCookie(jwtInfo)
             val playerId =
-                registerPlayerStep(playerNickname, jwtInfo).expectSuccess() //temporary until we implement actual OAuth
+                registerPlayerStep(playerNickname).expectSuccess() //temporary until we implement actual OAuth
             val registeredPlayer = fetchPlayerStep(playerId)
             assertThat(registeredPlayer.nickname).isEqualTo("Sch3lp")
             val registeredPlayers = fetchAllPlayersStep()
@@ -59,7 +62,7 @@ class RegistrationScenario {
             assertThat(leaderboard).containsExactly(LeaderboardEntryJson(rank = null, nickname = "Sch3lp", score = 0))
         }
         runBlocking {
-            val registeredPlayer = fetchPlayerByJwtInfoStep(jwtInfo)
+            val registeredPlayer = fetchPlayerByJwtInfoStep()
             assertThat(registeredPlayer?.nickname).isEqualTo("Sch3lp")
         }
     }
@@ -68,12 +71,13 @@ class RegistrationScenario {
     fun `An anonymous user registers themselves twice with the same external account ref and receives an error`() {
         val playerNickname = "CoredusK"
         runBlocking {
-            val jwtInfo = JwtInfo("epic", "leaderboardOverflow")
+            val jwtInfo = JwtInfo("http://google.com", "leaderboardOverflow")
+            exchangeCookie(jwtInfo)
             val playerId =
-                registerPlayerStep(playerNickname, jwtInfo).expectSuccess() //temporary until we implement actual OAuth
+                registerPlayerStep(playerNickname).expectSuccess() //temporary until we implement actual OAuth
             val registeredPlayer = fetchPlayerStep(playerId)
             assertThat(registeredPlayer.nickname).isEqualTo("CoredusK")
-            val errorMessage = registerPlayerStep(playerNickname, jwtInfo).expectFailure()
+            val errorMessage = registerPlayerStep(playerNickname).expectFailure()
             assertThat(errorMessage).isEqualTo("You can only register once with the same Epic account")
         }
         runBlocking {
