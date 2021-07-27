@@ -40,7 +40,6 @@ suspend fun registerPlayerStep(playerNickname: String): ApiResult<PlayerId> {
 }
 
 suspend fun fetchPlayerByJwtInfoStep(): RegisteredPlayerJson? {
-    println("Fetching playerin🍪🍪🍪")
     client.cookies("localhost").forEach { println(it) }
     val players: List<RegisteredPlayerJson> = client.get {
         url("$baseUrl/player/info")
@@ -50,7 +49,6 @@ suspend fun fetchPlayerByJwtInfoStep(): RegisteredPlayerJson? {
 }
 
 suspend fun fetchPlayerStep(playerId: PlayerId): RegisteredPlayerJson {
-    println("🍪🍪🍪")
     client.cookies("localhost").forEach { println(it) }
     return client.get {
         url("$baseUrl/player/$playerId")

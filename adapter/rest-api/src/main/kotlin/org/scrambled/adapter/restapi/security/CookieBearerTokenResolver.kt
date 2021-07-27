@@ -18,13 +18,13 @@ import javax.servlet.http.HttpServletRequest
 
 private const val JwtCookieName = "CRUMBLE"
 
-open class CookieBearerTokenResolver : BearerTokenResolver {
+class CookieBearerTokenResolver : BearerTokenResolver {
     override fun resolve(request: HttpServletRequest?): String? =
         request?.cookies?.firstOrNull { it.name == JwtCookieName }?.value
             ?: DefaultBearerTokenResolver().resolve(request)
 }
 
-class CookieBearerTokenResolverForTest : CookieBearerTokenResolver() {
+class CookieBearerTokenResolverForTest : BearerTokenResolver {
     override fun resolve(request: HttpServletRequest?): String? =
         request?.cookies?.firstOrNull { it.name == JwtCookieName }?.value
             ?: request?.getHeader(HttpHeaders.AUTHORIZATION)?.removeBearer()
