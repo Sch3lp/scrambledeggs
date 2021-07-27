@@ -6,7 +6,6 @@ import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import org.scrambled.adapter.restapi.JwtInfo
 import org.scrambled.adapter.restapi.players.RegisterPlayerJson
 import org.scrambled.adapter.restapi.players.RegisteredPlayerJson
 import org.scrambled.domain.core.api.challenging.ChallengeId
@@ -15,15 +14,6 @@ import org.scrambled.scenariotests.steps.client.ApiResult
 import org.scrambled.scenariotests.steps.client.asApiResult
 import org.scrambled.scenariotests.steps.client.baseUrl
 import java.util.*
-
-suspend fun HttpClient.exchangeCookie(jwtInfo: JwtInfo) {
-    this.get<HttpResponse> {
-        url("$baseUrl/session")
-        header(HttpHeaders.Authorization, "Bearer ${jwtInfo.asDummyEncodedJwt()}")
-        expectSuccess = false
-    }
-}
-
 
 suspend fun HttpClient.registerPlayerStep(playerNickname: String): ApiResult<PlayerId> {
     val response = this.post<HttpResponse> {

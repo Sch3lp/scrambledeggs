@@ -1,5 +1,6 @@
 package org.scrambled.scenariotests.scenarios
 
+import io.ktor.client.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -44,13 +45,11 @@ class ChallengingScenario {
         var sch3lpPlayerId: PlayerId
         val rgm3JwtInfo = JwtInfo("http://google.com", "monsieurRgm")
         var rgm3PlayerId: PlayerId
-        val schlepsClient = createClient()
-        val rgmsClient = createClient()
+        val schlepsClient = createClient(sch3lpsJwtInfo)
+        val rgmsClient = createClient(rgm3JwtInfo)
         runBlocking{
-            schlepsClient.exchangeCookie(sch3lpsJwtInfo)
             sch3lpPlayerId = schlepsClient.registerPlayerStep("Sch3lp").expectSuccess()
 
-            rgmsClient.exchangeCookie(rgm3JwtInfo)
             rgm3PlayerId = rgmsClient.registerPlayerStep("rgm3").expectSuccess()
 
             schlepsClient.challengePlayerStep(sch3lpPlayerId, rgm3PlayerId).expectSuccess()

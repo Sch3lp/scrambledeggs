@@ -42,11 +42,9 @@ class RegistrationScenario {
     fun `An anonymous user registers themselves and becomes a Registered Player, and a Leaderboard is regenerated with them in it`() {
         val playerNickname = "Sch3lp"
         val jwtInfo = JwtInfo("http://google.com", "schlep")
-        val client = createClient()
+        val client = createClient(jwtInfo)
         runBlocking {
-            client.exchangeCookie(jwtInfo)
-            val playerId =
-                client.registerPlayerStep(playerNickname).expectSuccess() //temporary until we implement actual OAuth
+            val playerId = client.registerPlayerStep(playerNickname).expectSuccess()
             val registeredPlayer = client.fetchPlayerStep(playerId)
             assertThat(registeredPlayer.nickname).isEqualTo("Sch3lp")
             val registeredPlayers = client.fetchAllPlayersStep()
@@ -71,13 +69,11 @@ class RegistrationScenario {
 
     @Test
     fun `An anonymous user registers themselves twice with the same external account ref and receives an error`() {
-        val client = createClient()
+        val jwtInfo = JwtInfo("http://google.com", "coreDusk")
+        val client = createClient(jwtInfo)
         val playerNickname = "CoredusK"
         runBlocking {
-            val jwtInfo = JwtInfo("http://google.com", "leaderboardOverflow")
-            client.exchangeCookie(jwtInfo)
-            val playerId =
-                client.registerPlayerStep(playerNickname).expectSuccess() //temporary until we implement actual OAuth
+            val playerId = client.registerPlayerStep(playerNickname).expectSuccess()
             val registeredPlayer = client.fetchPlayerStep(playerId)
             assertThat(registeredPlayer.nickname).isEqualTo("CoredusK")
             val errorMessage = client.registerPlayerStep(playerNickname).expectFailure()

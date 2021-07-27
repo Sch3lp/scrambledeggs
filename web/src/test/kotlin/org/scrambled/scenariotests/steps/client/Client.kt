@@ -10,11 +10,22 @@ import io.ktor.client.features.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.logging.*
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
+import org.scrambled.adapter.restapi.JwtInfo
 
-internal fun createClient() = HttpClient(CIO) {
+const val baseUrl = "http://localhost:9999/api"
+
+internal fun createClient(jwtInfo: JwtInfo? = null): HttpClient {
+    val createClient = createClient()
+    jwtInfo?.apply { runBlocking { createClient.exchangeCookie(this@apply) } }
+    return createClient
+}
+
+private fun createClient() = HttpClient(CIO) {
     install(JsonFeature) {
         serializer = JacksonSerializer {
             registerModules(KotlinModule(), JavaTimeModule())
@@ -22,7 +33,7 @@ internal fun createClient() = HttpClient(CIO) {
         }
     }
     install(HttpCookies) {
-        developmentMode = true
+        developmentMode = false
     }
     install(HttpTimeout) {
         val timeoutInMillis: Long = 1000 * 4
@@ -30,12 +41,18 @@ internal fun createClient() = HttpClient(CIO) {
         connectTimeoutMillis = timeoutInMillis
         socketTimeoutMillis = timeoutInMillis
     }
-    install(Logging) {
-        level = LogLevel.INFO
-    }
+//    install(Logging) {
+//        level = LogLevel.INFO
+//    }
 }
 
-const val baseUrl = "http://localhost:9999/api"
+private suspend fun HttpClient.exchangeCookie(jwtInfo: JwtInfo) {
+    this.get<HttpResponse> {
+        url("$baseUrl/session")
+        header(HttpHeaders.Authorization, "Bearer ${jwtInfo.asDummyEncodedJwt()}")
+        expectSuccess = false
+    }
+}
 
 sealed class ApiResult<T> {
     fun wasSuccess(): Boolean = this is Success
