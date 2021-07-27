@@ -1,7 +1,6 @@
 package org.scrambled.adapter.restapi.security
 
 import org.scrambled.adapter.restapi.extensions.removeBearer
-import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
@@ -9,7 +8,6 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver
-import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -36,8 +34,7 @@ class SessionController() {
     @GetMapping
     fun exchangeAuthHeaderForCookie(): ResponseEntity<Any> {
         //TODO: maybe make this more explicit with types at least?
-        val jwtAsString = (SecurityContextHolder.getContext().authentication as JwtAuthenticationToken).token.tokenValue
-        val crumble = ResponseCookie.from(JwtCookieName, jwtAsString)
+        val crumble = ResponseCookie.from(JwtCookieName, getJwtAsStringFromSecurityContext())
             .httpOnly(true)
             .secure(false) //TODO: probably set this to true if we're hosting on https
             .path("/")
@@ -48,4 +45,7 @@ class SessionController() {
             .header(HttpHeaders.SET_COOKIE, crumble.toString())
             .build()
     }
+
+    private fun getJwtAsStringFromSecurityContext() =
+        (SecurityContextHolder.getContext().authentication as JwtAuthenticationToken).token.tokenValue
 }
