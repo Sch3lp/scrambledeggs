@@ -11,6 +11,7 @@ import org.scrambled.adapter.eventsourcing.api.filterEvents
 import org.scrambled.adapter.eventsourcing.eventstore.PostgresEventStore
 import org.scrambled.adapter.restapi.JwtInfo
 import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
+import org.scrambled.scenariotests.steps.client.createClient
 import org.scrambled.scenariotests.steps.core.*
 import org.scrambled.scenariotests.steps.leaderboard.fetchLeaderboardStep
 import org.scrambled.scenariotests.steps.leaderboard.triggerLeaderboardRehydration
@@ -41,13 +42,14 @@ class RegistrationScenario {
     fun `An anonymous user registers themselves and becomes a Registered Player, and a Leaderboard is regenerated with them in it`() {
         val playerNickname = "Sch3lp"
         val jwtInfo = JwtInfo("http://google.com", "schlep")
+        val client = createClient()
         runBlocking {
-            exchangeCookie(jwtInfo)
+            client.exchangeCookie(jwtInfo)
             val playerId =
-                registerPlayerStep(playerNickname).expectSuccess() //temporary until we implement actual OAuth
-            val registeredPlayer = fetchPlayerStep(playerId)
+                client.registerPlayerStep(playerNickname).expectSuccess() //temporary until we implement actual OAuth
+            val registeredPlayer = client.fetchPlayerStep(playerId)
             assertThat(registeredPlayer.nickname).isEqualTo("Sch3lp")
-            val registeredPlayers = fetchAllPlayersStep()
+            val registeredPlayers = client.fetchAllPlayersStep()
             assertThat(registeredPlayers)
                 .extracting<String> { it.nickname }
                 .containsExactly("Sch3lp")
@@ -56,28 +58,29 @@ class RegistrationScenario {
             val firstPlayerRegistered = eventStream.filterEvents<Event.PlayerRegistered>().first()
             assertThat(firstPlayerRegistered.nickname).isEqualTo("Sch3lp")
         }
-        runBlocking { triggerLeaderboardRehydration() }
+        runBlocking { client.triggerLeaderboardRehydration() }
         runBlocking {
-            val leaderboard: List<LeaderboardEntryJson> = fetchLeaderboardStep()
+            val leaderboard: List<LeaderboardEntryJson> = client.fetchLeaderboardStep()
             assertThat(leaderboard).containsExactly(LeaderboardEntryJson(rank = null, nickname = "Sch3lp", score = 0))
         }
         runBlocking {
-            val registeredPlayer = fetchPlayerByJwtInfoStep()
+            val registeredPlayer = client.fetchPlayerByJwtInfoStep()
             assertThat(registeredPlayer?.nickname).isEqualTo("Sch3lp")
         }
     }
 
     @Test
     fun `An anonymous user registers themselves twice with the same external account ref and receives an error`() {
+        val client = createClient()
         val playerNickname = "CoredusK"
         runBlocking {
             val jwtInfo = JwtInfo("http://google.com", "leaderboardOverflow")
-            exchangeCookie(jwtInfo)
+            client.exchangeCookie(jwtInfo)
             val playerId =
-                registerPlayerStep(playerNickname).expectSuccess() //temporary until we implement actual OAuth
-            val registeredPlayer = fetchPlayerStep(playerId)
+                client.registerPlayerStep(playerNickname).expectSuccess() //temporary until we implement actual OAuth
+            val registeredPlayer = client.fetchPlayerStep(playerId)
             assertThat(registeredPlayer.nickname).isEqualTo("CoredusK")
-            val errorMessage = registerPlayerStep(playerNickname).expectFailure()
+            val errorMessage = client.registerPlayerStep(playerNickname).expectFailure()
             assertThat(errorMessage).isEqualTo("You can only register once with the same Epic account")
         }
         runBlocking {
@@ -85,10 +88,10 @@ class RegistrationScenario {
             assertThat(firstPlayerRegistered.nickname).isEqualTo("CoredusK")
         }
 
-        runBlocking { triggerLeaderboardRehydration() }
+        runBlocking { client.triggerLeaderboardRehydration() }
 
         runBlocking {
-            val leaderboard: List<LeaderboardEntryJson> = fetchLeaderboardStep()
+            val leaderboard: List<LeaderboardEntryJson> = client.fetchLeaderboardStep()
             assertThat(leaderboard).containsExactly(LeaderboardEntryJson(rank = null, nickname = "CoredusK", score = 0))
         }
     }

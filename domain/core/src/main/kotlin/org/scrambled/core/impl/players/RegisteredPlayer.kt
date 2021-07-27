@@ -1,9 +1,8 @@
 package org.scrambled.core.impl.players
 
-import org.scrambled.domain.core.api.challenging.ChallengePlayer
-import org.scrambled.domain.core.api.challenging.PlayerChallenged
-import org.scrambled.domain.core.api.challenging.PlayerId
-import org.scrambled.domain.core.api.challenging.PlayerNickname
+import org.scrambled.core.impl.challenges.Challenge
+import org.scrambled.core.impl.challenges.ChallengeRepository
+import org.scrambled.domain.core.api.challenging.*
 import org.scrambled.domain.core.api.exceptions.DomainRuntimeException
 import org.scrambled.domain.core.api.players.FetchAllRegisteredPlayers
 import org.scrambled.domain.core.api.players.PlayerByExternalAccountRef
@@ -22,9 +21,8 @@ data class RegisteredPlayer(
     val nickName: PlayerNickname,
     val externalAccountRef: ExternalAccountRef
 ) {
-    fun challenge(otherPlayerId: PlayerId): PlayerChallenged {
-        return PlayerChallenged(this.id, otherPlayerId)
-    }
+    fun challenge(opponent: RegisteredPlayer) =
+        Challenge.createChallenge(challengerId = this.id, opponentId = opponent.id)
 }
 
 @Component
@@ -57,17 +55,18 @@ class RegisterPlayerHandler(
 
 @Component
 class ChallengePlayerHandler(
-    private val playerRepository: RegisteredPlayerRepository
-) : CommandHandler<Unit, ChallengePlayer> {
+    private val playerRepository: RegisteredPlayerRepository,
+    private val challengeRepository: ChallengeRepository
+) : CommandHandler<ChallengeId, ChallengePlayer> {
     override val commandType = ChallengePlayer::class
 
-    override fun handle(cmd: ChallengePlayer): Pair<Unit, PlayerChallenged> {
-        val registeredPlayer = playerRepository.getById(cmd.id)
-        return Unit to registeredPlayer.execute(cmd)
+    override fun handle(cmd: ChallengePlayer): Pair<ChallengeId, PlayerChallenged> {
+        val challenger = playerRepository.getById(cmd.challenger)
+        val opponent = playerRepository.getById(cmd.opponent)
+        val challenge: Challenge = challenger.challenge(opponent)
+        challengeRepository.save(challenge)
+        return challenge.id to PlayerChallenged(challenger.id, opponent.id)
     }
-
-    private fun RegisteredPlayer.execute(challengePlayer: ChallengePlayer) =
-        this.challenge(challengePlayer.otherPlayerId)
 }
 
 

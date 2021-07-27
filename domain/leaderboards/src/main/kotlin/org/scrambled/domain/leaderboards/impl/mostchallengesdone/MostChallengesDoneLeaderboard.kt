@@ -15,7 +15,7 @@ internal typealias PlayerId = UUID
 internal fun mostChallengesDoneAlgorithm(events: List<BroadcastEvent>, playerId: PlayerId): Score {
     return events
         .filterEvents<BroadcastEvent.PlayerChallengedForLeaderboard>()
-        .count { it.initiator == playerId }
+        .count { it.challenger == playerId }
 }
 
 internal inline fun <reified T : BroadcastEvent> List<BroadcastEvent>.filterEvents() = filterIsInstance<T>()

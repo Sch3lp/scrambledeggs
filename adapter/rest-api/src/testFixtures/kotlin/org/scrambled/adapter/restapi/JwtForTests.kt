@@ -25,7 +25,7 @@ data class Jwt(private val _decoded: String) {
 }
 internal fun String.asJwt(): Jwt = Jwt(this)
 
-data class JwtInfo(private val jwtIss: JwtIss, private val jwtSub: JwtSub) {
+data class JwtInfo(private val jwtIss: JwtIss, val jwtSub: JwtSub) {
 
     fun asDummyEncodedJwt(): String = dummyJwt().encoded
 
@@ -35,9 +35,9 @@ data class JwtInfo(private val jwtIss: JwtIss, private val jwtSub: JwtSub) {
     "iat": 1620160154,
     "auth_time": 1620159340,
     "jti": "24de27a4-3506-4771-89f2-fc4dbef682c5",
-    "iss": "${this.jwtIss}",
+    "iss": "$jwtIss",
     "aud": "account",
-    "sub": "${this.jwtSub}",
+    "sub": "$jwtSub",
     "typ": "Bearer",
     "azp": "scrambled-ui",
     "nonce": "1234",
@@ -63,9 +63,9 @@ data class JwtInfo(private val jwtIss: JwtIss, private val jwtSub: JwtSub) {
     },
     "scope": "openid email profile",
     "email_verified": false,
-    "name": "Tim",
-    "preferred_username": "tim",
-    "given_name": "Tim"
+    "name": "$jwtSub",
+    "preferred_username": "$jwtSub",
+    "given_name": "$jwtSub"
     }
     """
         .trimIndent()

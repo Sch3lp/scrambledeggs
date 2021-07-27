@@ -14,7 +14,7 @@ import io.ktor.client.statement.*
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 
-val client = HttpClient(CIO) {
+internal fun createClient() = HttpClient(CIO) {
     install(JsonFeature) {
         serializer = JacksonSerializer {
             registerModules(KotlinModule(), JavaTimeModule())
@@ -25,7 +25,7 @@ val client = HttpClient(CIO) {
         developmentMode = true
     }
     install(HttpTimeout) {
-        val timeoutInMillis: Long = 1500
+        val timeoutInMillis: Long = 1000 * 4
         requestTimeoutMillis = timeoutInMillis
         connectTimeoutMillis = timeoutInMillis
         socketTimeoutMillis = timeoutInMillis

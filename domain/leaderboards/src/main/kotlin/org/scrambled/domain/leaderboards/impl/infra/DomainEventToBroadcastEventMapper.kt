@@ -1,5 +1,6 @@
 package org.scrambled.domain.leaderboards.impl.infra
 
+import org.scrambled.domain.core.api.challenging.PlayerChallenged
 import org.scrambled.domain.core.api.registration.PlayerRegistered
 import org.scrambled.domain.leaderboards.api.infra.BroadcastEvent
 import org.scrambled.domain.leaderboards.api.infra.BroadcastEvents
@@ -19,6 +20,10 @@ class DomainEventToBroadcastEventMapper(
         is PlayerRegistered -> BroadcastEvent.PlayerRegisteredForLeaderboard(
             domainEvent.playerId,
             domainEvent.nickName
+        )
+        is PlayerChallenged -> BroadcastEvent.PlayerChallengedForLeaderboard(
+            domainEvent.challenger,
+            domainEvent.opponent
         )
         else -> null
     }

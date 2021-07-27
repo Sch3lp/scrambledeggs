@@ -5,12 +5,13 @@ import org.scrambled.infra.domainevents.DomainEvent
 import java.util.*
 
 data class ChallengePlayer(
-    val id: ChallengerId, val otherPlayerId: OpponentId
-): Command<Unit>
+    val challenger: ChallengerId, val opponent: OpponentId
+): Command<ChallengeId>
 
-data class PlayerChallenged(val initiator: ChallengerId, val opponent: OpponentId): DomainEvent()
+data class PlayerChallenged(val challenger: ChallengerId, val opponent: OpponentId): DomainEvent()
 
 typealias ChallengerId = PlayerId
 typealias OpponentId = PlayerId
 typealias PlayerId = UUID
 typealias PlayerNickname = String
+typealias ChallengeId = UUID

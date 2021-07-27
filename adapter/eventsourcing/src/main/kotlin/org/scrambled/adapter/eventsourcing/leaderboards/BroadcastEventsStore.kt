@@ -14,7 +14,7 @@ class BroadcastEventsStore(
 ): BroadcastEvents {
     override fun keep(event: BroadcastEvent) = when(event) {
         is BroadcastEvent.PlayerRegisteredForLeaderboard -> Event.PlayerRegistered(event.playerId, event.nickname)
-        is BroadcastEvent.PlayerChallengedForLeaderboard -> Event.PlayerChallenged(event.initiator, event.opponent)
+        is BroadcastEvent.PlayerChallengedForLeaderboard -> Event.PlayerChallenged(event.challenger, event.opponent)
     }.store()
 
     override fun findAll(): List<BroadcastEvent> = runBlocking {
@@ -23,7 +23,7 @@ class BroadcastEventsStore(
             when(event) {
                 is Event.PlayerRegistered -> BroadcastEvent.PlayerRegisteredForLeaderboard(event.playerId, event.nickname)
                 is Event.PlayerRenamed -> null
-                is Event.PlayerChallenged -> BroadcastEvent.PlayerChallengedForLeaderboard(event.initiator, event.opponent)
+                is Event.PlayerChallenged -> BroadcastEvent.PlayerChallengedForLeaderboard(event.challenger, event.opponent)
             }?.let { broadcastEvent -> all += broadcastEvent }
         }
         return@runBlocking all

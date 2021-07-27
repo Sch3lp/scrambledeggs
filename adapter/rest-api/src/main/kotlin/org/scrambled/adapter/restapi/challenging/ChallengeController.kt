@@ -1,19 +1,15 @@
 package org.scrambled.adapter.restapi.challenging
 
-import org.scrambled.adapter.restapi.players.RegisteredPlayerJson
-import org.scrambled.adapter.restapi.players.toJson
 import org.scrambled.domain.core.api.challenging.ChallengePlayer
-import org.scrambled.domain.core.api.players.PlayerById
-import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
+import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.infra.cqrs.CommandExecutor
-import org.scrambled.infra.cqrs.QueryExecutor
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.*
+import org.springframework.web.util.UriComponentsBuilder
 
 @RestController
 @RequestMapping(
@@ -22,20 +18,18 @@ import java.util.*
 )
 class ChallengeController(
     private val commandExecutor: CommandExecutor,
-    private val queryExecutor: QueryExecutor,
 ) {
 
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun challengePlayer(@RequestBody(required = true) challengeRequest: ChallengePlayerJson): ResponseEntity<String> {
+    fun challengePlayer(@RequestBody(required = true) challengeRequest: ChallengeRequestJson,
+                        builder: UriComponentsBuilder
+    ): ResponseEntity<String> {
+        val createdChallengeId = commandExecutor.execute(ChallengePlayer(challengeRequest.challenger, challengeRequest.opponent))
 
-        commandExecutor.execute(ChallengePlayer(challengeRequest.initiator, challengeRequest.opponent))
+        val locationUri = builder.path("/api/challenge/{id}").buildAndExpand(createdChallengeId).toUri()
 
-        val opponent: RegisteredPlayerJson = queryExecutor
-            .execute(PlayerById(challengeRequest.opponent), RegisteredPlayerRepresentation::toJson)
-
-
-        return ResponseEntity.ok("Player $opponent was successfully challenged")
+        return ResponseEntity.created(locationUri).build()
     }
 }
 
-data class ChallengePlayerJson(val initiator: UUID, val opponent: UUID)
+data class ChallengeRequestJson(val challenger: PlayerId, val opponent: PlayerId)
