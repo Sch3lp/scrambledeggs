@@ -3,7 +3,7 @@ module Challenge exposing (..)
 import Api exposing (ApiError(..), expectJsonWithErrorHandling)
 import Base
 import Browser.Navigation as Nav
-import Element as Ui exposing (padding)
+import Element as Ui
 import Element.Input as Input
 import Http
 import Json.Decode as D exposing (Decoder)
@@ -15,6 +15,8 @@ type Msg
     = NoOp
     | GotFetchPendingChallengesResponse (Result ApiError PendingChallenges)
     | GameModeChosen GameMode
+    | AppointmentChanged String
+    | CommentChanged String
     | ChallengeButtonClicked
 
 
@@ -55,6 +57,14 @@ setChallengeMode: GameMode -> Model -> Model
 setChallengeMode selectedChallengeMode model =
     {model | challengeMode = selectedChallengeMode}
 
+setAppointment: String -> Model -> Model
+setAppointment updatedAppointment model =
+    {model | appointment = updatedAppointment}
+
+setComment: String -> Model -> Model
+setComment updatedComment model =
+    {model | comment = updatedComment}
+
 setPendingChallenges : PendingChallenges -> Model -> Model
 setPendingChallenges newPendingChallenges model =
     { model | pendingChallenges = newPendingChallenges }
@@ -67,7 +77,7 @@ asPendingChallenges model newPendingChallenges =
 
 emptyModel : Nav.Key -> Model
 emptyModel =
-    Model Duel "Next wednesday at 20:00" "Meet me in Discord at ..." [] Nothing
+    Model Duel "" "" [] Nothing
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -84,6 +94,13 @@ update msg model =
 
         GameModeChosen gameMode ->
             ( setChallengeMode gameMode model, Cmd.none)
+
+        AppointmentChanged updatedAppointment ->
+            ( setAppointment updatedAppointment model, Cmd.none)
+
+        CommentChanged updatedComment ->
+            ( setComment updatedComment model, Cmd.none)
+
 
 
 viewChallenge : Model -> List (Ui.Element Msg)
@@ -124,10 +141,30 @@ viewChallengeMode selectedChallengeMode =
 viewChallengeDetail model =
     Ui.column
         [ Ui.width Ui.fill, Ui.alignTop, Ui.paddingXY 20 10 ]
-        [ Ui.el [Ui.paddingXY 0 5] (Ui.text model.appointment)
-        , Ui.el [Ui.paddingXY 0 5] (Ui.text model.comment)
+        [ Ui.el [Ui.width Ui.fill, Ui.paddingXY 0 5] (viewAppointmentInput model.appointment)
+        , Ui.el [Ui.width Ui.fill, Ui.paddingXY 0 5] (viewCommentInput model.comment)
         , Base.button {isDisabled = False, label = "Challenge"} ChallengeButtonClicked
         ]
+
+viewAppointmentInput appointment =
+    let
+        placeholder = Just (Input.placeholder [] (Ui.text "Next wednesday at 20:00"))
+    in
+        Input.text [Ui.width Ui.fill] { label = Input.labelHidden "Appointment"
+                   , placeholder = placeholder
+                   , text = appointment
+                   , onChange = AppointmentChanged
+                   }
+
+viewCommentInput comment =
+    let
+        placeholder = Just (Input.placeholder [] (Ui.text "Add me on Discord via Eggbot#1234"))
+    in
+        Input.text [Ui.width Ui.fill] { label = Input.labelHidden "Comment"
+                   , placeholder = placeholder
+                   , text = comment
+                   , onChange = CommentChanged
+                   }
 
 viewPendingChallengesTable: Model -> Ui.Element Msg
 viewPendingChallengesTable model =
