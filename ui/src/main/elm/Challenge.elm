@@ -33,8 +33,13 @@ type GameMode
     | WipeOut
     | CTF
 
+type alias PlayerId = String
+
+
 type alias Model =
-    { challengeMode: GameMode
+    { opponentId: PlayerId
+    , opponentNickname: String
+    , challengeMode: GameMode
     , appointment: String
     , comment: String
     , pendingChallenges : PendingChallenges
@@ -77,7 +82,7 @@ asPendingChallenges model newPendingChallenges =
 
 emptyModel : Nav.Key -> Model
 emptyModel =
-    Model Duel "" "" [] Nothing
+    Model "" "" Duel "" "" [] Nothing
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -101,11 +106,43 @@ update msg model =
         CommentChanged updatedComment ->
             ( setComment updatedComment model, Cmd.none)
 
+-- TODO: update the Challenge model with the successfully fetched opponent's nickname
+initPage: PlayerId -> Cmd Msg
+initPage opponentId =
+            Http.get
+                { url = "/api/player"
+                , expect = expectJsonWithErrorHandling registeredPlayersDecoder GotFetchPlayersResponse
+                }
+
+registeredPlayersDecoder : Decoder (List RegisteredPlayer)
+registeredPlayersDecoder =
+    D.list registeredPlayerDecoder
+
+
+registeredPlayerDecoder : Decoder RegisteredPlayer
+registeredPlayerDecoder =
+    D.map RegisteredPlayer <|
+        D.field "nickname" D.string
+
+
+handleFetchPlayersResponse : Model -> Result ApiError (List RegisteredPlayer) -> ( Model, Cmd Msg )
+handleFetchPlayersResponse model result =
+    case result of
+        Ok newlyFetchedPlayers ->
+            ( { model | registeredPlayers = newlyFetchedPlayers }, Cmd.none )
+
+        Err err ->
+            handleApiError err model
 
 
 viewChallenge : Model -> List (Ui.Element Msg)
 viewChallenge model =
     [ Ui.row
+        [ Ui.width Ui.fill
+        , Ui.alignTop]
+        [ viewChallengeHeader model.opponentNickname
+        ]
+    , Ui.row
         [ Ui.width Ui.fill
         , Ui.height Ui.fill
         , Ui.alignTop
@@ -116,6 +153,9 @@ viewChallenge model =
         , viewPendingChallengesTable model
         ]
     ]
+
+viewChallengeHeader opponent =
+    Ui.text ("Let's set you up vs. " ++ opponent)
 
 viewChallengeMode selectedChallengeMode =
     let

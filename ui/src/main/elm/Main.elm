@@ -1,7 +1,6 @@
 port module Main exposing (..)
 
-{-| TodoMVC implemented in Elm, using plain HTML and CSS for rendering.
-
+{-|
 This application is broken up into three key parts:
 
 1.  Model - a full definition of the application's state
@@ -31,7 +30,7 @@ import OAuth.Implicit as OAuth
 import Registration exposing (RegisteredPlayer, registeredPlayersDecoder)
 import Security exposing (convertBytes, defaultHttpUrl)
 import Url exposing (Url)
-import Url.Parser as Parser
+import Url.Parser as Parser exposing ((</>))
 import Widget.Material.Typography as Typo
 
 
@@ -57,8 +56,9 @@ main =
 type Route
     = AnonymousHomepage
     | Registration
-    | Challenge
+    | Challenge OpponentId
 
+type alias OpponentId = String
 
 parseUrl : Url.Url -> Route
 parseUrl url =
@@ -75,7 +75,7 @@ parseRoute =
     Parser.oneOf
         [ Parser.map AnonymousHomepage Parser.top
         , Parser.map Registration (Parser.s "register")
-        , Parser.map Challenge (Parser.s "challenge")
+        , Parser.map Challenge (Parser.s "challenge" </> Parser.string) --/challenge/<opponentid>
         ]
 
 
@@ -134,11 +134,21 @@ init mflags url key =
                         )
 
                     else
-                        ( emptyModelWithToken token url key (Authorized token) redirectUri
+                        let
+                            model =
+                                emptyModelWithToken token url key (Authorized token) redirectUri
+
+                            initPageCmd = case model.currentRoute of
+                                Challenge opponentId ->
+                                    Cmd.map ChallengeMsg (Challenge.initPage opponentId)
+                                _ -> fetchLeaderboard
+                        in
+
+                        ( model
                         , Cmd.batch
                             [ getUserInfo localKeycloakConfiguration token
                             , clearUrl
-                            , fetchLeaderboard
+                            , initPageCmd
                             ]
                         )
 
@@ -592,9 +602,12 @@ viewMainContent model =
             Registration.viewRegistration model.registrationModel
                 |> List.map (Ui.map RegistrationMsg)
 
-        Challenge ->
-            Challenge.viewChallenge model.challengeModel
-                |> List.map (Ui.map ChallengeMsg)
+        Challenge opponentId ->
+            let
+                challengeModel = model.challengeModel
+            in
+                Challenge.viewChallenge {challengeModel | opponentId = opponentId}
+                    |> List.map (Ui.map ChallengeMsg)
 
         AnonymousHomepage ->
             Home.viewHome model.homeModel
@@ -609,5 +622,5 @@ viewMainContent model =
 -- * [x] Use an OAuth2 elm library that takes care of redirecting and parsing tokens
 -- * [x] Verify the JWT Token on successful login, using Auth0 or whatever IDP I can set up.
 -- * [x] Make a logout button
--- * [ ] Fetch both the recentMatches and the leaderboard at the same time; look at Cmd.batch and Task thing in Elm again
+-- * [x] Fetch both the recentMatches and the leaderboard at the same time; look at Cmd.batch and Task thing in Elm again
 -- * [ ] Replace our own palette with that of Material somehow
