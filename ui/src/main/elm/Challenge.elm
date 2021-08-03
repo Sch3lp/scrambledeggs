@@ -150,7 +150,8 @@ viewAppointmentInput appointment =
     let
         placeholder = Just (Input.placeholder [] (Ui.text "Next wednesday at 20:00"))
     in
-        Input.text [Ui.width Ui.fill] { label = Input.labelHidden "Appointment"
+        Input.text [ Ui.width Ui.fill ]
+                   { label = Input.labelHidden "Appointment"
                    , placeholder = placeholder
                    , text = appointment
                    , onChange = AppointmentChanged
@@ -160,10 +161,11 @@ viewCommentInput comment =
     let
         placeholder = Just (Input.placeholder [] (Ui.text "Add me on Discord via Eggbot#1234"))
     in
-        Input.text [Ui.width Ui.fill] { label = Input.labelHidden "Comment"
+        Input.multiline [Ui.width Ui.fill] { label = Input.labelHidden "Comment"
                    , placeholder = placeholder
                    , text = comment
                    , onChange = CommentChanged
+                   , spellcheck = False
                    }
 
 viewPendingChallengesTable: Model -> Ui.Element Msg

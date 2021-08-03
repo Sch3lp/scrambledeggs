@@ -69,6 +69,7 @@ type alias Palette =
     , bg : Ui.Color
     , bgDisabled : Ui.Color
     , primary : Ui.Color
+    , error : Ui.Color
     }
 
 
@@ -76,9 +77,10 @@ palette : Palette
 palette =
     { font = Ui.rgb255 41 46 54
     , fontDisabled = Ui.rgb255 100 100 100
-    , bg = Ui.rgb 222 230 255
+    , bg = Ui.rgb255 222 230 255
     , bgDisabled = Ui.rgb255 200 200 200
-    , primary = Ui.rgb 150 150 150
+    , primary = Ui.rgb255 150 150 150
+    , error = Ui.rgb255 178 15 15
     }
 
 
@@ -88,9 +90,10 @@ contrastedPalette =
 
 contrast : Palette -> Palette
 contrast _ =
-    { font = Ui.rgb 238 238 238
-    , fontDisabled = Ui.rgb 222 230 255
+    { font = Ui.rgb255 238 238 238
+    , fontDisabled = Ui.rgb255 222 230 255
     , bg = Ui.rgb255 51 67 92
     , bgDisabled = Ui.rgb255 51 67 92
-    , primary = Ui.rgb 150 150 150
+    , primary = Ui.rgb255 150 150 150
+    , error = Ui.rgb255 178 15 15
     }
