@@ -17,6 +17,7 @@ import Api exposing (ApiError, expectJsonWithErrorHandling, expectStringWithErro
 import Base
 import Browser exposing (UrlRequest)
 import Browser.Navigation as Nav exposing (Key)
+import Challenge
 import Element as Ui
 import Element.Background as Background
 import Element.Font as Font
@@ -56,6 +57,7 @@ main =
 type Route
     = AnonymousHomepage
     | Registration
+    | Challenge
 
 
 parseUrl : Url.Url -> Route
@@ -73,15 +75,24 @@ parseRoute =
     Parser.oneOf
         [ Parser.map AnonymousHomepage Parser.top
         , Parser.map Registration (Parser.s "register")
+        , Parser.map Challenge (Parser.s "challenge")
         ]
 
 
 emptyModel url key authFlow redirectUri =
-    Model (Home.emptyModel key) (Registration.emptyModel key) (parseUrl url) key authFlow redirectUri Nothing
+    Model (Home.emptyModel key) (Registration.emptyModel key) (Challenge.emptyModel key)
+    (parseUrl url)
+    key
+    authFlow
+    redirectUri
 
+emptyModelWithoutToken url key authFlow redirectUri =
+    Nothing |>
+    emptyModel url key authFlow redirectUri
 
 emptyModelWithToken token url key authFlow redirectUri =
-    Model (Home.emptyModel key) (Registration.emptyModel key) (parseUrl url) key authFlow redirectUri (Just token)
+    (Just token) |>
+    emptyModel url key authFlow redirectUri
 
 
 init : Maybe { state : String } -> Url -> Key -> ( Model, Cmd Msg )
@@ -98,7 +109,7 @@ init mflags url key =
     in
     case OAuth.parseToken url of
         OAuth.Empty ->
-            ( emptyModel url key Idle redirectUri
+            ( emptyModelWithoutToken url key Idle redirectUri
             , fetchLeaderboard
             )
 
@@ -112,13 +123,13 @@ init mflags url key =
         OAuth.Success { token, state } ->
             case mflags of
                 Nothing ->
-                    ( emptyModel url key (Errored ErrStateMismatch) redirectUri
+                    ( emptyModelWithoutToken url key (Errored ErrStateMismatch) redirectUri
                     , Cmd.batch [ clearUrl, fetchLeaderboard ]
                     )
 
                 Just flags ->
                     if state /= Just flags.state then
-                        ( emptyModel url key (Errored ErrStateMismatch) redirectUri
+                        ( emptyModelWithoutToken url key (Errored ErrStateMismatch) redirectUri
                         , Cmd.batch [ clearUrl, fetchLeaderboard ]
                         )
 
@@ -132,7 +143,7 @@ init mflags url key =
                         )
 
         OAuth.Error error ->
-            ( emptyModel url key (Errored <| ErrAuthorization error) redirectUri
+            ( emptyModelWithoutToken url key (Errored <| ErrAuthorization error) redirectUri
             , Cmd.batch [ clearUrl, fetchLeaderboard ]
             )
 
@@ -266,6 +277,7 @@ routeToRegister model =
 type alias Model =
     { homeModel : Home.Model
     , registrationModel : Registration.Model
+    , challengeModel : Challenge.Model
     , currentRoute : Route
     , key : Key
     , authFlow : AuthFlow
@@ -287,7 +299,9 @@ setHomeModel : Home.Model -> Model -> Model
 setHomeModel newHomeModel model =
     { model | homeModel = newHomeModel }
 
-
+setChallengeModel: Challenge.Model -> Model -> Model
+setChallengeModel newChallengeModel model =
+    { model | challengeModel = newChallengeModel}
 
 -- UPDATE
 
@@ -295,6 +309,7 @@ setHomeModel newHomeModel model =
 type Msg
     = RegistrationMsg Registration.Msg
     | HomeMsg Home.Msg
+    | ChallengeMsg Challenge.Msg
     | RegistrationRedirectButtonClicked
     | UrlChanged Url
     | LinkClicked UrlRequest
@@ -327,6 +342,15 @@ update msg model =
             in
             ( setHomeModel newHomeModel model
             , Cmd.map HomeMsg newHomeMsg
+            )
+
+        ChallengeMsg subMsg ->
+            let
+                ( newChallengeModel, newChallengeMsg ) =
+                    Challenge.update subMsg model.challengeModel
+            in
+            ( setChallengeModel newChallengeModel model
+            , Cmd.map ChallengeMsg newChallengeMsg
             )
 
         UrlChanged url ->
@@ -567,6 +591,10 @@ viewMainContent model =
         Registration ->
             Registration.viewRegistration model.registrationModel
                 |> List.map (Ui.map RegistrationMsg)
+
+        Challenge ->
+            Challenge.viewChallenge model.challengeModel
+                |> List.map (Ui.map ChallengeMsg)
 
         AnonymousHomepage ->
             Home.viewHome model.homeModel
