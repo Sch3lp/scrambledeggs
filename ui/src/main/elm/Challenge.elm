@@ -3,7 +3,8 @@ module Challenge exposing (..)
 import Api exposing (ApiError(..), expectJsonWithErrorHandling)
 import Base
 import Browser.Navigation as Nav
-import Element as Ui
+import Element as Ui exposing (padding)
+import Element.Input as Input
 import Http
 import Json.Decode as D exposing (Decoder)
 import Registration
@@ -14,6 +15,7 @@ import Widget.Material as Material
 type Msg
     = NoOp
     | GotFetchPendingChallengesResponse (Result ApiError PendingChallenges)
+    | GameModeChosen GameMode
     | ChallengeButtonClicked
 
 
@@ -50,9 +52,13 @@ asApiFailureIn model str =
     setApiFailure str model
 
 
+setChallengeMode: GameMode -> Model -> Model
+setChallengeMode selectedChallengeMode model =
+    {model | challengeMode = selectedChallengeMode}
+
 setPendingChallenges : PendingChallenges -> Model -> Model
-setPendingChallenges newPendingChallenges homeModel =
-    { homeModel | pendingChallenges = newPendingChallenges }
+setPendingChallenges newPendingChallenges model =
+    { model | pendingChallenges = newPendingChallenges }
 
 
 asPendingChallenges : Model -> PendingChallenges -> Model
@@ -77,6 +83,9 @@ update msg model =
         ChallengeButtonClicked ->
             ( model, Cmd.none )
 
+        GameModeChosen gameMode ->
+            ( setChallengeMode gameMode model, Cmd.none)
+
 
 viewChallenge : Model -> List (Ui.Element Msg)
 viewChallenge model =
@@ -93,17 +102,25 @@ viewChallenge model =
     ]
 
 viewChallengeMode selectedChallengeMode =
+    let
+        component = Input.radio
+                        [ Ui.padding 10
+                        , Ui.spacing 20
+                        ]
+                        { onChange = GameModeChosen
+                        , selected = Just selectedChallengeMode
+                        , label = Input.labelHidden "Mode"
+                        , options =
+                            [ Input.option Duel (Ui.text "Duel")
+                            , Input.option TwoVsTwo (Ui.text "2v2")
+                            , Input.option WipeOut (Ui.text "WipeOut")
+                            , Input.option CTF (Ui.text "CTF")
+                            ]
+                        }
+    in
     Ui.column
         [ Ui.width Ui.fill, Ui.alignTop, Ui.paddingXY 20 10]
-        [ Ui.text <| asLabel selectedChallengeMode ]
-
-asLabel: GameMode -> String
-asLabel gameMode =
-    case gameMode of
-        Duel -> "Duel"
-        TwoVsTwo -> "2v@"
-        WipeOut -> "WipeOut"
-        CTF -> "CTF"
+        [ component ]
 
 viewChallengeDetail model =
     Ui.column
