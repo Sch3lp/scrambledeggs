@@ -29,7 +29,7 @@ import List
 import OAuth
 import OAuth.Implicit as OAuth
 import Registration exposing (RegisteredPlayer, registeredPlayersDecoder)
-import Security exposing (convertBytes, defaultHttpUrl, defaultHttpsUrl)
+import Security exposing (convertBytes, defaultHttpUrl)
 import Url exposing (Url)
 import Url.Parser as Parser
 import Widget.Material.Typography as Typo

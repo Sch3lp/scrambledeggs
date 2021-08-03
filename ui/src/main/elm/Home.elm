@@ -1,12 +1,10 @@
 module Home exposing (..)
 
 import Api exposing (ApiError(..), expectJsonWithErrorHandling)
-import Base
 import Browser.Navigation as Nav
 import Element as Ui
 import Http
 import Json.Decode as D exposing (Decoder)
-import Registration
 import Widget
 import Widget.Material as Material
 

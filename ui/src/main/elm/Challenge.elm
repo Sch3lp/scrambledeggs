@@ -7,7 +7,6 @@ import Element as Ui exposing (padding)
 import Element.Input as Input
 import Http
 import Json.Decode as D exposing (Decoder)
-import Registration
 import Widget
 import Widget.Material as Material
 
