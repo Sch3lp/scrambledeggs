@@ -94,7 +94,7 @@ viewChallenge model =
 
 viewChallengeMode selectedChallengeMode =
     Ui.column
-        [ Ui.width Ui.fill ]
+        [ Ui.width Ui.fill, Ui.alignTop, Ui.paddingXY 20 10]
         [ Ui.text <| asLabel selectedChallengeMode ]
 
 asLabel: GameMode -> String
@@ -107,16 +107,16 @@ asLabel gameMode =
 
 viewChallengeDetail model =
     Ui.column
-        [ Ui.width Ui.fill ]
-        [ Ui.el [] (Ui.text model.appointment)
-        , Ui.el [] (Ui.text model.comment)
+        [ Ui.width Ui.fill, Ui.alignTop, Ui.paddingXY 20 10 ]
+        [ Ui.el [Ui.paddingXY 0 5] (Ui.text model.appointment)
+        , Ui.el [Ui.paddingXY 0 5] (Ui.text model.comment)
         , Base.button {isDisabled = False, label = "Challenge"} ChallengeButtonClicked
         ]
 
 viewPendingChallengesTable: Model -> Ui.Element Msg
 viewPendingChallengesTable model =
     Ui.column
-        [ Ui.width Ui.fill, Ui.paddingXY 20 0 ]
+        [ Ui.width Ui.fill, Ui.paddingXY 20 0, Ui.alignTop ]
         [ pendingChallenges model ]
 
 pendingChallenges: Model -> Ui.Element Msg
