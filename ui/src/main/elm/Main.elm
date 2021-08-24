@@ -79,20 +79,13 @@ parseRoute =
         ]
 
 
-emptyModel url key authFlow redirectUri =
+emptyModel url key redirectUri authFlow token =
     Model (Home.emptyModel key) (Registration.emptyModel key) (Challenge.emptyModel key)
-    (parseUrl url)
-    key
-    authFlow
-    redirectUri
-
-emptyModelWithoutToken url key authFlow redirectUri =
-    Nothing |>
-    emptyModel url key authFlow redirectUri
-
-emptyModelWithToken token url key authFlow redirectUri =
-    (Just token) |>
-    emptyModel url key authFlow redirectUri
+        (parseUrl url)
+        key
+        authFlow
+        redirectUri
+        token
 
 
 init : Maybe { state : String } -> Url -> Key -> ( Model, Cmd Msg )
@@ -106,11 +99,19 @@ init mflags url key =
 
         fetchLeaderboard =
             Cmd.map HomeMsg Home.performFetchLeaderboard
+
+        initPageCmd = case parseUrl url of
+            Challenge opponentId ->
+                Cmd.map ChallengeMsg (Challenge.initPage opponentId)
+            _ -> fetchLeaderboard
+
+        partialEmptyModel = emptyModel url key redirectUri
+
     in
     case OAuth.parseToken url of
         OAuth.Empty ->
-            ( emptyModelWithoutToken url key Idle redirectUri
-            , fetchLeaderboard
+            ( partialEmptyModel Idle Nothing
+            , initPageCmd
             )
 
         -- It is important to set a `state` when making the authorization request
@@ -123,25 +124,20 @@ init mflags url key =
         OAuth.Success { token, state } ->
             case mflags of
                 Nothing ->
-                    ( emptyModelWithoutToken url key (Errored ErrStateMismatch) redirectUri
+                    ( partialEmptyModel (Errored ErrStateMismatch) Nothing
                     , Cmd.batch [ clearUrl, fetchLeaderboard ]
                     )
 
                 Just flags ->
                     if state /= Just flags.state then
-                        ( emptyModelWithoutToken url key (Errored ErrStateMismatch) redirectUri
+                        ( partialEmptyModel (Errored ErrStateMismatch) Nothing
                         , Cmd.batch [ clearUrl, fetchLeaderboard ]
                         )
 
                     else
                         let
                             model =
-                                emptyModelWithToken token url key (Authorized token) redirectUri
-
-                            initPageCmd = case model.currentRoute of
-                                Challenge opponentId ->
-                                    Cmd.map ChallengeMsg (Challenge.initPage opponentId)
-                                _ -> fetchLeaderboard
+                                partialEmptyModel (Authorized token) (Just token)
                         in
 
                         ( model
@@ -153,7 +149,7 @@ init mflags url key =
                         )
 
         OAuth.Error error ->
-            ( emptyModelWithoutToken url key (Errored <| ErrAuthorization error) redirectUri
+            ( partialEmptyModel (Errored <| ErrAuthorization error) Nothing
             , Cmd.batch [ clearUrl, fetchLeaderboard ]
             )
 

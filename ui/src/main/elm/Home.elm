@@ -1,7 +1,9 @@
 module Home exposing (..)
 
 import Api exposing (ApiError(..), expectJsonWithErrorHandling)
+import Base
 import Browser.Navigation as Nav
+import Url.Builder as UrlBuilder
 import Element as Ui
 import Http
 import Json.Decode as D exposing (Decoder)
@@ -12,6 +14,7 @@ import Widget.Material as Material
 type Msg
     = NoOp
     | GotFetchLeaderboardResponse (Result ApiError Leaderboard)
+    | ChallengeButtonClicked
 
 
 type alias LeaderboardEntry =
@@ -63,6 +66,12 @@ update msg model =
         GotFetchLeaderboardResponse result ->
             handleFetchLeaderboardResponse model result
 
+        ChallengeButtonClicked ->
+            let
+                urlCmd =
+                    Nav.pushUrl model.key <| UrlBuilder.relative ["challenge","b7c362e8-3ba0-450a-9e62-7f2c2ae89e3e"] []
+            in
+                ( model, urlCmd )
 
 viewHome : Model -> List (Ui.Element Msg)
 viewHome model =
@@ -75,8 +84,17 @@ viewHome model =
         [ viewLeaderboardTable model
         , viewRecentMatchesTable model
         ]
+    , Ui.row
+        [ Ui.width Ui.fill
+            , Ui.height Ui.fill
+            , Ui.alignTop
+            , Ui.spacing 16
+            ]
+        [ viewChallengeButton ]
     ]
 
+viewChallengeButton =
+    Base.button { isDisabled = False, label = "DummyChallenge" } ChallengeButtonClicked
 
 viewLeaderboardTable model =
     Ui.column

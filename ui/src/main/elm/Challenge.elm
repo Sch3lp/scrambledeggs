@@ -14,6 +14,7 @@ import Widget.Material as Material
 type Msg
     = NoOp
     | GotFetchPendingChallengesResponse (Result ApiError PendingChallenges)
+    | GotFetchPlayerResponse (Result ApiError RegisteredPlayer)
     | GameModeChosen GameMode
     | AppointmentChanged String
     | CommentChanged String
@@ -106,18 +107,19 @@ update msg model =
         CommentChanged updatedComment ->
             ( setComment updatedComment model, Cmd.none)
 
--- TODO: update the Challenge model with the successfully fetched opponent's nickname
+        GotFetchPlayerResponse result ->
+            handleFetchPlayerResponse model result
+
 initPage: PlayerId -> Cmd Msg
 initPage opponentId =
             Http.get
-                { url = "/api/player"
-                , expect = expectJsonWithErrorHandling registeredPlayersDecoder GotFetchPlayersResponse
+                { url = "/api/player/"++opponentId
+                , expect = expectJsonWithErrorHandling registeredPlayerDecoder GotFetchPlayerResponse
                 }
 
-registeredPlayersDecoder : Decoder (List RegisteredPlayer)
-registeredPlayersDecoder =
-    D.list registeredPlayerDecoder
 
+type alias RegisteredPlayer =
+    { nickname : String }
 
 registeredPlayerDecoder : Decoder RegisteredPlayer
 registeredPlayerDecoder =
@@ -125,11 +127,11 @@ registeredPlayerDecoder =
         D.field "nickname" D.string
 
 
-handleFetchPlayersResponse : Model -> Result ApiError (List RegisteredPlayer) -> ( Model, Cmd Msg )
-handleFetchPlayersResponse model result =
+handleFetchPlayerResponse : Model -> Result ApiError RegisteredPlayer -> ( Model, Cmd Msg )
+handleFetchPlayerResponse model result =
     case result of
-        Ok newlyFetchedPlayers ->
-            ( { model | registeredPlayers = newlyFetchedPlayers }, Cmd.none )
+        Ok newlyFetchedPlayer ->
+            ( { model | opponentNickname = newlyFetchedPlayer.nickname }, Cmd.none )
 
         Err err ->
             handleApiError err model
