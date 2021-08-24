@@ -106,10 +106,10 @@ init mflags url key =
         clearUrl =
             Nav.replaceUrl key (Url.toString redirectUri)
 
-        currentRoute = (parseUrl url)
-        partialEmptyModel = emptyModel currentRoute key redirectUri
-
+        currentRoute = parseUrl url
         initPageCmd = initPage currentRoute
+
+        partialEmptyModel = emptyModel currentRoute key redirectUri
 
     in
     case OAuth.parseToken url of
