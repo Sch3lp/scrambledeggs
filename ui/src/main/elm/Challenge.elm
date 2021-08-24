@@ -119,19 +119,23 @@ initPage opponentId =
 
 
 type alias RegisteredPlayer =
-    { nickname : String }
+    { id: String
+    , nickname : String }
 
 registeredPlayerDecoder : Decoder RegisteredPlayer
 registeredPlayerDecoder =
-    D.map RegisteredPlayer <|
-        D.field "nickname" D.string
+    D.map2 RegisteredPlayer
+        (D.field "playerId" D.string)
+        (D.field "nickname" D.string)
 
 
 handleFetchPlayerResponse : Model -> Result ApiError RegisteredPlayer -> ( Model, Cmd Msg )
 handleFetchPlayerResponse model result =
     case result of
         Ok newlyFetchedPlayer ->
-            ( { model | opponentNickname = newlyFetchedPlayer.nickname }, Cmd.none )
+            ( { model | opponentNickname = newlyFetchedPlayer.nickname
+             , opponentId = newlyFetchedPlayer.id
+             }, Cmd.none )
 
         Err err ->
             handleApiError err model
