@@ -79,14 +79,23 @@ parseRoute =
         ]
 
 
-emptyModel url key redirectUri authFlow token =
+emptyModel route key redirectUri authFlow token =
     Model (Home.emptyModel key) (Registration.emptyModel key) (Challenge.emptyModel key)
-        (parseUrl url)
+        route
         key
         authFlow
         redirectUri
         token
 
+initPage: Route -> Cmd Msg
+initPage model =
+    case model of
+                Challenge opponentId ->
+                    Cmd.map ChallengeMsg (Challenge.initPage opponentId)
+                AnonymousHomepage ->
+                    Cmd.map HomeMsg Home.initPage
+                Registration ->
+                    Cmd.map RegistrationMsg Registration.initPage
 
 init : Maybe { state : String } -> Url -> Key -> ( Model, Cmd Msg )
 init mflags url key =
@@ -97,15 +106,10 @@ init mflags url key =
         clearUrl =
             Nav.replaceUrl key (Url.toString redirectUri)
 
-        fetchLeaderboard =
-            Cmd.map HomeMsg Home.performFetchLeaderboard
+        currentRoute = (parseUrl url)
+        partialEmptyModel = emptyModel currentRoute key redirectUri
 
-        initPageCmd = case parseUrl url of
-            Challenge opponentId ->
-                Cmd.map ChallengeMsg (Challenge.initPage opponentId)
-            _ -> fetchLeaderboard
-
-        partialEmptyModel = emptyModel url key redirectUri
+        initPageCmd = initPage currentRoute
 
     in
     case OAuth.parseToken url of
@@ -125,13 +129,13 @@ init mflags url key =
             case mflags of
                 Nothing ->
                     ( partialEmptyModel (Errored ErrStateMismatch) Nothing
-                    , Cmd.batch [ clearUrl, fetchLeaderboard ]
+                    , Cmd.batch [ clearUrl, initPageCmd ]
                     )
 
                 Just flags ->
                     if state /= Just flags.state then
                         ( partialEmptyModel (Errored ErrStateMismatch) Nothing
-                        , Cmd.batch [ clearUrl, fetchLeaderboard ]
+                        , Cmd.batch [ clearUrl, initPageCmd ]
                         )
 
                     else
@@ -150,7 +154,7 @@ init mflags url key =
 
         OAuth.Error error ->
             ( partialEmptyModel (Errored <| ErrAuthorization error) Nothing
-            , Cmd.batch [ clearUrl, fetchLeaderboard ]
+            , Cmd.batch [ clearUrl, initPageCmd ]
             )
 
 
@@ -360,7 +364,10 @@ update msg model =
             )
 
         UrlChanged url ->
-            ( { model | currentRoute = parseUrl url }, Cmd.none )
+            let
+                route = parseUrl url
+            in
+                ( { model | currentRoute = route }, initPage route )
 
         LinkClicked urlRequest ->
             case urlRequest of

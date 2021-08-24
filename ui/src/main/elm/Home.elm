@@ -69,7 +69,7 @@ update msg model =
         ChallengeButtonClicked ->
             let
                 urlCmd =
-                    Nav.pushUrl model.key <| UrlBuilder.relative ["challenge","b7c362e8-3ba0-450a-9e62-7f2c2ae89e3e"] []
+                    Nav.pushUrl model.key <| UrlBuilder.relative ["challenge","242bcacc-15bd-4b41-a005-e0f1e48ee715"] []
             in
                 ( model, urlCmd )
 
@@ -161,6 +161,7 @@ recentMatchesTable model =
 
 -- Fetching Leaderboard
 
+initPage = performFetchLeaderboard
 
 performFetchLeaderboard =
     Http.get

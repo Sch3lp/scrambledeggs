@@ -34,6 +34,7 @@ type alias Model =
     , key : Nav.Key
     }
 
+initPage = Cmd.none
 
 emptyModel : Nav.Key -> Model
 emptyModel =
