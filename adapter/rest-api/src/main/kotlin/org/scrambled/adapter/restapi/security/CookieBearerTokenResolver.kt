@@ -20,6 +20,7 @@ class CookieBearerTokenResolver : BearerTokenResolver {
     override fun resolve(request: HttpServletRequest?): String? =
         request?.cookies?.firstOrNull { it.name == JwtCookieName }?.value
             ?: DefaultBearerTokenResolver().resolve(request)
+    //TODO: if the JWT on the cookie has expired, fallback to the JWT on the Authorization header
 }
 
 class CookieBearerTokenResolverForTest : BearerTokenResolver {
