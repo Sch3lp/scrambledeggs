@@ -139,12 +139,7 @@ init mflags url key =
                         )
 
                     else
-                        let
-                            model =
-                                partialEmptyModel (Authorized token) (Just token)
-                        in
-
-                        ( model
+                        ( partialEmptyModel (Authorized token) (Just token)
                         , Cmd.batch
                             [ getUserInfo localKeycloakConfiguration token
                             , clearUrl
