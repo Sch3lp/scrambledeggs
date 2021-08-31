@@ -24,12 +24,20 @@ class ChallengeController(
     fun challengePlayer(@RequestBody(required = true) challengeRequest: ChallengeRequestJson,
                         builder: UriComponentsBuilder
     ): ResponseEntity<String> {
-        val createdChallengeId = commandExecutor.execute(ChallengePlayer(challengeRequest.challenger, challengeRequest.opponent))
+        val createdChallengeId = commandExecutor.execute(challengeRequest.toCommand())
 
         val locationUri = builder.path("/api/challenge/{id}").buildAndExpand(createdChallengeId).toUri()
 
         return ResponseEntity.created(locationUri).build()
     }
+
+    private fun ChallengeRequestJson.toCommand() =
+        ChallengePlayer(this.challenger, this.opponent, this.comment, this.appointmentSuggestion)
 }
 
-data class ChallengeRequestJson(val challenger: PlayerId, val opponent: PlayerId)
+data class ChallengeRequestJson(
+    val challenger: PlayerId,
+    val opponent: PlayerId,
+    val comment: String,
+    val appointmentSuggestion: String,
+)

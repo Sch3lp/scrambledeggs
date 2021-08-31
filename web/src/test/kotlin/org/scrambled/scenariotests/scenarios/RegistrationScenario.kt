@@ -97,6 +97,7 @@ class RegistrationScenario {
         val handle = jdbi.open()
         handle.execute(
             """
+                delete from challenges;
                 delete from registered_players;
                 delete from most_challenges_done_leaderboard;
                   """

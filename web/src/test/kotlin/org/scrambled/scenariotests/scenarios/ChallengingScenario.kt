@@ -10,9 +10,11 @@ import org.junit.jupiter.api.Test
 import org.scrambled.adapter.eventsourcing.api.Event
 import org.scrambled.adapter.eventsourcing.api.filterEvents
 import org.scrambled.adapter.eventsourcing.eventstore.PostgresEventStore
+import org.scrambled.adapter.rdbms.core.challenges.ChallengesDao
 import org.scrambled.adapter.restapi.JwtInfo
 import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
 import org.scrambled.domain.core.api.challenging.PlayerId
+import org.scrambled.domain.core.api.challenging.QueryableChallenge
 import org.scrambled.scenariotests.steps.client.createClient
 import org.scrambled.scenariotests.steps.core.*
 import org.scrambled.scenariotests.steps.leaderboard.fetchLeaderboardStep
@@ -34,6 +36,9 @@ class ChallengingScenario {
     @Autowired
     private lateinit var client: DatabaseClient
 
+    @Autowired
+    private lateinit var challengeDao: ChallengesDao
+
     @BeforeEach
     internal fun setUp() {
         wipeDatabases()
@@ -47,13 +52,18 @@ class ChallengingScenario {
         var rgm3PlayerId: PlayerId
         val schlepsClient = createClient(sch3lpsJwtInfo)
         val rgmsClient = createClient(rgm3JwtInfo)
+        val comment = "Some comment"
+        val suggestion = "Next wednesday at 20:00"
         runBlocking{
             sch3lpPlayerId = schlepsClient.registerPlayerStep("Sch3lp").expectSuccess()
 
             rgm3PlayerId = rgmsClient.registerPlayerStep("rgm3").expectSuccess()
 
-            schlepsClient.challengePlayerStep(sch3lpPlayerId, rgm3PlayerId).expectSuccess()
+            schlepsClient.challengePlayerStep(sch3lpPlayerId, rgm3PlayerId, comment, suggestion).expectSuccess()
         }
+
+        val challenge = challengeDao.findChallenge(sch3lpPlayerId, rgm3PlayerId).last().let { it.comment to it.appointmentSuggestion }
+        assertThat(challenge).isEqualTo(comment to suggestion)
 
         runBlocking {
             val firstPlayerChallenged = eventStream.filterEvents<Event.PlayerChallenged>().first()
@@ -75,6 +85,7 @@ class ChallengingScenario {
         val handle = jdbi.open()
         handle.execute(
             """
+                delete from challenges;
                 delete from registered_players;
                 delete from most_challenges_done_leaderboard;
                   """

@@ -7,4 +7,7 @@ interface QueryableChallenges {
 
 data class QueryableChallenge(val id: ChallengeId,
                               val challengerId: ChallengerId,
-                              val opponentId: OpponentId)
+                              val opponentId: OpponentId,
+                              val comment: String,
+                              val appointmentSuggestion: String
+)

@@ -6,14 +6,19 @@ import org.jdbi.v3.sqlobject.kotlin.RegisterKotlinMapper
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 import org.scrambled.domain.core.api.challenging.ChallengeId
+import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.domain.core.api.challenging.QueryableChallenge
 import org.scrambled.domain.core.api.challenging.QueryableChallenges
 
 @RegisterKotlinMapper(value = QueryableChallenge::class)
 interface ChallengesDao: QueryableChallenges {
-    @SqlQuery("SELECT id, challengerId, opponentId FROM CHALLENGES where id = :id")
+    @SqlQuery("SELECT * FROM CHALLENGES where id = :id")
     override fun getById(@Bind("id") id: ChallengeId): QueryableChallenge?
 
-    @SqlUpdate("INSERT INTO CHALLENGES(id, challengerId, opponentId) values(:id, :challengerId, :opponentId)")
+    @SqlUpdate("INSERT INTO CHALLENGES(id, challengerId, opponentId, comment, appointmentsuggestion) values(:id, :challengerId, :opponentId, :comment, :appointmentSuggestion)")
     override fun store(@BindKotlin queryableChallenge: QueryableChallenge)
+
+    @SqlQuery("SELECT * FROM CHALLENGES where challengerId = :challengerId and opponentId = :opponentId")
+    fun findChallenge(@Bind("challengerId") challengerId: PlayerId,
+                      @Bind("opponentId") opponentId: PlayerId): List<QueryableChallenge>
 }

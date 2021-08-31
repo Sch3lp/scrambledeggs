@@ -21,8 +21,16 @@ class ChallengeRepository(
             aggregate.id,
             aggregate.challengerId,
             aggregate.opponentId,
+            aggregate.comment,
+            aggregate.appointmentSuggestion
         ).save()
 
     private fun QueryableChallenge.save() = challenges.store(this)
-    private fun QueryableChallenge.toChallenge() = Challenge(this.id, this.challengerId, this.opponentId)
+    private fun QueryableChallenge.toChallenge() = Challenge(
+        this.id,
+        this.challengerId,
+        this.opponentId,
+        comment,
+        appointmentSuggestion
+    )
 }

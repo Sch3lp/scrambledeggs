@@ -12,7 +12,7 @@ class ChallengeTest {
         val challengerId = UUID.randomUUID()
 
         assertThatExceptionOfType(NotValidException::class.java)
-            .isThrownBy { Challenge.createChallenge(challengerId, challengerId) }
+            .isThrownBy { Challenge.createChallenge(challengerId, challengerId, "comment", "some day") }
             .withMessage("You cannot challenge yourself.")
     }
 }

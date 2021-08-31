@@ -5,7 +5,10 @@ import org.scrambled.infra.domainevents.DomainEvent
 import java.util.*
 
 data class ChallengePlayer(
-    val challenger: ChallengerId, val opponent: OpponentId
+    val challenger: ChallengerId,
+    val opponent: OpponentId,
+    val comment: String,
+    val appointmentSuggestion: String
 ): Command<ChallengeId>
 
 data class PlayerChallenged(val challenger: ChallengerId, val opponent: OpponentId): DomainEvent()

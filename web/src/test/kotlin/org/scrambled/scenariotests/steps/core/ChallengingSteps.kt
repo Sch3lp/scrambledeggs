@@ -12,11 +12,16 @@ import org.scrambled.scenariotests.steps.client.ApiResult
 import org.scrambled.scenariotests.steps.client.asApiResult
 import org.scrambled.scenariotests.steps.client.baseUrl
 
-suspend fun HttpClient.challengePlayerStep(challenger: PlayerId, opponent: PlayerId): ApiResult<ChallengeId> {
+suspend fun HttpClient.challengePlayerStep(
+    challenger: PlayerId,
+    opponent: PlayerId,
+    comment: String,
+    appointmentSuggestion: String
+): ApiResult<ChallengeId> {
     val response = this.post<HttpResponse> {
         url("$baseUrl/challenge")
         contentType(ContentType.Application.Json)
-        body = ChallengeRequestJson(challenger, opponent)
+        body = ChallengeRequestJson(challenger, opponent, comment, appointmentSuggestion)
         expectSuccess = false
     }
     val locationHeader = response.headers["Location"]
