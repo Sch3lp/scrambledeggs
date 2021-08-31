@@ -27,7 +27,6 @@ suspend fun HttpClient.registerPlayerStep(playerNickname: String): ApiResult<Pla
 }
 
 suspend fun HttpClient.fetchPlayerByJwtInfoStep(): RegisteredPlayerJson? {
-    this.cookies("localhost").forEach { println(it) }
     val players: List<RegisteredPlayerJson> = this.get {
         url("$baseUrl/player/info")
         contentType(ContentType.Application.Json)
@@ -36,7 +35,6 @@ suspend fun HttpClient.fetchPlayerByJwtInfoStep(): RegisteredPlayerJson? {
 }
 
 suspend fun HttpClient.fetchPlayerStep(playerId: PlayerId): RegisteredPlayerJson {
-    this.cookies("localhost").forEach { println(it) }
     return this.get {
         url("$baseUrl/player/$playerId")
         contentType(ContentType.Application.Json)
