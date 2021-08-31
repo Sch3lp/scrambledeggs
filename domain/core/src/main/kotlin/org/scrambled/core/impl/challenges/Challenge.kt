@@ -16,6 +16,14 @@ data class Challenge(
 ) {
     init {
         validateNotChallengingYourself(challengerId, opponentId)
+        validateUsefulString(comment)
+        validateUsefulString(appointmentSuggestion)
+    }
+
+    private fun validateUsefulString(s: String) {
+        if (s.isBlank()) {
+            throw NotValidException("You cannot challenge without a useful comment or appointment suggestion.")
+        }
     }
 
     private fun validateNotChallengingYourself(
