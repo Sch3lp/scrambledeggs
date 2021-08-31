@@ -206,7 +206,7 @@ gotUserInfo model userInfoResponse =
 
         ( Ok userInfo, Just token ) ->
             ( { model | authFlow = Done userInfo }
-            , Cmd.batch [ performExchangeTokenForCookie token, performFetchRegisteredPlayerInfo token ]
+            , performExchangeTokenForCookie token
             )
 
         ( Ok userInfo, Nothing ) ->
@@ -222,15 +222,11 @@ signOutRequested model =
     )
 
 
-performFetchRegisteredPlayerInfo token =
-    Http.request
-        { method = "GET"
-        , headers = OAuth.useToken token []
-        , url = "/api/player/info"
-        , body = emptyBody
+performFetchRegisteredPlayerInfo =
+    Http.get
+        { 
+         url = "/api/player/info"
         , expect = expectJsonWithErrorHandling registeredPlayersDecoder GotFetchRegisteredPlayerInfoResponse
-        , timeout = Nothing
-        , tracker = Nothing
         }
 
 
@@ -259,7 +255,7 @@ gotFetchRegisteredPlayerInfoResponse model response =
 
 
 gotExchangeTokenForCookieResponse model =
-    ( model, Cmd.none )
+    ( model, performFetchRegisteredPlayerInfo )
 
 
 

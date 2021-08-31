@@ -69,7 +69,7 @@ update msg model =
         ChallengeButtonClicked ->
             let
                 urlCmd =
-                    Nav.pushUrl model.key <| UrlBuilder.relative ["challenge","242bcacc-15bd-4b41-a005-e0f1e48ee715"] []
+                    Nav.pushUrl model.key <| UrlBuilder.relative ["challenge","8af2cea4-8830-4b57-b5d5-382721e72b1b"] []
             in
                 ( model, urlCmd )
 
