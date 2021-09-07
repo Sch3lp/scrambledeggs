@@ -67,3 +67,20 @@ handleBadStatus metadata body =
 
     else
         Err (BadRequest body)
+
+
+registeredPlayersDecoder : Decoder (List RegisteredPlayer)
+registeredPlayersDecoder =
+    D.list registeredPlayerDecoder
+
+registeredPlayerDecoder : Decoder RegisteredPlayer
+registeredPlayerDecoder =
+    D.map2 RegisteredPlayer
+        (D.field "playerId" D.string)
+        (D.field "nickname" D.string)
+
+
+type alias RegisteredPlayer =
+    { playerId : String
+    , nickname : String
+    }

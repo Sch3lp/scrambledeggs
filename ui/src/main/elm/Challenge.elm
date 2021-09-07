@@ -1,6 +1,6 @@
 module Challenge exposing (..)
 
-import Api exposing (ApiError(..), expectJsonWithErrorHandling, expectStringWithErrorHandling)
+import Api exposing (RegisteredPlayer, ApiError(..), expectJsonWithErrorHandling, expectStringWithErrorHandling)
 import Base
 import Browser.Navigation as Nav
 import Element as Ui
@@ -152,7 +152,7 @@ initPage opponentId =
         [ performFetchRegisteredPlayerInfo
         , Http.get
             { url = "/api/player/" ++ opponentId
-            , expect = expectJsonWithErrorHandling registeredPlayerDecoder GotFetchPlayerResponse
+            , expect = expectJsonWithErrorHandling Api.registeredPlayerDecoder GotFetchPlayerResponse
             }
         ]
 
@@ -164,20 +164,7 @@ performFetchRegisteredPlayerInfo =
 
 registeredPlayersDecoder : Decoder (List RegisteredPlayer)
 registeredPlayersDecoder =
-    D.list registeredPlayerDecoder
-
-
-type alias RegisteredPlayer =
-    { playerId : String
-    , nickname : String
-    }
-
-
-registeredPlayerDecoder : Decoder RegisteredPlayer
-registeredPlayerDecoder =
-    D.map2 RegisteredPlayer
-        (D.field "playerId" D.string)
-        (D.field "nickname" D.string)
+    D.list Api.registeredPlayerDecoder
 
 
 handleFetchPlayerResponse : Model -> Result ApiError RegisteredPlayer -> ( Model, Cmd Msg )

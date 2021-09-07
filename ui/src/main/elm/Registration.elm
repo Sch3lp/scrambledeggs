@@ -1,16 +1,16 @@
 module Registration exposing (..)
 
-import Api exposing (ApiError(..), expectJsonWithErrorHandling, expectStringWithErrorHandling)
+import Api exposing (ApiError(..), expectStringWithErrorHandling)
 import Base
 import Browser.Navigation as Nav
 import Element as Ui
 import Element.Font as Font
 import Element.Input as Input
 import Http
-import Json.Decode as D exposing (Decoder)
 import Json.Encode
 import OAuth
 import Url.Builder
+import Api exposing (RegisteredPlayer)
 
 
 url : String
@@ -46,13 +46,6 @@ type RegistrationState
     | Registered
     | Failed String
     | CallingAPI
-
-
-type alias RegisteredPlayer =
-    { nickname : String
-
-    -- Other stuff can go here, such as email, avatar
-    }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -154,29 +147,6 @@ viewRegisteredPlayers registeredPlayers =
             registeredPlayers
         )
 
-
-
--- Fetching Players
-
-
-performFetchPlayers =
-    Http.get
-        { url = "/api/player"
-        , expect = expectJsonWithErrorHandling registeredPlayersDecoder GotFetchPlayersResponse
-        }
-
-
-registeredPlayersDecoder : Decoder (List RegisteredPlayer)
-registeredPlayersDecoder =
-    D.list registeredPlayerDecoder
-
-
-registeredPlayerDecoder : Decoder RegisteredPlayer
-registeredPlayerDecoder =
-    D.map RegisteredPlayer <|
-        D.field "nickname" D.string
-
-
 handleFetchPlayersResponse : Model -> Result ApiError (List RegisteredPlayer) -> ( Model, Cmd Msg )
 handleFetchPlayersResponse model result =
     case result of
@@ -223,7 +193,7 @@ handleRegisterPlayerResponse model result =
     case result of
         Ok _ ->
             ( { model | registrationStatus = Registered, registerInput = "" }
-            , performFetchPlayers
+            , Cmd.none --TODO Navigate back to home, while retaining "logged in" status
             )
 
         Err err ->

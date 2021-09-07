@@ -27,7 +27,8 @@ import Json.Decode as Json
 import List
 import OAuth
 import OAuth.Implicit as OAuth
-import Registration exposing (RegisteredPlayer, registeredPlayersDecoder)
+import Api exposing (RegisteredPlayer, registeredPlayersDecoder)
+import Registration
 import Security exposing (convertBytes, defaultHttpUrl)
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>))
@@ -607,14 +608,3 @@ viewMainContent model =
             Home.viewHome model.homeModel
                 |> List.map (Ui.map HomeMsg)
 
-
-
--- TODO
--- * [x] Extract button helper function so that our buttons will always look the same
--- * [x] Split up Main.elm into a registration page and an anonymous home page
--- * [x] Add routing based on Url
--- * [x] Use an OAuth2 elm library that takes care of redirecting and parsing tokens
--- * [x] Verify the JWT Token on successful login, using Auth0 or whatever IDP I can set up.
--- * [x] Make a logout button
--- * [x] Fetch both the recentMatches and the leaderboard at the same time; look at Cmd.batch and Task thing in Elm again
--- * [ ] Replace our own palette with that of Material somehow
