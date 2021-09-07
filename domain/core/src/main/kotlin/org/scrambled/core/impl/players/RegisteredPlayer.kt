@@ -2,6 +2,7 @@ package org.scrambled.core.impl.players
 
 import org.scrambled.core.impl.challenges.Challenge
 import org.scrambled.core.impl.challenges.ChallengeRepository
+import org.scrambled.domain.core.api.UsefulString
 import org.scrambled.domain.core.api.challenging.*
 import org.scrambled.domain.core.api.exceptions.DomainRuntimeException
 import org.scrambled.domain.core.api.players.FetchAllRegisteredPlayers
@@ -21,7 +22,7 @@ data class RegisteredPlayer(
     val nickName: PlayerNickname,
     val externalAccountRef: ExternalAccountRef
 ) {
-    fun challenge(opponent: RegisteredPlayer, comment: String, appointmentSuggestion: String) =
+    fun challenge(opponent: RegisteredPlayer, comment: UsefulString, appointmentSuggestion: UsefulString) =
         Challenge.createChallenge(
             challengerId = this.id,
             opponentId = opponent.id,

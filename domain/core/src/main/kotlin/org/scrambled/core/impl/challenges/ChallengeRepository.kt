@@ -1,6 +1,7 @@
 package org.scrambled.core.impl.challenges
 
 import org.scrambled.domain.core.api.Repository
+import org.scrambled.domain.core.api.UsefulString
 import org.scrambled.domain.core.api.challenging.ChallengeId
 import org.scrambled.domain.core.api.challenging.QueryableChallenge
 import org.scrambled.domain.core.api.challenging.QueryableChallenges
@@ -21,8 +22,8 @@ class ChallengeRepository(
             aggregate.id,
             aggregate.challengerId,
             aggregate.opponentId,
-            aggregate.comment,
-            aggregate.appointmentSuggestion
+            aggregate.comment.value,
+            aggregate.appointmentSuggestion.value
         ).save()
 
     private fun QueryableChallenge.save() = challenges.store(this)
@@ -30,7 +31,7 @@ class ChallengeRepository(
         this.id,
         this.challengerId,
         this.opponentId,
-        comment,
-        appointmentSuggestion
+        UsefulString(this.comment),
+        UsefulString(this.appointmentSuggestion),
     )
 }

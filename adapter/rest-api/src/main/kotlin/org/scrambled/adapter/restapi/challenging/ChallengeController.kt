@@ -1,5 +1,6 @@
 package org.scrambled.adapter.restapi.challenging
 
+import org.scrambled.domain.core.api.UsefulString
 import org.scrambled.domain.core.api.challenging.ChallengePlayer
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.infra.cqrs.CommandExecutor
@@ -32,7 +33,7 @@ class ChallengeController(
     }
 
     private fun ChallengeRequestJson.toCommand() =
-        ChallengePlayer(this.challenger, this.opponent, this.comment, this.appointmentSuggestion)
+        ChallengePlayer(this.challenger, this.opponent, UsefulString(this.comment), UsefulString(this.appointmentSuggestion))
 }
 
 data class ChallengeRequestJson(
