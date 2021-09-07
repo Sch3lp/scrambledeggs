@@ -149,22 +149,9 @@ asChallengeRequest model =
 initPage : PlayerId -> Cmd Msg
 initPage opponentId =
     Cmd.batch
-        [ performFetchRegisteredPlayerInfo
-        , Http.get
-            { url = "/api/player/" ++ opponentId
-            , expect = expectJsonWithErrorHandling Api.registeredPlayerDecoder GotFetchPlayerResponse
-            }
+        [ Api.fetchRegisteredPlayerInfo GotFetchRegisteredPlayerInfoResponse
+        , Api.fetchRegisteredPlayer opponentId GotFetchPlayerResponse
         ]
-
-performFetchRegisteredPlayerInfo =
-    Http.get
-        { url = "/api/player/info"
-        , expect = expectJsonWithErrorHandling registeredPlayersDecoder GotFetchRegisteredPlayerInfoResponse
-        }
-
-registeredPlayersDecoder : Decoder (List RegisteredPlayer)
-registeredPlayersDecoder =
-    D.list Api.registeredPlayerDecoder
 
 
 handleFetchPlayerResponse : Model -> Result ApiError RegisteredPlayer -> ( Model, Cmd Msg )

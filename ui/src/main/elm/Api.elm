@@ -61,6 +61,7 @@ expectJsonWithErrorHandling decoder toMsg =
         )
 
 
+handleBadStatus : { a | statusCode : number } -> String -> Result ApiError value
 handleBadStatus metadata body =
     if metadata.statusCode == 401 then
         Err NotAuthorized
@@ -84,3 +85,19 @@ type alias RegisteredPlayer =
     { playerId : String
     , nickname : String
     }
+
+type alias MsgConstructor successType msg = (Result ApiError successType -> msg)
+
+fetchRegisteredPlayerInfo : MsgConstructor (List RegisteredPlayer) msg -> Cmd msg
+fetchRegisteredPlayerInfo msg =
+    Http.get
+        { url = "/api/player/info"
+        , expect = expectJsonWithErrorHandling registeredPlayersDecoder msg
+        }
+
+fetchRegisteredPlayer : String -> MsgConstructor RegisteredPlayer msg -> Cmd msg
+fetchRegisteredPlayer opponentId msg =
+    Http.get
+            { url = "/api/player/" ++ opponentId
+            , expect = expectJsonWithErrorHandling registeredPlayerDecoder msg
+            }

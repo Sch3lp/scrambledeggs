@@ -27,7 +27,7 @@ import Json.Decode as Json
 import List
 import OAuth
 import OAuth.Implicit as OAuth
-import Api exposing (RegisteredPlayer, registeredPlayersDecoder)
+import Api exposing (RegisteredPlayer)
 import Registration
 import Security exposing (convertBytes, defaultHttpUrl)
 import Url exposing (Url)
@@ -109,7 +109,6 @@ init mflags url key =
 
         currentRoute = parseUrl url
         initPageCmd = initPage currentRoute
-
         partialEmptyModel = emptyModel currentRoute key redirectUri
 
     in
@@ -223,14 +222,6 @@ signOutRequested model =
     )
 
 
-performFetchRegisteredPlayerInfo =
-    Http.get
-        { 
-         url = "/api/player/info"
-        , expect = expectJsonWithErrorHandling registeredPlayersDecoder GotFetchRegisteredPlayerInfoResponse
-        }
-
-
 performExchangeTokenForCookie token =
     Http.request
         { method = "GET"
@@ -256,7 +247,7 @@ gotFetchRegisteredPlayerInfoResponse model response =
 
 
 gotExchangeTokenForCookieResponse model =
-    ( model, performFetchRegisteredPlayerInfo )
+    ( model, Api.fetchRegisteredPlayerInfo GotFetchRegisteredPlayerInfoResponse )
 
 
 
