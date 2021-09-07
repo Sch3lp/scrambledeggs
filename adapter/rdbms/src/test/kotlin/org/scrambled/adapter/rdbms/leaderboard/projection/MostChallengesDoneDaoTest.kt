@@ -49,6 +49,6 @@ class MostChallengesDoneDaoTest {
 
     private inline fun <reified T : Any> String.runQuery(): List<T> {
         val handle = jdbi.open()
-        return handle.createQuery(this).mapTo<T>().list()
+        return handle.createQuery(this).mapTo(T::class.java).list()
     }
 }
