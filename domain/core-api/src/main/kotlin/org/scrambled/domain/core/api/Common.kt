@@ -2,7 +2,8 @@ package org.scrambled.domain.core.api
 
 import org.scrambled.domain.core.api.exceptions.NotValidException
 
-data class UsefulString(private val _s: String) {
+@JvmInline
+value class UsefulString(private val _s: String) {
 
     val value: String
         get() = _s

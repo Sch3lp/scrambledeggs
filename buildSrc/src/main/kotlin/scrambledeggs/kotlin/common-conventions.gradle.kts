@@ -39,7 +39,7 @@ tasks.test {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        languageVersion = "1.4"
+        languageVersion = "1.5"
         freeCompilerArgs = listOf("-Xjsr305=strict")
         jvmTarget = "11"
     }
