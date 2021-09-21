@@ -193,6 +193,7 @@ handleRegisterPlayerResponse model result =
     case result of
         Ok _ ->
             let
+            --TODO: maybe use emptyModel instead, but first check if we need to keep the Token maybe
                 refreshedModel = { model | registrationStatus = Registered, registerInput = "" }
             in
                 Navigation.redirectToHome refreshedModel

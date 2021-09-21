@@ -126,7 +126,7 @@ update msg model =
 
         GotPerformChallengeResponse result ->
             case result of
-                Ok _ -> Navigation.redirectToHome model
+                Ok _ -> Navigation.redirectToHome <| emptyModel model.key
                 _ -> (model, Cmd.none)
 
 
