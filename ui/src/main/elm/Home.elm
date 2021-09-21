@@ -87,18 +87,8 @@ viewHome model =
         [ viewLeaderboardTable model
         , viewRecentMatchesTable model
         ]
-    , Ui.row
-        [ Ui.width Ui.fill
-        , Ui.height Ui.fill
-        , Ui.alignTop
-        , Ui.spacing 16
-        ]
-        [ viewChallengeButton ]
     ]
 
-
-viewChallengeButton =
-    Base.button { isDisabled = False, label = "DummyChallenge" } ChallengeButtonClicked
 
 
 viewLeaderboardTable model =
