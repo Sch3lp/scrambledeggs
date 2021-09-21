@@ -12,11 +12,11 @@ import org.springframework.transaction.annotation.Transactional
 
 @RegisterKotlinMapper(value = ProjectedPlayer::class)
 interface MostChallengesDoneDao: MostChallengesDoneLeaderboardProjection {
-    @SqlQuery("SELECT rank, nickname, score FROM MOST_CHALLENGES_DONE_LEADERBOARD order by rank asc")
+    @SqlQuery("SELECT rank, nickname, score, playerId FROM MOST_CHALLENGES_DONE_LEADERBOARD order by rank asc")
     override fun getRanking(): List<ProjectedPlayer>
 
     @Transactional(transactionManager = "rdbms-tx-mgr")
-    @SqlBatch("INSERT INTO MOST_CHALLENGES_DONE_LEADERBOARD(rank, nickname, score) values(:rank, :nickname, :score)")
+    @SqlBatch("INSERT INTO MOST_CHALLENGES_DONE_LEADERBOARD(rank, nickname, score, playerid) values(:rank, :nickname, :score, :playerId)")
     override fun store(@BindBean players: List<ProjectedPlayer>)
 
     @Transactional(transactionManager = "rdbms-tx-mgr")

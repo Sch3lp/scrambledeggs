@@ -3,10 +3,12 @@ module Home exposing (..)
 import Api exposing (ApiError(..), expectJsonWithErrorHandling)
 import Base
 import Browser.Navigation as Nav
-import Url.Builder as UrlBuilder
 import Element as Ui
+import Element.Font as Font
 import Http
 import Json.Decode as D exposing (Decoder)
+import String exposing (fromInt)
+import Url.Builder as UrlBuilder
 import Widget
 import Widget.Material as Material
 
@@ -18,7 +20,7 @@ type Msg
 
 
 type alias LeaderboardEntry =
-    { rank : Maybe Int, nickname : String }
+    { rank : Maybe Int, nickname : String, playerId: String }
 
 
 type alias Leaderboard =
@@ -69,9 +71,10 @@ update msg model =
         ChallengeButtonClicked ->
             let
                 urlCmd =
-                    Nav.pushUrl model.key <| UrlBuilder.relative ["challenge","8af2cea4-8830-4b57-b5d5-382721e72b1b"] []
+                    Nav.pushUrl model.key <| UrlBuilder.relative [ "challenge", "8af2cea4-8830-4b57-b5d5-382721e72b1b" ] []
             in
-                ( model, urlCmd )
+            ( model, urlCmd )
+
 
 viewHome : Model -> List (Ui.Element Msg)
 viewHome model =
@@ -86,15 +89,17 @@ viewHome model =
         ]
     , Ui.row
         [ Ui.width Ui.fill
-            , Ui.height Ui.fill
-            , Ui.alignTop
-            , Ui.spacing 16
-            ]
+        , Ui.height Ui.fill
+        , Ui.alignTop
+        , Ui.spacing 16
+        ]
         [ viewChallengeButton ]
     ]
 
+
 viewChallengeButton =
     Base.button { isDisabled = False, label = "DummyChallenge" } ChallengeButtonClicked
+
 
 viewLeaderboardTable model =
     Ui.column
@@ -102,27 +107,9 @@ viewLeaderboardTable model =
         [ leaderboard model ]
 
 
+leaderboard : Model -> Ui.Element Msg
 leaderboard model =
-    Widget.sortTable (Material.sortTable Material.defaultPalette)
-        { content = model.leaderboard
-        , columns =
-            [ Widget.unsortableColumn
-                { title = "Rank"
-                , toString = \{ rank } -> rankToString rank
-                , width = Ui.fill
-                }
-            , Widget.stringColumn
-                { title = "NickName"
-                , value = .nickname
-                , toString = identity
-                , width = Ui.fill
-                }
-            ]
-        , asc = True
-        , sortBy = "Rank"
-        , onChange = \_ -> NoOp
-        }
-
+    Base.leaderboardTable Base.palette model.leaderboard
 
 rankToString : Maybe Int -> String
 rankToString maybeInt =
@@ -161,7 +148,10 @@ recentMatchesTable model =
 
 -- Fetching Leaderboard
 
-initPage = performFetchLeaderboard
+
+initPage =
+    performFetchLeaderboard
+
 
 performFetchLeaderboard =
     Http.get
@@ -177,9 +167,10 @@ leaderboardDecoder =
 
 leaderboardEntryDecoder : Decoder LeaderboardEntry
 leaderboardEntryDecoder =
-    D.map2 LeaderboardEntry
+    D.map3 LeaderboardEntry
         (D.maybe (D.field "rank" D.int))
         (D.field "nickname" D.string)
+        (D.field "playerId" D.string)
 
 
 handleFetchLeaderboardResponse : Model -> Result ApiError Leaderboard -> ( Model, Cmd Msg )

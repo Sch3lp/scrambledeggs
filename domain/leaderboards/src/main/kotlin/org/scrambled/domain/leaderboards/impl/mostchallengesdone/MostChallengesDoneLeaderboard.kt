@@ -60,7 +60,7 @@ class MostChallengesDoneLeaderboard private constructor(private val events: List
 
     private fun List<ProjectedPlayerPartial>.build() = this.map { it.build() }
     private fun ProjectedPlayerPartial.build(): ProjectedPlayer =
-        ProjectedPlayer(this.rank, this.nickname, this.score ?: 0)
+        ProjectedPlayer(this.rank, this.nickname, this.score ?: 0, this.playerId)
 
     companion object {
         /**

@@ -75,8 +75,8 @@ class ChallengingScenario {
         runBlocking {
             val leaderboard: List<LeaderboardEntryJson> = schlepsClient.fetchLeaderboardStep()
             assertThat(leaderboard).containsExactly(
-                LeaderboardEntryJson(rank = 1, nickname = "Sch3lp", score = 1),
-                LeaderboardEntryJson(rank = null, nickname = "rgm3", score = 0),
+                LeaderboardEntryJson(rank = 1, nickname = "Sch3lp", score = 1, playerId = sch3lpPlayerId),
+                LeaderboardEntryJson(rank = null, nickname = "rgm3", score = 0, playerId = rgm3PlayerId),
             )
         }
     }

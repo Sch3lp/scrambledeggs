@@ -32,12 +32,13 @@ internal class MostChallengesDonePolicyTest {
 
     @Test
     internal fun `when broadcastEvents are digested, then a completely new MostChallengesDoneLeaderboard projection is regenerated`() {
-        broadcastEvents.keep(BroadcastEvent.PlayerRegisteredForLeaderboard(UUID.randomUUID(), "Sch3lp"))
+        val playerId = UUID.randomUUID()
+        broadcastEvents.keep(BroadcastEvent.PlayerRegisteredForLeaderboard(playerId, "Sch3lp"))
 
         policy.regenerateLeaderboard()
 
         val inOrder = Mockito.inOrder(mostChallengesDoneProjections)
         inOrder.verify(mostChallengesDoneProjections).wipe()
-        inOrder.verify(mostChallengesDoneProjections).store(listOf(ProjectedPlayer(nickname = "Sch3lp", score = 0)))
+        inOrder.verify(mostChallengesDoneProjections).store(listOf(ProjectedPlayer(nickname = "Sch3lp", score = 0, playerId = playerId)))
     }
 }

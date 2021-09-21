@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.test.context.ContextConfiguration
+import java.util.*
 
 
 @JdbcTest
@@ -25,7 +26,7 @@ class MostChallengesDoneDaoTest {
 
     @Test
     fun `MostChallengesDoneDao can store players in the correct table`() {
-        val lionO = ProjectedPlayer(nickname = "Lion-O", score = 0)
+        val lionO = ProjectedPlayer(nickname = "Lion-O", score = 0, playerId = UUID.randomUUID())
 
         projection.store(listOf(lionO))
 
@@ -36,9 +37,9 @@ class MostChallengesDoneDaoTest {
 
     @Test
     fun `getRanking returns players sorted by rank`() {
-        val snarf = ProjectedPlayer(rank = 2, nickname = "Snarf", score = 0)
-        val lionO = ProjectedPlayer(rank = null, nickname = "Lion-O", score = 0)
-        val elFips = ProjectedPlayer(rank = 1, nickname = "elFips", score = 0)
+        val snarf = ProjectedPlayer(rank = 2, nickname = "Snarf", score = 0, UUID.randomUUID())
+        val lionO = ProjectedPlayer(rank = null, nickname = "Lion-O", score = 0, UUID.randomUUID())
+        val elFips = ProjectedPlayer(rank = 1, nickname = "elFips", score = 0, UUID.randomUUID())
 
         projection.store(listOf(snarf, lionO, elFips))
 

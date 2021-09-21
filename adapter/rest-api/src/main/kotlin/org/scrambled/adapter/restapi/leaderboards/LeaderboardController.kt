@@ -13,6 +13,7 @@ data class LeaderboardEntryJson(
     val rank: Rank?,
     val nickname: Nickname,
     val score: Score,
+    val playerId: PlayerId,
 )
 
 @RestController
@@ -37,5 +38,5 @@ class LeaderboardController(
 }
 
 fun List<ProjectedPlayer>.asJson() : List<LeaderboardEntryJson> = this.map {
-    LeaderboardEntryJson(it.rank, it.nickname, it.score)
+    LeaderboardEntryJson(it.rank, it.nickname, it.score, it.playerId)
 }

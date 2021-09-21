@@ -26,8 +26,8 @@ class MostChallengesDoneLeaderboardTest {
 
         assertThat(ranking)
             .containsExactly(
-                ProjectedPlayer(1, "Sch3lp", 2),
-                ProjectedPlayer(2, "Decrip", 1)
+                ProjectedPlayer(1, "Sch3lp", 2, sch3lpId),
+                ProjectedPlayer(2, "Decrip", 1, decripId)
             )
     }
 
@@ -43,8 +43,8 @@ class MostChallengesDoneLeaderboardTest {
 
         assertThat(ranking)
             .containsExactly(
-                ProjectedPlayer(null, "Sch3lp", 0),
-                ProjectedPlayer(null, "Decrip", 0)
+                ProjectedPlayer(null, "Sch3lp", 0, sch3lpId),
+                ProjectedPlayer(null, "Decrip", 0, decripId)
             )
     }
 

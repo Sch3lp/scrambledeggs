@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.await
-import org.springframework.test.context.ActiveProfiles
+import java.util.*
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class RegistrationScenario {
@@ -43,9 +43,10 @@ class RegistrationScenario {
         val playerNickname = "Sch3lp"
         val jwtInfo = JwtInfo("http://google.com", "schlep")
         val client = createClient(jwtInfo)
+        var sch3lpPlayerId: UUID
         runBlocking {
-            val playerId = client.registerPlayerStep(playerNickname).expectSuccess()
-            val registeredPlayer = client.fetchPlayerStep(playerId)
+            sch3lpPlayerId = client.registerPlayerStep(playerNickname).expectSuccess()
+            val registeredPlayer = client.fetchPlayerStep(sch3lpPlayerId)
             assertThat(registeredPlayer.nickname).isEqualTo("Sch3lp")
             val registeredPlayers = client.fetchAllPlayersStep()
             assertThat(registeredPlayers)
@@ -59,7 +60,12 @@ class RegistrationScenario {
         runBlocking { client.triggerLeaderboardRehydration() }
         runBlocking {
             val leaderboard: List<LeaderboardEntryJson> = client.fetchLeaderboardStep()
-            assertThat(leaderboard).containsExactly(LeaderboardEntryJson(rank = null, nickname = "Sch3lp", score = 0))
+            assertThat(leaderboard).containsExactly(LeaderboardEntryJson(
+                rank = null,
+                nickname = "Sch3lp",
+                score = 0,
+                playerId = sch3lpPlayerId
+            ))
         }
         runBlocking {
             val registeredPlayer = client.fetchPlayerByJwtInfoStep()
@@ -72,9 +78,10 @@ class RegistrationScenario {
         val jwtInfo = JwtInfo("http://google.com", "coreDusk")
         val client = createClient(jwtInfo)
         val playerNickname = "CoredusK"
+        var coreDuskPlayerId: UUID
         runBlocking {
-            val playerId = client.registerPlayerStep(playerNickname).expectSuccess()
-            val registeredPlayer = client.fetchPlayerStep(playerId)
+            coreDuskPlayerId = client.registerPlayerStep(playerNickname).expectSuccess()
+            val registeredPlayer = client.fetchPlayerStep(coreDuskPlayerId)
             assertThat(registeredPlayer.nickname).isEqualTo("CoredusK")
             val errorMessage = client.registerPlayerStep(playerNickname).expectFailure()
             assertThat(errorMessage).isEqualTo("You can only register once with the same Epic account")
@@ -88,7 +95,12 @@ class RegistrationScenario {
 
         runBlocking {
             val leaderboard: List<LeaderboardEntryJson> = client.fetchLeaderboardStep()
-            assertThat(leaderboard).containsExactly(LeaderboardEntryJson(rank = null, nickname = "CoredusK", score = 0))
+            assertThat(leaderboard).containsExactly(LeaderboardEntryJson(
+                rank = null,
+                nickname = "CoredusK",
+                score = 0,
+                playerId = coreDuskPlayerId
+            ))
         }
     }
 
