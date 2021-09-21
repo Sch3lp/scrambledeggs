@@ -1,6 +1,6 @@
 module Challenge exposing (..)
 
-import Api exposing (RegisteredPlayer, ApiError(..), expectJsonWithErrorHandling, expectStringWithErrorHandling)
+import Api exposing (ApiError(..), RegisteredPlayer, expectJsonWithErrorHandling, expectStringWithErrorHandling)
 import Base
 import Browser.Navigation as Nav
 import Element as Ui
@@ -143,7 +143,24 @@ asChallengeRequest model =
         , ( "opponent", Json.Encode.string model.opponentId )
         , ( "comment", Json.Encode.string model.comment )
         , ( "appointmentSuggestion", Json.Encode.string model.appointment )
+        , ( "gameMode", Json.Encode.string <| challengeModeAsString model.challengeMode )
         ]
+
+
+challengeModeAsString : GameMode -> String
+challengeModeAsString gameMode =
+    case gameMode of
+        Duel ->
+            "Duel"
+
+        TwoVsTwo ->
+            "TwoVsTwo"
+
+        WipeOut ->
+            "WipeOut"
+
+        CTF ->
+            "CTF"
 
 
 initPage : PlayerId -> Cmd Msg
@@ -168,12 +185,14 @@ handleFetchPlayerResponse model result =
         Err err ->
             handleApiError err model
 
+
 gotFetchRegisteredPlayerInfoResponse model response =
     case response of
         Ok (result :: []) ->
-            ({ model | challengerId = result.playerId }, Cmd.none)
+            ( { model | challengerId = result.playerId }, Cmd.none )
 
-        Ok _ -> -- [], [1,2], [1,2,3]
+        Ok _ ->
+            -- [], [1,2], [1,2,3]
             ( model, Cmd.none )
 
         Err _ ->
