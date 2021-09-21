@@ -22,12 +22,13 @@ data class RegisteredPlayer(
     val nickName: PlayerNickname,
     val externalAccountRef: ExternalAccountRef
 ) {
-    fun challenge(opponent: RegisteredPlayer, comment: UsefulString, appointmentSuggestion: UsefulString) =
+    fun challenge(opponent: RegisteredPlayer, comment: UsefulString, appointmentSuggestion: UsefulString, gameMode: GameMode) =
         Challenge.createChallenge(
             challengerId = this.id,
             opponentId = opponent.id,
             comment = comment,
-            appointmentSuggestion = appointmentSuggestion
+            appointmentSuggestion = appointmentSuggestion,
+            gameMode = gameMode
         )
 }
 
@@ -69,7 +70,7 @@ class ChallengePlayerHandler(
     override fun handle(cmd: ChallengePlayer): Pair<ChallengeId, PlayerChallenged> {
         val challenger = playerRepository.getById(cmd.challenger)
         val opponent = playerRepository.getById(cmd.opponent)
-        val challenge: Challenge = challenger.challenge(opponent, cmd.comment, cmd.appointmentSuggestion)
+        val challenge: Challenge = challenger.challenge(opponent, cmd.comment, cmd.appointmentSuggestion, cmd.gameMode)
         challengeRepository.save(challenge)
         return challenge.id to PlayerChallenged(challenger.id, opponent.id)
     }

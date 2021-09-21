@@ -15,7 +15,7 @@ interface ChallengesDao: QueryableChallenges {
     @SqlQuery("SELECT * FROM CHALLENGES where id = :id")
     override fun getById(@Bind("id") id: ChallengeId): QueryableChallenge?
 
-    @SqlUpdate("INSERT INTO CHALLENGES(id, challengerId, opponentId, comment, appointmentsuggestion) values(:id, :challengerId, :opponentId, :comment, :appointmentSuggestion)")
+    @SqlUpdate("INSERT INTO CHALLENGES(id, challengerId, opponentId, comment, appointmentsuggestion, gamemode) values(:id, :challengerId, :opponentId, :comment, :appointmentSuggestion, :gameMode)")
     override fun store(@BindKotlin queryableChallenge: QueryableChallenge)
 
     @SqlQuery("SELECT * FROM CHALLENGES where challengerId = :challengerId and opponentId = :opponentId")

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.scrambled.domain.core.api.UsefulString
+import org.scrambled.domain.core.api.challenging.GameMode
 import org.scrambled.domain.core.api.exceptions.NotValidException
 import java.util.*
 
@@ -15,7 +16,7 @@ class ChallengeTest {
         val challengerId = UUID.randomUUID()
 
         assertThatExceptionOfType(NotValidException::class.java)
-            .isThrownBy { Challenge.createChallenge(challengerId, challengerId, UsefulString("comment"), UsefulString("some day")) }
+            .isThrownBy { Challenge.createChallenge(challengerId, challengerId, UsefulString("comment"), UsefulString("some day"), GameMode.CTF) }
             .withMessage("You cannot challenge yourself.")
     }
 }

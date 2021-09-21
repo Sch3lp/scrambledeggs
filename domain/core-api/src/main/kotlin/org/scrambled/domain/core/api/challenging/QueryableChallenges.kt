@@ -9,5 +9,6 @@ data class QueryableChallenge(val id: ChallengeId,
                               val challengerId: ChallengerId,
                               val opponentId: OpponentId,
                               val comment: String,
-                              val appointmentSuggestion: String
+                              val appointmentSuggestion: String,
+                              val gameMode: GameMode = GameMode.CTF,
 )

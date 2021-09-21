@@ -23,7 +23,8 @@ class ChallengeRepository(
             aggregate.challengerId,
             aggregate.opponentId,
             aggregate.comment.value,
-            aggregate.appointmentSuggestion.value
+            aggregate.appointmentSuggestion.value,
+            aggregate.gameMode
         ).save()
 
     private fun QueryableChallenge.save() = challenges.store(this)
@@ -33,5 +34,6 @@ class ChallengeRepository(
         this.opponentId,
         UsefulString(this.comment),
         UsefulString(this.appointmentSuggestion),
+        this.gameMode,
     )
 }

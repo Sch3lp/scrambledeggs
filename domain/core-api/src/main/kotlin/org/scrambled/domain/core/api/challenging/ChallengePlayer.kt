@@ -9,13 +9,18 @@ data class ChallengePlayer(
     val challenger: ChallengerId,
     val opponent: OpponentId,
     val comment: UsefulString,
-    val appointmentSuggestion: UsefulString
-): Command<ChallengeId>
+    val appointmentSuggestion: UsefulString,
+    val gameMode: GameMode
+) : Command<ChallengeId>
 
-data class PlayerChallenged(val challenger: ChallengerId, val opponent: OpponentId): DomainEvent()
+data class PlayerChallenged(val challenger: ChallengerId, val opponent: OpponentId) : DomainEvent()
 
 typealias ChallengerId = PlayerId
 typealias OpponentId = PlayerId
 typealias PlayerId = UUID
 typealias PlayerNickname = String
 typealias ChallengeId = UUID
+
+enum class GameMode {
+    Duel, TwoVsTwo, WipeOut, CTF
+}

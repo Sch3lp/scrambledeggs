@@ -1,10 +1,7 @@
 package org.scrambled.core.impl.challenges
 
 import org.scrambled.domain.core.api.UsefulString
-import org.scrambled.domain.core.api.challenging.ChallengeId
-import org.scrambled.domain.core.api.challenging.ChallengerId
-import org.scrambled.domain.core.api.challenging.OpponentId
-import org.scrambled.domain.core.api.challenging.PlayerId
+import org.scrambled.domain.core.api.challenging.*
 import org.scrambled.domain.core.api.exceptions.NotValidException
 import java.util.*
 
@@ -13,7 +10,8 @@ data class Challenge(
     val challengerId: ChallengerId,
     val opponentId: OpponentId,
     val comment: UsefulString,
-    val appointmentSuggestion: UsefulString
+    val appointmentSuggestion: UsefulString,
+    val gameMode: GameMode
 ) {
     init {
         validateNotChallengingYourself(challengerId, opponentId)
@@ -33,9 +31,10 @@ data class Challenge(
             challengerId: PlayerId,
             opponentId: PlayerId,
             comment: UsefulString,
-            appointmentSuggestion: UsefulString
+            appointmentSuggestion: UsefulString,
+            gameMode: GameMode,
         ): Challenge {
-            return Challenge(UUID.randomUUID(), challengerId, opponentId, comment, appointmentSuggestion)
+            return Challenge(UUID.randomUUID(), challengerId, opponentId, comment, appointmentSuggestion, gameMode)
         }
     }
 }

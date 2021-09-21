@@ -1,6 +1,5 @@
 package org.scrambled.scenariotests.scenarios
 
-import io.ktor.client.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -13,8 +12,8 @@ import org.scrambled.adapter.eventsourcing.eventstore.PostgresEventStore
 import org.scrambled.adapter.rdbms.core.challenges.ChallengesDao
 import org.scrambled.adapter.restapi.JwtInfo
 import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
+import org.scrambled.domain.core.api.challenging.GameMode
 import org.scrambled.domain.core.api.challenging.PlayerId
-import org.scrambled.domain.core.api.challenging.QueryableChallenge
 import org.scrambled.scenariotests.steps.client.createClient
 import org.scrambled.scenariotests.steps.core.*
 import org.scrambled.scenariotests.steps.leaderboard.fetchLeaderboardStep
@@ -59,11 +58,13 @@ class ChallengingScenario {
 
             rgm3PlayerId = rgmsClient.registerPlayerStep("rgm3").expectSuccess()
 
-            schlepsClient.challengePlayerStep(sch3lpPlayerId, rgm3PlayerId, comment, suggestion).expectSuccess()
+            schlepsClient.challengePlayerStep(sch3lpPlayerId, rgm3PlayerId, comment, suggestion, GameMode.Duel).expectSuccess()
         }
 
-        val challenge = challengeDao.findChallenge(sch3lpPlayerId, rgm3PlayerId).last().let { it.comment to it.appointmentSuggestion }
-        assertThat(challenge).isEqualTo(comment to suggestion)
+        val challenge = challengeDao.findChallenge(sch3lpPlayerId, rgm3PlayerId).last()
+        assertThat(challenge.comment).isEqualTo(comment)
+        assertThat(challenge.appointmentSuggestion).isEqualTo(suggestion)
+        assertThat(challenge.gameMode).isEqualTo(GameMode.Duel)
 
         runBlocking {
             val firstPlayerChallenged = eventStream.filterEvents<Event.PlayerChallenged>().first()

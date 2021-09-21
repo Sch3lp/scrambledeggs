@@ -2,6 +2,7 @@ package org.scrambled.adapter.restapi.challenging
 
 import org.scrambled.domain.core.api.UsefulString
 import org.scrambled.domain.core.api.challenging.ChallengePlayer
+import org.scrambled.domain.core.api.challenging.GameMode
 import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.infra.cqrs.CommandExecutor
 import org.springframework.http.MediaType
@@ -33,7 +34,13 @@ class ChallengeController(
     }
 
     private fun ChallengeRequestJson.toCommand() =
-        ChallengePlayer(this.challenger, this.opponent, UsefulString(this.comment), UsefulString(this.appointmentSuggestion))
+        ChallengePlayer(
+            this.challenger,
+            this.opponent,
+            UsefulString(this.comment),
+            UsefulString(this.appointmentSuggestion),
+            this.gameMode
+        )
 }
 
 data class ChallengeRequestJson(
@@ -41,4 +48,5 @@ data class ChallengeRequestJson(
     val opponent: PlayerId,
     val comment: String,
     val appointmentSuggestion: String,
+    val gameMode: GameMode,
 )
