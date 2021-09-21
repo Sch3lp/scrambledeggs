@@ -12,7 +12,7 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 
 -}
 
-import Api exposing (ApiError, expectJsonWithErrorHandling, expectStringWithErrorHandling)
+import Api exposing (ApiError, expectStringWithErrorHandling)
 import Base
 import Browser exposing (UrlRequest)
 import Browser.Navigation as Nav exposing (Key)

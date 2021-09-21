@@ -3,6 +3,7 @@ module Challenge exposing (..)
 import Api exposing (ApiError(..), RegisteredPlayer, expectJsonWithErrorHandling, expectStringWithErrorHandling)
 import Base
 import Browser.Navigation as Nav
+import Navigation
 import Element as Ui
 import Element.Input as Input
 import Http
@@ -123,8 +124,11 @@ update msg model =
         GotFetchRegisteredPlayerInfoResponse resp ->
             gotFetchRegisteredPlayerInfoResponse model resp
 
-        GotPerformChallengeResponse _ ->
-            ( model, Cmd.none )
+        GotPerformChallengeResponse result ->
+            case result of
+                Ok _ -> Navigation.redirectToHome model
+                _ -> (model, Cmd.none)
+
 
 
 performChallenge : Model -> Cmd Msg

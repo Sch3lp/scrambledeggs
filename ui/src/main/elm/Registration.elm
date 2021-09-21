@@ -11,6 +11,7 @@ import Json.Encode
 import OAuth
 import Url.Builder
 import Api exposing (RegisteredPlayer)
+import Navigation
 
 
 url : String
@@ -59,7 +60,6 @@ update msg model =
         RegisterButtonClicked ->
             registerPlayer model
 
-        -- Todo actually implement redirecting to register screen
         GotRegisterPlayerResponse result ->
             handleRegisterPlayerResponse model result
 
@@ -192,9 +192,10 @@ handleRegisterPlayerResponse : Model -> Result ApiError () -> ( Model, Cmd Msg )
 handleRegisterPlayerResponse model result =
     case result of
         Ok _ ->
-            ( { model | registrationStatus = Registered, registerInput = "" }
-            , Cmd.none --TODO Navigate back to home, while retaining "logged in" status
-            )
+            let
+                refreshedModel = { model | registrationStatus = Registered, registerInput = "" }
+            in
+                Navigation.redirectToHome refreshedModel
 
         Err err ->
             handleApiError err model
