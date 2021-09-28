@@ -57,9 +57,7 @@ class QueryExecutor(private val queryHandlers: List<QueryHandler<*, *>>) {
             .first { handler -> query::class == handler.queryType }
 }
 
-interface Query<Aggregate> {
-    val id: AggregateId
-}
+interface Query<Aggregate>
 
 @Transactional(transactionManager = "rdbms-tx-mgr")
 interface QueryHandler<Q : Query<Representation>, Representation> {

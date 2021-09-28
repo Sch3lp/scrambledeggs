@@ -21,17 +21,13 @@ internal class QueryExecutorTest {
 }
 
 data class Song(val artist: String, val title: String)
-data class FindByArtist(val artist: String) : Query<Song> {
-    override val id: AggregateId = UUID.randomUUID()
-}
+data class FindByArtist(val artist: String) : Query<Song>
 class FindByArtistHandler(val songDb: List<Song>) : QueryHandler<FindByArtist, Song> {
     override val queryType = FindByArtist::class
     override fun handle(query: FindByArtist) = songDb.first { it.artist == query.artist }
 }
 
-data class FindByTitle(val title: String) : Query<Song> {
-    override val id: AggregateId = UUID.randomUUID()
-}
+data class FindByTitle(val title: String) : Query<Song>
 class FindByTitleHandler(val songDb: List<Song>) : QueryHandler<FindByTitle, Song> {
     override val queryType = FindByTitle::class
     override fun handle(query: FindByTitle) = songDb.first { it.title == query.title }
