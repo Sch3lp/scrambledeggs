@@ -7,11 +7,9 @@ import org.scrambled.domain.core.api.challenging.PlayerId
 import org.scrambled.infra.cqrs.CommandExecutor
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
+import java.util.*
 
 @RestController
 @RequestMapping(
@@ -23,14 +21,23 @@ class ChallengeController(
 ) {
 
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun challengePlayer(@RequestBody(required = true) challengeRequest: ChallengeRequestJson,
-                        builder: UriComponentsBuilder
+    fun challengePlayer(
+        @RequestBody(required = true) challengeRequest: ChallengeRequestJson,
+        builder: UriComponentsBuilder
     ): ResponseEntity<String> {
         val createdChallengeId = commandExecutor.execute(challengeRequest.toCommand())
 
         val locationUri = builder.path("/api/challenge/{id}").buildAndExpand(createdChallengeId).toUri()
 
         return ResponseEntity.created(locationUri).build()
+    }
+
+    @GetMapping("/pending")
+    fun pendingChallenges(): List<PendingChallengeJson> {
+        return listOf(
+            PendingChallengeJson(UUID.randomUUID(), GameMode.Duel, "YoMomma", "whenever you want"),
+            PendingChallengeJson(UUID.randomUUID(), GameMode.CTF, "Thundercats", "next weekend somewhere"),
+        )
     }
 
     private fun ChallengeRequestJson.toCommand() =
@@ -49,4 +56,12 @@ data class ChallengeRequestJson(
     val comment: String,
     val appointmentSuggestion: String,
     val gameMode: GameMode,
+)
+
+
+data class PendingChallengeJson(
+    val challengeId: PlayerId,
+    val gameMode: GameMode,
+    val opponentName: String,
+    val appointment: String,
 )

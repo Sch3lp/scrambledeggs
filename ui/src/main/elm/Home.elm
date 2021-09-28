@@ -1,34 +1,54 @@
 module Home exposing (..)
 
-import Api exposing (ApiError(..), expectJsonWithErrorHandling)
+import Api exposing (ApiError(..), PendingChallengeEntry, expectJsonWithErrorHandling)
 import Base
 import Browser.Navigation as Nav
+import CommonTypes exposing (GameMode(..))
 import Element as Ui
 import Http
 import Json.Decode as D exposing (Decoder)
 import Url.Builder as UrlBuilder
-import CommonTypes exposing (GameMode(..))
+import Api exposing (fetchPendingChallenges)
 
 
 type Msg
     = NoOp
     | GotFetchLeaderboardResponse (Result ApiError Leaderboard)
+    | GotFetchPendingChallengesResponse (Result ApiError PendingChallenges)
     | ChallengeButtonClicked
 
 
 type alias LeaderboardEntry =
-    { rank : Maybe Int, nickname : String, playerId: String }
+    { rank : Maybe Int, nickname : String, playerId : String }
 
 
 type alias Leaderboard =
     List LeaderboardEntry
 
 
+type alias PendingChallenges =
+    List PendingChallengeEntry
+
+
 type alias Model =
     { leaderboard : Leaderboard
+    , pendingChallenges : PendingChallenges
     , apiFailure : Maybe String
     , key : Nav.Key
     }
+
+
+handleFetchPendingChallengesResponse : Model -> Result ApiError PendingChallenges -> ( Model, Cmd Msg )
+handleFetchPendingChallengesResponse model result =
+    case result of
+        Ok refreshedPendingChallenges ->
+            ( refreshedPendingChallenges
+                |> asPendingChallenges model
+            , Cmd.none
+            )
+
+        Err err ->
+            handleApiError err model
 
 
 setApiFailure : String -> Model -> Model
@@ -51,9 +71,19 @@ asLeaderboardIn homeModel newLeaderboard =
     setLeaderboard newLeaderboard homeModel
 
 
+setPendingChallenges : PendingChallenges -> Model -> Model
+setPendingChallenges newPendingChallenges model =
+    { model | pendingChallenges = newPendingChallenges }
+
+
+asPendingChallenges : Model -> PendingChallenges -> Model
+asPendingChallenges model newPendingChallenges =
+    setPendingChallenges newPendingChallenges model
+
+
 emptyModel : Nav.Key -> Model
 emptyModel =
-    Model [] Nothing
+    Model [] [] Nothing
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -64,6 +94,9 @@ update msg model =
 
         GotFetchLeaderboardResponse result ->
             handleFetchLeaderboardResponse model result
+
+        GotFetchPendingChallengesResponse result ->
+            handleFetchPendingChallengesResponse model result
 
         ChallengeButtonClicked ->
             let
@@ -87,7 +120,6 @@ viewHome model =
     ]
 
 
-
 viewLeaderboardTable model =
     Ui.column
         [ Ui.width Ui.fill, Ui.paddingXY 20 0 ]
@@ -106,13 +138,7 @@ viewPendingChallengesTable model =
 
 
 pendingChallengesTable model =
-    let
-        dummyChallenges = [
-            { challengeId = "123", gameMode = Duel, opponentName = "Snarf", appointment = "whenever you feel like it" }
-            ,{ challengeId = "456", gameMode = CTF, opponentName = "NUT5!", appointment = "next saturday at 20:00" }
-            ]
-    in
-    Base.pendingChallengesTable Base.palette dummyChallenges
+    Base.pendingChallengesTable Base.palette model.pendingChallenges
 
 
 
@@ -120,7 +146,7 @@ pendingChallengesTable model =
 
 
 initPage =
-    performFetchLeaderboard
+    Cmd.batch [performFetchLeaderboard, fetchPendingChallenges GotFetchPendingChallengesResponse]
 
 
 performFetchLeaderboard =

@@ -10,6 +10,7 @@ import Json.Decode as D
 import String exposing (fromInt)
 import Url.Builder as UrlBuilder
 import CommonTypes exposing (GameMode,gameModeAsString)
+import Api exposing (PendingChallengeEntry)
 
 
 type alias ButtonProps =
@@ -102,8 +103,7 @@ rankAsString rank =
 pendingChallengesTablePadding =
     { top = 0, bottom = 0, left = 10, right = 0 }
 
-type alias PendingChallengeEntry =
-    { challengeId : String, gameMode : GameMode, opponentName : String, appointment : String }
+
 
 pendingChallengesTable : Palette -> List PendingChallengeEntry -> Ui.Element msg
 pendingChallengesTable givenPalette pendingChallenges =

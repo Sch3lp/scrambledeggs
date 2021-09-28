@@ -1,23 +1,19 @@
 module Challenge exposing (..)
 
-import Api exposing (ApiError(..), RegisteredPlayer, expectJsonWithErrorHandling, expectStringWithErrorHandling)
+import Api exposing (ApiError(..), RegisteredPlayer, expectStringWithErrorHandling)
 import Base
 import Browser.Navigation as Nav
 import Navigation
 import Element as Ui
 import Element.Input as Input
 import Http
-import Json.Decode as D exposing (Decoder)
 import Json.Encode
-import Widget
-import Widget.Material as Material
 import CommonTypes exposing (GameMode)
 import CommonTypes exposing (GameMode(..))
 
 
 type Msg
     = NoOp
-    | GotFetchPendingChallengesResponse (Result ApiError PendingChallenges)
     | GotFetchPlayerResponse (Result ApiError RegisteredPlayer)
     | GotFetchRegisteredPlayerInfoResponse (Result ApiError (List RegisteredPlayer))
     | GotPerformChallengeResponse (Result ApiError ())
@@ -25,16 +21,6 @@ type Msg
     | AppointmentChanged String
     | CommentChanged String
     | ChallengeButtonClicked
-
-
-type alias PendingChallenge =
-    { challengeText : String }
-
-
-type alias PendingChallenges =
-    List PendingChallenge
-
-
 
 
 
@@ -49,7 +35,6 @@ type alias Model =
     , challengeMode : GameMode
     , appointment : String
     , comment : String
-    , pendingChallenges : PendingChallenges
     , apiFailure : Maybe String
     , key : Nav.Key
     }
@@ -80,19 +65,10 @@ setComment updatedComment model =
     { model | comment = updatedComment }
 
 
-setPendingChallenges : PendingChallenges -> Model -> Model
-setPendingChallenges newPendingChallenges model =
-    { model | pendingChallenges = newPendingChallenges }
-
-
-asPendingChallenges : Model -> PendingChallenges -> Model
-asPendingChallenges model newPendingChallenges =
-    setPendingChallenges newPendingChallenges model
-
 
 emptyModel : Nav.Key -> Model
 emptyModel =
-    Model "" "" "" Duel "" "" [] Nothing
+    Model "" "" "" Duel "" "" Nothing
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -100,9 +76,6 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
-
-        GotFetchPendingChallengesResponse result ->
-            handleFetchPendingChallengesResponse model result
 
         ChallengeButtonClicked ->
             ( model, performChallenge model )
@@ -286,70 +259,10 @@ viewCommentInput comment =
 
 
 viewPendingChallengesTable : Model -> Ui.Element Msg
-viewPendingChallengesTable model =
+viewPendingChallengesTable _ =
     Ui.column
         [ Ui.width Ui.fill, Ui.paddingXY 20 0, Ui.alignTop ]
-        [ pendingChallenges model ]
-
-
-pendingChallenges : Model -> Ui.Element Msg
-pendingChallenges model =
-    Widget.sortTable (Material.sortTable Material.defaultPalette)
-        { content = model.pendingChallenges
-        , columns =
-            [ Widget.stringColumn
-                { title = "Pending"
-                , value = .challengeText
-                , toString = identity
-                , width = Ui.fill
-                }
-            ]
-        , asc = True
-        , sortBy = "None"
-        , onChange = \_ -> NoOp
-        }
-
-
-rankToString : Maybe Int -> String
-rankToString maybeInt =
-    maybeInt
-        |> Maybe.map (\int -> "#" ++ String.fromInt int)
-        |> Maybe.withDefault ""
-
-
-
--- Fetching Pending Challenges
-
-
-performFetchPendingChallenges =
-    Http.get
-        { url = "/api/challenges"
-        , expect = expectJsonWithErrorHandling pendingChallengesDecoder GotFetchPendingChallengesResponse
-        }
-
-
-pendingChallengesDecoder : Decoder PendingChallenges
-pendingChallengesDecoder =
-    D.list pendingChallengeDecoder
-
-
-pendingChallengeDecoder : Decoder PendingChallenge
-pendingChallengeDecoder =
-    D.map PendingChallenge
-        (D.field "challengeText" D.string)
-
-
-handleFetchPendingChallengesResponse : Model -> Result ApiError PendingChallenges -> ( Model, Cmd Msg )
-handleFetchPendingChallengesResponse model result =
-    case result of
-        Ok refreshedPendingChallenges ->
-            ( refreshedPendingChallenges
-                |> asPendingChallenges model
-            , Cmd.none
-            )
-
-        Err err ->
-            handleApiError err model
+        [ Ui.text "pending challenges should go here" ]
 
 
 handleApiError : ApiError -> Model -> ( Model, Cmd msg )

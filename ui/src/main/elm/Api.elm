@@ -2,6 +2,7 @@ module Api exposing (..)
 
 import Http
 import Json.Decode as D exposing (Decoder)
+import CommonTypes exposing (GameMode,GameMode(..))
 
 
 type ApiError
@@ -100,4 +101,36 @@ fetchRegisteredPlayer opponentId msg =
     Http.get
             { url = "/api/player/" ++ opponentId
             , expect = expectJsonWithErrorHandling registeredPlayerDecoder msg
+            }
+
+
+type alias PendingChallengeEntry =
+    { challengeId : String, gameMode : GameMode, opponentName : String, appointment : String }
+    
+pendingChallengesDecoder: Decoder (List PendingChallengeEntry)
+pendingChallengesDecoder = 
+    D.list pendingChallengeDecoder
+
+pendingChallengeDecoder: Decoder PendingChallengeEntry
+pendingChallengeDecoder = 
+    D.map4 PendingChallengeEntry
+        (D.field "challengeId" D.string)
+        (D.field "gameMode" D.string |> D.andThen toGameMode)
+        (D.field "opponentName" D.string)
+        (D.field "appointment" D.string)
+
+toGameMode : String -> Decoder GameMode
+toGameMode s =
+    case s of
+       "Duel" -> D.succeed Duel
+       "CTF" -> D.succeed CTF
+       "TwoVsTwo" -> D.succeed TwoVsTwo
+       "WipeOut" -> D.succeed WipeOut
+       _ -> D.fail "Couldn't parse GameMode"
+
+fetchPendingChallenges : MsgConstructor (List PendingChallengeEntry) msg -> Cmd msg
+fetchPendingChallenges msg =
+    Http.get
+            { url = "/api/challenge/pending"
+            , expect = expectJsonWithErrorHandling pendingChallengesDecoder msg
             }
