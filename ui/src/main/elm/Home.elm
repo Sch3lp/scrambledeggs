@@ -4,13 +4,10 @@ import Api exposing (ApiError(..), expectJsonWithErrorHandling)
 import Base
 import Browser.Navigation as Nav
 import Element as Ui
-import Element.Font as Font
 import Http
 import Json.Decode as D exposing (Decoder)
-import String exposing (fromInt)
 import Url.Builder as UrlBuilder
-import Widget
-import Widget.Material as Material
+import CommonTypes exposing (GameMode(..))
 
 
 type Msg
@@ -85,7 +82,7 @@ viewHome model =
         , Ui.spacing 16
         ]
         [ viewLeaderboardTable model
-        , viewRecentMatchesTable model
+        , viewPendingChallengesTable model
         ]
     ]
 
@@ -101,38 +98,21 @@ leaderboard : Model -> Ui.Element Msg
 leaderboard model =
     Base.leaderboardTable Base.palette model.leaderboard
 
-rankToString : Maybe Int -> String
-rankToString maybeInt =
-    maybeInt
-        |> Maybe.map (\int -> "#" ++ String.fromInt int)
-        |> Maybe.withDefault ""
 
-
-viewRecentMatchesTable model =
+viewPendingChallengesTable model =
     Ui.column
         [ Ui.width Ui.fill ]
-        [ recentMatchesTable model ]
+        [ pendingChallengesTable model ]
 
 
-recentMatchesTable model =
-    Widget.sortTable (Material.sortTable Material.defaultPalette)
-        { content =
-            [ "Evsie 9 vs. 7 Sch3lp | Duel"
-            , "Sch3lp 10 vs. 9 Evsie | Duel"
-            , "MUR! 8 vs. 3 NUT5! | CTF"
+pendingChallengesTable model =
+    let
+        dummyChallenges = [
+            { challengeId = "123", gameMode = Duel, opponentName = "Snarf", appointment = "whenever you feel like it" }
+            ,{ challengeId = "456", gameMode = CTF, opponentName = "NUT5!", appointment = "next saturday at 20:00" }
             ]
-        , columns =
-            [ Widget.stringColumn
-                { title = "Recent matches"
-                , value = identity
-                , toString = identity
-                , width = Ui.fill
-                }
-            ]
-        , asc = True
-        , sortBy = "Recent matches"
-        , onChange = \_ -> NoOp
-        }
+    in
+    Base.pendingChallengesTable Base.palette dummyChallenges
 
 
 

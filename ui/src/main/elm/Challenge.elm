@@ -11,6 +11,8 @@ import Json.Decode as D exposing (Decoder)
 import Json.Encode
 import Widget
 import Widget.Material as Material
+import CommonTypes exposing (GameMode)
+import CommonTypes exposing (GameMode(..))
 
 
 type Msg
@@ -33,11 +35,7 @@ type alias PendingChallenges =
     List PendingChallenge
 
 
-type GameMode
-    = Duel
-    | TwoVsTwo
-    | WipeOut
-    | CTF
+
 
 
 type alias PlayerId =

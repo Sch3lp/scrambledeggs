@@ -1,4 +1,4 @@
-module Base exposing (ButtonProps, button, contrastedPalette, leaderboardTable, onEnter, palette)
+module Base exposing (ButtonProps, button, contrastedPalette, leaderboardTable, onEnter, palette, pendingChallengesTable)
 
 import Element as Ui
 import Element.Background as Background
@@ -9,6 +9,7 @@ import Html.Events
 import Json.Decode as D
 import String exposing (fromInt)
 import Url.Builder as UrlBuilder
+import CommonTypes exposing (GameMode,gameModeAsString)
 
 
 type alias ButtonProps =
@@ -72,12 +73,16 @@ leaderboardTable givenPalette leaderboard =
             ]
         }
 
+
+
 --TODO: Ui.link generates a simple href, but maybe we want to use Nav.pushUrl,
 -- eventhough that requires a Nav.key which we need to pass all the way down ?
+
+
 entryAsLink givenPalette entry =
     Ui.link [ Ui.paddingEach leaderboardTablePadding ] <|
         { url = UrlBuilder.relative [ "challenge", entry.playerId ] []
-        , label = Ui.el [Font.color givenPalette.href ] <| Ui.text entry.nickname
+        , label = Ui.el [ Font.color givenPalette.href ] <| Ui.text entry.nickname
         }
 
 
@@ -92,6 +97,40 @@ columnHeader givenPalette title =
 
 rankAsString rank =
     Maybe.withDefault "" <| Maybe.map (\i -> i |> fromInt |> String.append "#") rank
+
+
+pendingChallengesTablePadding =
+    { top = 0, bottom = 0, left = 10, right = 0 }
+
+type alias PendingChallengeEntry =
+    { challengeId : String, gameMode : GameMode, opponentName : String, appointment : String }
+
+pendingChallengesTable : Palette -> List PendingChallengeEntry -> Ui.Element msg
+pendingChallengesTable givenPalette pendingChallenges =
+    Ui.table []
+        { data = pendingChallenges
+        , columns =
+            [ { header = columnHeader givenPalette "Pending Challenges"
+              , width = Ui.fill
+              , view =
+                    \entry ->
+                        Ui.el [ Ui.paddingEach pendingChallengesTablePadding ] <| Ui.text <| viewChallengeEntry entry
+              }
+            ]
+        }
+
+
+viewChallengeEntry : PendingChallengeEntry -> String
+viewChallengeEntry entry =
+    let
+        gameMode = gameModeAsString entry.gameMode
+        -- "mode vs. opponent appointment"
+        opponent = entry.opponentName
+        appointment = entry.appointment
+        
+    in
+        gameMode ++ " vs. " ++ opponent ++ " " ++ appointment
+
 
 
 
@@ -154,3 +193,6 @@ contrast p =
         , primary = Ui.rgb255 150 150 150
         , error = Ui.rgb255 178 15 15
     }
+
+
+
