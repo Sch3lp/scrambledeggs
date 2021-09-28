@@ -1,4 +1,4 @@
-package org.scrambled.domain.core.api.challenging
+package org.scrambled.domain.core.api.challenges
 
 interface QueryableChallenges {
     fun getById(id: ChallengeId): QueryableChallenge?

@@ -11,11 +11,14 @@ import org.scrambled.adapter.eventsourcing.api.filterEvents
 import org.scrambled.adapter.eventsourcing.eventstore.PostgresEventStore
 import org.scrambled.adapter.rdbms.core.challenges.ChallengesDao
 import org.scrambled.adapter.restapi.JwtInfo
+import org.scrambled.adapter.restapi.challenging.PendingChallengeJson
 import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
-import org.scrambled.domain.core.api.challenging.GameMode
-import org.scrambled.domain.core.api.challenging.PlayerId
+import org.scrambled.domain.core.api.challenges.GameMode
+import org.scrambled.domain.core.api.challenges.PlayerId
 import org.scrambled.scenariotests.steps.client.createClient
-import org.scrambled.scenariotests.steps.core.*
+import org.scrambled.scenariotests.steps.core.challengePlayerStep
+import org.scrambled.scenariotests.steps.core.fetchPendingChallengesStep
+import org.scrambled.scenariotests.steps.core.registerPlayerStep
 import org.scrambled.scenariotests.steps.leaderboard.fetchLeaderboardStep
 import org.scrambled.scenariotests.steps.leaderboard.triggerLeaderboardRehydration
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,16 +52,16 @@ class ChallengingScenario {
         var sch3lpPlayerId: PlayerId
         val rgm3JwtInfo = JwtInfo("http://google.com", "monsieurRgm")
         var rgm3PlayerId: PlayerId
-        val schlepsClient = createClient(sch3lpsJwtInfo)
-        val rgmsClient = createClient(rgm3JwtInfo)
+        val challengerClient = createClient(sch3lpsJwtInfo)
+        val opponentClient = createClient(rgm3JwtInfo)
         val comment = "Some comment"
         val suggestion = "Next wednesday at 20:00"
         runBlocking{
-            sch3lpPlayerId = schlepsClient.registerPlayerStep("Sch3lp").expectSuccess()
+            sch3lpPlayerId = challengerClient.registerPlayerStep("Sch3lp").expectSuccess()
 
-            rgm3PlayerId = rgmsClient.registerPlayerStep("rgm3").expectSuccess()
+            rgm3PlayerId = opponentClient.registerPlayerStep("rgm3").expectSuccess()
 
-            schlepsClient.challengePlayerStep(sch3lpPlayerId, rgm3PlayerId, comment, suggestion, GameMode.Duel).expectSuccess()
+            challengerClient.challengePlayerStep(sch3lpPlayerId, rgm3PlayerId, comment, suggestion, GameMode.Duel).expectSuccess()
         }
 
         val challenge = challengeDao.findChallenge(sch3lpPlayerId, rgm3PlayerId).last()
@@ -71,12 +74,19 @@ class ChallengingScenario {
             assertThat(firstPlayerChallenged.challenger).isEqualTo(sch3lpPlayerId)
             assertThat(firstPlayerChallenged.opponent).isEqualTo(rgm3PlayerId)
         }
-        runBlocking { schlepsClient.triggerLeaderboardRehydration() }
+        runBlocking { challengerClient.triggerLeaderboardRehydration() }
         runBlocking {
-            val leaderboard: List<LeaderboardEntryJson> = schlepsClient.fetchLeaderboardStep()
+            val leaderboard: List<LeaderboardEntryJson> = challengerClient.fetchLeaderboardStep()
             assertThat(leaderboard).containsExactly(
                 LeaderboardEntryJson(rank = 1, nickname = "Sch3lp", score = 1, playerId = sch3lpPlayerId),
                 LeaderboardEntryJson(rank = null, nickname = "rgm3", score = 0, playerId = rgm3PlayerId),
+            )
+        }
+
+        runBlocking {
+            val pendingChallenges: List<PendingChallengeJson> = opponentClient.fetchPendingChallengesStep()
+            assertThat(pendingChallenges).containsExactly(
+                PendingChallengeJson(challenge.id, GameMode.Duel, "Sch3lp", suggestion)
             )
         }
     }

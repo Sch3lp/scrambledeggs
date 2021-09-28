@@ -1,9 +1,12 @@
 package org.scrambled.core.impl.challenges
 
 import org.scrambled.domain.core.api.UsefulString
-import org.scrambled.domain.core.api.challenging.*
+import org.scrambled.domain.core.api.challenges.*
 import org.scrambled.domain.core.api.exceptions.NotValidException
+import org.scrambled.infra.cqrs.QueryHandler
+import org.springframework.stereotype.Component
 import java.util.*
+import kotlin.reflect.KClass
 
 data class Challenge(
     val id: ChallengeId,
@@ -37,4 +40,25 @@ data class Challenge(
             return Challenge(UUID.randomUUID(), challengerId, opponentId, comment, appointmentSuggestion, gameMode)
         }
     }
+}
+
+@Component
+class PendingChallengesForHandler(
+    private val pendingChallengesRepo: QueryablePendingChallenges
+)
+    : QueryHandler<PendingChallengesFor, List<PendingChallengeRepresentation>> {
+    override val queryType: KClass<PendingChallengesFor> = PendingChallengesFor::class
+
+    override fun handle(query: PendingChallengesFor): List<PendingChallengeRepresentation> {
+        val challenges : List<QueryablePendingChallenge> = pendingChallengesRepo.findPendingFor(query.challengedPlayerId)
+        return challenges.map { challenge ->
+            PendingChallengeRepresentation(
+                challenge.challengeId,
+                challenge.gameMode,
+                UsefulString(challenge.opponentName),
+                UsefulString(challenge.appointment)
+            )
+        }
+    }
+
 }

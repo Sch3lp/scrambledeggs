@@ -1,6 +1,6 @@
 package org.scrambled.domain.core.api.registration
 
-import org.scrambled.domain.core.api.challenging.PlayerId
+import org.scrambled.domain.core.api.challenges.PlayerId
 import org.scrambled.domain.core.api.players.RegisteredPlayerRepresentation
 import org.scrambled.infra.cqrs.Command
 import org.scrambled.infra.domainevents.DomainEvent

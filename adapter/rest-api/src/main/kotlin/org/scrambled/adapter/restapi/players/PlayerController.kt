@@ -2,7 +2,7 @@ package org.scrambled.adapter.restapi.players
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.scrambled.adapter.restapi.extensions.toExternalAccountRef
-import org.scrambled.domain.core.api.challenging.PlayerId
+import org.scrambled.domain.core.api.challenges.PlayerId
 import org.scrambled.domain.core.api.players.FetchAllRegisteredPlayers
 import org.scrambled.domain.core.api.players.PlayerByExternalAccountRef
 import org.scrambled.domain.core.api.players.PlayerById

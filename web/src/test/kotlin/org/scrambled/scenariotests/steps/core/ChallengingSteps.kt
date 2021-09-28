@@ -6,9 +6,10 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import org.scrambled.adapter.restapi.challenging.ChallengeRequestJson
-import org.scrambled.domain.core.api.challenging.ChallengeId
-import org.scrambled.domain.core.api.challenging.GameMode
-import org.scrambled.domain.core.api.challenging.PlayerId
+import org.scrambled.adapter.restapi.challenging.PendingChallengeJson
+import org.scrambled.domain.core.api.challenges.ChallengeId
+import org.scrambled.domain.core.api.challenges.GameMode
+import org.scrambled.domain.core.api.challenges.PlayerId
 import org.scrambled.scenariotests.steps.client.ApiResult
 import org.scrambled.scenariotests.steps.client.asApiResult
 import org.scrambled.scenariotests.steps.client.baseUrl
@@ -29,3 +30,11 @@ suspend fun HttpClient.challengePlayerStep(
     val locationHeader = response.headers["Location"]
     return locationHeader?.takeLast(36)?.toChallengeId().asApiResult(response)
 }
+
+suspend fun HttpClient.fetchPendingChallengesStep(): List<PendingChallengeJson> {
+    return this.get {
+        url("$baseUrl/challenge/pending")
+        contentType(ContentType.Application.Json)
+    }
+}
+

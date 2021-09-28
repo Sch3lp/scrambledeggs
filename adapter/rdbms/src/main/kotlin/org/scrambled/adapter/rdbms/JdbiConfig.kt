@@ -6,18 +6,17 @@ import org.jdbi.v3.postgres.PostgresPlugin
 import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.onDemand
 import org.scrambled.adapter.rdbms.core.challenges.ChallengesDao
+import org.scrambled.adapter.rdbms.core.challenges.PendingChallengesDao
 import org.scrambled.adapter.rdbms.core.players.PlayersDao
 import org.scrambled.adapter.rdbms.leaderboard.projection.MostChallengesDoneDao
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.jdbc.datasource.DataSourceTransactionManager
+import org.springframework.jdbc.datasource.DriverManagerDataSource
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
 import javax.sql.DataSource
-import org.springframework.jdbc.datasource.DataSourceTransactionManager
-
-import org.springframework.jdbc.datasource.DriverManagerDataSource
 
 
 @Configuration
@@ -50,6 +49,9 @@ class JdbiConfig {
 
     @Bean
     fun challengesDao(jdbi: Jdbi): ChallengesDao = jdbi.onDemand()
+
+    @Bean
+    fun pendingChallengesDao(jdbi: Jdbi): PendingChallengesDao = jdbi.onDemand()
 
     @Bean
     fun mostChallengesDoneDao(jdbi: Jdbi): MostChallengesDoneDao = jdbi.onDemand()

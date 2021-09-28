@@ -5,10 +5,10 @@ import org.jdbi.v3.sqlobject.kotlin.BindKotlin
 import org.jdbi.v3.sqlobject.kotlin.RegisterKotlinMapper
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
-import org.scrambled.domain.core.api.challenging.ChallengeId
-import org.scrambled.domain.core.api.challenging.PlayerId
-import org.scrambled.domain.core.api.challenging.QueryableChallenge
-import org.scrambled.domain.core.api.challenging.QueryableChallenges
+import org.scrambled.domain.core.api.challenges.ChallengeId
+import org.scrambled.domain.core.api.challenges.PlayerId
+import org.scrambled.domain.core.api.challenges.QueryableChallenge
+import org.scrambled.domain.core.api.challenges.QueryableChallenges
 
 @RegisterKotlinMapper(value = QueryableChallenge::class)
 interface ChallengesDao: QueryableChallenges {

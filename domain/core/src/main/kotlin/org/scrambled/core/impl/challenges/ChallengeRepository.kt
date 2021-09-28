@@ -2,9 +2,10 @@ package org.scrambled.core.impl.challenges
 
 import org.scrambled.domain.core.api.Repository
 import org.scrambled.domain.core.api.UsefulString
-import org.scrambled.domain.core.api.challenging.ChallengeId
-import org.scrambled.domain.core.api.challenging.QueryableChallenge
-import org.scrambled.domain.core.api.challenging.QueryableChallenges
+import org.scrambled.domain.core.api.challenges.ChallengeId
+import org.scrambled.domain.core.api.challenges.PlayerId
+import org.scrambled.domain.core.api.challenges.QueryableChallenge
+import org.scrambled.domain.core.api.challenges.QueryableChallenges
 import org.scrambled.domain.core.api.exceptions.NotFoundException
 import org.springframework.stereotype.Component
 

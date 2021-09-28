@@ -1,7 +1,6 @@
 package org.scrambled.domain.core.api.players
 
-import org.scrambled.domain.core.api.challenging.PlayerId
-import org.scrambled.domain.core.api.registration.ExternalAccountRef
+import org.scrambled.domain.core.api.challenges.PlayerId
 import org.scrambled.domain.core.api.registration.JwtIss
 import org.scrambled.domain.core.api.registration.JwtSub
 

@@ -1,7 +1,7 @@
 package org.scrambled.domain.core.api.players
 
-import org.scrambled.domain.core.api.challenging.PlayerId
-import org.scrambled.domain.core.api.challenging.PlayerNickname
+import org.scrambled.domain.core.api.challenges.PlayerId
+import org.scrambled.domain.core.api.challenges.PlayerNickname
 import org.scrambled.domain.core.api.registration.ExternalAccountRef
 import org.scrambled.infra.cqrs.AggregateId
 import org.scrambled.infra.cqrs.Query

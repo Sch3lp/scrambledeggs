@@ -1,13 +1,11 @@
 package org.scrambled.core.impl.players
 
 import org.scrambled.domain.core.api.Repository
-import org.scrambled.domain.core.api.challenging.PlayerId
+import org.scrambled.domain.core.api.challenges.PlayerId
 import org.scrambled.domain.core.api.exceptions.NotFoundException
-import org.scrambled.domain.core.api.players.QueryablePlayers
 import org.scrambled.domain.core.api.players.QueryablePlayer
+import org.scrambled.domain.core.api.players.QueryablePlayers
 import org.scrambled.domain.core.api.registration.ExternalAccountRef
-import org.scrambled.domain.core.api.registration.JwtIss
-import org.scrambled.domain.core.api.registration.JwtSub
 import org.springframework.stereotype.Component
 
 @Component

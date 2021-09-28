@@ -5,10 +5,9 @@ import org.jdbi.v3.sqlobject.kotlin.BindKotlin
 import org.jdbi.v3.sqlobject.kotlin.RegisterKotlinMapper
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
-import org.scrambled.domain.core.api.challenging.PlayerId
-import org.scrambled.domain.core.api.players.QueryablePlayers
+import org.scrambled.domain.core.api.challenges.PlayerId
 import org.scrambled.domain.core.api.players.QueryablePlayer
-import org.scrambled.domain.core.api.registration.ExternalAccountRef
+import org.scrambled.domain.core.api.players.QueryablePlayers
 import org.scrambled.domain.core.api.registration.JwtIss
 import org.scrambled.domain.core.api.registration.JwtSub
 

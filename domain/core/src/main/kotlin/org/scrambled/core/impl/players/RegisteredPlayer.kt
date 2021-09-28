@@ -3,7 +3,7 @@ package org.scrambled.core.impl.players
 import org.scrambled.core.impl.challenges.Challenge
 import org.scrambled.core.impl.challenges.ChallengeRepository
 import org.scrambled.domain.core.api.UsefulString
-import org.scrambled.domain.core.api.challenging.*
+import org.scrambled.domain.core.api.challenges.*
 import org.scrambled.domain.core.api.exceptions.DomainRuntimeException
 import org.scrambled.domain.core.api.players.FetchAllRegisteredPlayers
 import org.scrambled.domain.core.api.players.PlayerByExternalAccountRef

@@ -1,4 +1,4 @@
-package org.scrambled.domain.core.api.challenging
+package org.scrambled.domain.core.api.challenges
 
 import org.scrambled.domain.core.api.UsefulString
 import org.scrambled.infra.cqrs.Command

@@ -1,15 +1,16 @@
 package org.scrambled.adapter.restapi.challenging
 
+import org.scrambled.adapter.restapi.extensions.toExternalAccountRef
 import org.scrambled.domain.core.api.UsefulString
-import org.scrambled.domain.core.api.challenging.ChallengePlayer
-import org.scrambled.domain.core.api.challenging.GameMode
-import org.scrambled.domain.core.api.challenging.PlayerId
+import org.scrambled.domain.core.api.challenges.*
+import org.scrambled.domain.core.api.players.PlayerByExternalAccountRef
 import org.scrambled.infra.cqrs.CommandExecutor
+import org.scrambled.infra.cqrs.QueryExecutor
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
-import java.util.*
 
 @RestController
 @RequestMapping(
@@ -18,6 +19,7 @@ import java.util.*
 )
 class ChallengeController(
     private val commandExecutor: CommandExecutor,
+    private val queryExecutor: QueryExecutor,
 ) {
 
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
@@ -34,9 +36,20 @@ class ChallengeController(
 
     @GetMapping("/pending")
     fun pendingChallenges(): List<PendingChallengeJson> {
-        return listOf(
-            PendingChallengeJson(UUID.randomUUID(), GameMode.Duel, "YoMomma", "whenever you want"),
-            PendingChallengeJson(UUID.randomUUID(), GameMode.CTF, "Thundercats", "next weekend somewhere"),
+        val externalAccountRef = SecurityContextHolder.getContext().toExternalAccountRef()
+        val player = queryExecutor.executeOrNull(PlayerByExternalAccountRef(externalAccountRef)) { this }
+        return player?.let { p ->
+            queryExecutor.execute(PendingChallengesFor(p.id)) { this.map(::toJson) }
+        } ?: emptyList()
+    }
+
+    //TODO: simplify by just returning QueryablePendingChallenges instead of the representation
+    fun toJson(rep: PendingChallengeRepresentation): PendingChallengeJson {
+        return PendingChallengeJson(
+            rep.challengeId,
+            rep.gameMode,
+            rep.opponentName.value,
+            rep.appointment.value,
         )
     }
 

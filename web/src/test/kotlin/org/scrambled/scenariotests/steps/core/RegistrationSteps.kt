@@ -2,14 +2,13 @@ package org.scrambled.scenariotests.steps.core
 
 import io.ktor.client.*
 import io.ktor.client.features.*
-import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import org.scrambled.adapter.restapi.players.RegisterPlayerJson
 import org.scrambled.adapter.restapi.players.RegisteredPlayerJson
-import org.scrambled.domain.core.api.challenging.ChallengeId
-import org.scrambled.domain.core.api.challenging.PlayerId
+import org.scrambled.domain.core.api.challenges.ChallengeId
+import org.scrambled.domain.core.api.challenges.PlayerId
 import org.scrambled.scenariotests.steps.client.ApiResult
 import org.scrambled.scenariotests.steps.client.asApiResult
 import org.scrambled.scenariotests.steps.client.baseUrl
