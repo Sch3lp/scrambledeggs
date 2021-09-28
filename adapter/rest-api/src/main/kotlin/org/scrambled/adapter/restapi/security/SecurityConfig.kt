@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.web.servlet.invoke
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.web.csrf.CsrfAuthenticationStrategy
 
 
 @EnableWebSecurity
@@ -26,6 +27,7 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
                     bearerTokenResolver = CookieBearerTokenResolver()
                 }
             }
+//            csrf { }
         }
     }
 }
@@ -44,9 +46,7 @@ class SecurityConfigForScenario : WebSecurityConfigurerAdapter() {
             oauth2ResourceServer {
                 jwt {
                     bearerTokenResolver = CookieBearerTokenResolverForTest()
-                    jwtDecoder = JwtDecoder {
-                        it.asJwt()
-                    }
+                    jwtDecoder = JwtDecoder { authHeader -> authHeader.asJwt() }
                 }
             }
         }

@@ -34,7 +34,6 @@ class CookieBearerTokenResolverForTest : BearerTokenResolver {
 class SessionController() {
     @GetMapping
     fun exchangeAuthHeaderForCookie(): ResponseEntity<Any> {
-        //TODO: maybe make this more explicit with types at least?
         val crumble = ResponseCookie.from(JwtCookieName, getJwtAsStringFromSecurityContext())
             .httpOnly(true)
             .secure(false) //TODO: probably set this to true if we're hosting on https
