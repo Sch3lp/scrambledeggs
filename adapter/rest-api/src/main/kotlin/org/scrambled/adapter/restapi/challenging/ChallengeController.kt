@@ -43,13 +43,12 @@ class ChallengeController(
         } ?: emptyList()
     }
 
-    //TODO: simplify by just returning QueryablePendingChallenges instead of the representation
-    fun toJson(rep: PendingChallengeRepresentation): PendingChallengeJson {
+    fun toJson(rep: QueryablePendingChallenge): PendingChallengeJson {
         return PendingChallengeJson(
             rep.challengeId,
             rep.gameMode,
-            rep.opponentName.value,
-            rep.appointment.value,
+            rep.opponentName,
+            rep.appointment,
         )
     }
 

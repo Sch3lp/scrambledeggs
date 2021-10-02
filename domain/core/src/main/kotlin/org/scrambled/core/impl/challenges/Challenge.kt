@@ -45,20 +45,19 @@ data class Challenge(
 @Component
 class PendingChallengesForHandler(
     private val pendingChallengesRepo: QueryablePendingChallenges
-)
-    : QueryHandler<PendingChallengesFor, List<PendingChallengeRepresentation>> {
+) : QueryHandler<PendingChallengesFor, List<QueryablePendingChallenge>> {
     override val queryType: KClass<PendingChallengesFor> = PendingChallengesFor::class
 
-    override fun handle(query: PendingChallengesFor): List<PendingChallengeRepresentation> {
-        val challenges : List<QueryablePendingChallenge> = pendingChallengesRepo.findPendingFor(query.challengedPlayerId)
-        return challenges.map { challenge ->
-            PendingChallengeRepresentation(
-                challenge.challengeId,
-                challenge.gameMode,
-                UsefulString(challenge.opponentName),
-                UsefulString(challenge.appointment)
-            )
-        }
-    }
+    override fun handle(query: PendingChallengesFor): List<QueryablePendingChallenge> =
+        pendingChallengesRepo
+            .findPendingFor(query.challengedPlayerId)
+            .map { challenge ->
+                QueryablePendingChallenge(
+                    challenge.challengeId,
+                    challenge.gameMode,
+                    challenge.opponentName,
+                    challenge.appointment,
+                )
+            }
 
 }
