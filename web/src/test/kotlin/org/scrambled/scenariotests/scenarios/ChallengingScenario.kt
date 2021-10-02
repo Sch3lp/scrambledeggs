@@ -56,18 +56,19 @@ class ChallengingScenario {
         val opponentClient = createClient(rgm3JwtInfo)
         val comment = "Some comment"
         val suggestion = "Next wednesday at 20:00"
+        val gameMode = GameMode.Duel
         runBlocking{
             sch3lpPlayerId = challengerClient.registerPlayerStep("Sch3lp").expectSuccess()
 
             rgm3PlayerId = opponentClient.registerPlayerStep("rgm3").expectSuccess()
 
-            challengerClient.challengePlayerStep(sch3lpPlayerId, rgm3PlayerId, comment, suggestion, GameMode.Duel).expectSuccess()
+            challengerClient.challengePlayerStep(sch3lpPlayerId, rgm3PlayerId, comment, suggestion, gameMode).expectSuccess()
         }
 
         val challenge = challengeDao.findChallenge(sch3lpPlayerId, rgm3PlayerId).last()
         assertThat(challenge.comment).isEqualTo(comment)
         assertThat(challenge.appointmentSuggestion).isEqualTo(suggestion)
-        assertThat(challenge.gameMode).isEqualTo(GameMode.Duel)
+        assertThat(challenge.gameMode).isEqualTo(gameMode)
 
         runBlocking {
             val firstPlayerChallenged = eventStream.filterEvents<Event.PlayerChallenged>().first()
@@ -86,7 +87,7 @@ class ChallengingScenario {
         runBlocking {
             val pendingChallenges: List<PendingChallengeJson> = opponentClient.fetchPendingChallengesStep()
             assertThat(pendingChallenges).containsExactly(
-                PendingChallengeJson(challenge.id, GameMode.Duel, "Sch3lp", suggestion)
+                PendingChallengeJson(challenge.id, gameMode, "Sch3lp", suggestion)
             )
         }
     }
