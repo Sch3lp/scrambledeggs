@@ -53,7 +53,7 @@ main =
 
 
 type Route
-    = AnonymousHomepage
+    = Home
     | Registration
     | Challenge OpponentId
 
@@ -69,13 +69,13 @@ parseUrl url =
             route
 
         Nothing ->
-            AnonymousHomepage
+            Home
 
 
 parseRoute : Parser.Parser (Route -> a) a
 parseRoute =
     Parser.oneOf
-        [ Parser.map AnonymousHomepage Parser.top
+        [ Parser.map Home Parser.top
         , Parser.map Registration (Parser.s "register")
         , Parser.map Challenge (Parser.s "challenge" </> Parser.string) --/challenge/<opponentid>
         ]
@@ -98,7 +98,7 @@ initPage model =
         Challenge opponentId ->
             Cmd.map ChallengeMsg (Challenge.initPage opponentId)
 
-        AnonymousHomepage ->
+        Home ->
             Cmd.map HomeMsg Home.initPage
 
         Registration ->
@@ -503,7 +503,7 @@ view model =
 
 viewRegistrationRedirectButton : Model -> List (Ui.Element Msg)
 viewRegistrationRedirectButton model =
-    if model.currentRoute == AnonymousHomepage then
+    if model.currentRoute == Home then
         [ Ui.row
             [ Ui.width Ui.fill
             , Ui.height Ui.fill
@@ -623,7 +623,7 @@ viewMainContent model =
                     Challenge.viewChallenge { challengeModel | opponentId = opponentId }
                         |> List.map (Ui.map ChallengeMsg)
 
-                AnonymousHomepage ->
+                Home ->
                     Home.viewHome model.homeModel
                         |> List.map (Ui.map HomeMsg)
     in

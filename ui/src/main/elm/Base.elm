@@ -81,9 +81,13 @@ leaderboardTable givenPalette leaderboard =
 
 
 entryAsLink givenPalette entry =
-    Ui.link [ Ui.paddingEach leaderboardTablePadding ] <|
+    Ui.link [
+        Ui.paddingEach leaderboardTablePadding
+        , Font.color givenPalette.href 
+        , Ui.mouseOver [Font.color givenPalette.hrefHover]
+        ] <|
         { url = UrlBuilder.relative [ "challenge", entry.playerId ] []
-        , label = Ui.el [ Font.color givenPalette.href ] <| Ui.text entry.nickname
+        , label = Ui.el [] <| Ui.text entry.nickname
         }
 
 
@@ -163,6 +167,7 @@ type alias Palette =
     , error : Ui.Color
     , highlight : Ui.Color
     , href : Ui.Color
+    , hrefHover : Ui.Color
     }
 
 
@@ -176,6 +181,7 @@ palette =
     , error = Ui.rgb255 178 15 15
     , highlight = Ui.rgb255 64 77 145
     , href = Ui.rgb255 0 83 91
+    , hrefHover = Ui.rgb255 12 165 179
     }
 
 
