@@ -67,9 +67,7 @@ leaderboardTable givenPalette leaderboard =
               }
             , { header = columnHeader givenPalette "Nickname"
               , width = Ui.fill
-              , view =
-                    \entry ->
-                        entryAsLink givenPalette entry
+              , view = givenPalette |> entryAsLink 
               }
             ]
         }
@@ -116,13 +114,20 @@ pendingChallengesTable givenPalette pendingChallenges =
         , columns =
             [ { header = columnHeader givenPalette "Pending Challenges"
               , width = Ui.fill
-              , view =
-                    \entry ->
-                        Ui.el [ Ui.paddingEach pendingChallengesTablePadding ] <| Ui.text <| viewChallengeEntry entry
+              , view = givenPalette |> pendingChallengeEntryAsLink 
               }
             ]
         }
 
+pendingChallengeEntryAsLink givenPalette entry =
+    Ui.link [
+        Ui.paddingEach pendingChallengesTablePadding
+        , Font.color givenPalette.href 
+        , Ui.mouseOver [Font.color givenPalette.hrefHover]
+        ] <|
+        { url = UrlBuilder.relative [ "pendingchallenge", entry.challengeId ] []
+        , label = Ui.el [] <| Ui.text <| viewChallengeEntry entry
+        }
 
 viewChallengeEntry : PendingChallengeEntry -> String
 viewChallengeEntry entry =

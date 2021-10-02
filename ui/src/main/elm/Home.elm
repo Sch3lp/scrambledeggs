@@ -122,18 +122,18 @@ viewHome model =
 
 viewLeaderboardTable model =
     Ui.column
-        [ Ui.width Ui.fill, Ui.paddingXY 20 0 ]
-        [ leaderboard model ]
+        [ Ui.alignTop, Ui.width Ui.fill, Ui.paddingXY 20 0 ]
+        [ leaderboardTable model ]
 
 
-leaderboard : Model -> Ui.Element Msg
-leaderboard model =
+leaderboardTable : Model -> Ui.Element Msg
+leaderboardTable model =
     Base.leaderboardTable Base.palette model.leaderboard
 
 
 viewPendingChallengesTable model =
     Ui.column
-        [ Ui.width Ui.fill ]
+        [ Ui.alignTop, Ui.width Ui.fill, Ui.paddingXY 20 0 ]
         [ pendingChallengesTable model ]
 
 
