@@ -30,7 +30,7 @@ expectStringWithErrorHandling toMsg =
                 Http.BadStatus_ metadata body ->
                     handleBadStatus metadata body
 
-                Http.GoodStatus_ metadata _ ->
+                Http.GoodStatus_ _ _ ->
                     Ok ()
         )
 
@@ -52,7 +52,7 @@ expectJsonWithErrorHandling decoder toMsg =
                 Http.BadStatus_ metadata body ->
                     handleBadStatus metadata body
 
-                Http.GoodStatus_ metadata body ->
+                Http.GoodStatus_ _ body ->
                     case D.decodeString decoder body of
                         Ok value ->
                             Ok value

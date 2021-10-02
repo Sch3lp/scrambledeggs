@@ -1,7 +1,6 @@
 port module Main exposing (..)
 
-{-|
-This application is broken up into three key parts:
+{-| This application is broken up into three key parts:
 
 1.  Model - a full definition of the application's state
 2.  Update - a way to step the application state forward
@@ -12,7 +11,7 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 
 -}
 
-import Api exposing (ApiError, expectStringWithErrorHandling)
+import Api exposing (ApiError, RegisteredPlayer, expectStringWithErrorHandling)
 import Base
 import Browser exposing (UrlRequest)
 import Browser.Navigation as Nav exposing (Key)
@@ -27,7 +26,6 @@ import Json.Decode as Json
 import List
 import OAuth
 import OAuth.Implicit as OAuth
-import Api exposing (RegisteredPlayer)
 import Registration
 import Security exposing (convertBytes, defaultHttpUrl)
 import Url exposing (Url)
@@ -59,7 +57,10 @@ type Route
     | Registration
     | Challenge OpponentId
 
-type alias OpponentId = String
+
+type alias OpponentId =
+    String
+
 
 parseUrl : Url.Url -> Route
 parseUrl url =
@@ -81,22 +82,28 @@ parseRoute =
 
 
 emptyModel route key redirectUri authFlow token =
-    Model (Home.emptyModel key) (Registration.emptyModel key) (Challenge.emptyModel key)
+    Model (Home.emptyModel key)
+        (Registration.emptyModel key)
+        (Challenge.emptyModel key)
         route
         key
         authFlow
         redirectUri
         token
 
-initPage: Route -> Cmd Msg
+
+initPage : Route -> Cmd Msg
 initPage model =
     case model of
-                Challenge opponentId ->
-                    Cmd.map ChallengeMsg (Challenge.initPage opponentId)
-                AnonymousHomepage ->
-                    Cmd.map HomeMsg Home.initPage
-                Registration ->
-                    Cmd.map RegistrationMsg Registration.initPage
+        Challenge opponentId ->
+            Cmd.map ChallengeMsg (Challenge.initPage opponentId)
+
+        AnonymousHomepage ->
+            Cmd.map HomeMsg Home.initPage
+
+        Registration ->
+            Cmd.map RegistrationMsg Registration.initPage
+
 
 init : Maybe { state : String } -> Url -> Key -> ( Model, Cmd Msg )
 init mflags url key =
@@ -107,10 +114,14 @@ init mflags url key =
         clearUrl =
             Nav.replaceUrl key (Url.toString redirectUri)
 
-        currentRoute = parseUrl url
-        initPageCmd = initPage currentRoute
-        partialEmptyModel = emptyModel currentRoute key redirectUri
+        currentRoute =
+            parseUrl url
 
+        initPageCmd =
+            initPage currentRoute
+
+        partialEmptyModel =
+            emptyModel currentRoute key redirectUri
     in
     case OAuth.parseToken url of
         OAuth.Empty ->
@@ -292,9 +303,12 @@ setHomeModel : Home.Model -> Model -> Model
 setHomeModel newHomeModel model =
     { model | homeModel = newHomeModel }
 
-setChallengeModel: Challenge.Model -> Model -> Model
+
+setChallengeModel : Challenge.Model -> Model -> Model
 setChallengeModel newChallengeModel model =
-    { model | challengeModel = newChallengeModel}
+    { model | challengeModel = newChallengeModel }
+
+
 
 -- UPDATE
 
@@ -348,9 +362,10 @@ update msg model =
 
         UrlChanged url ->
             let
-                route = parseUrl url
+                route =
+                    parseUrl url
             in
-                ( { model | currentRoute = route }, initPage route )
+            ( { model | currentRoute = route }, initPage route )
 
         LinkClicked urlRequest ->
             case urlRequest of
@@ -482,7 +497,6 @@ view model =
          <|
             viewHeader model
                 ++ viewMainContent model
-                ++ viewRegistrationRedirectButton model
                 ++ viewFooter model
         )
 
@@ -496,7 +510,11 @@ viewRegistrationRedirectButton model =
             , Ui.alignTop
             , Ui.centerX
             ]
-            [ Ui.column [ Ui.width Ui.fill, Ui.height Ui.fill ]
+            [ Ui.column
+                [ Ui.width Ui.fill
+                , Ui.height Ui.shrink
+                , Ui.alignBottom
+                ]
                 [ registrationRedirectButton ]
             ]
         ]
@@ -562,7 +580,7 @@ viewAuthInfo authFlow =
     authInfo
 
 
-viewFooter model =
+viewFooter _ =
     [ Ui.el
         [ Ui.alignBottom
         , Ui.centerX
@@ -583,19 +601,30 @@ footer =
 
 viewMainContent : Model -> List (Ui.Element Msg)
 viewMainContent model =
-    case model.currentRoute of
-        Registration ->
-            Registration.viewRegistration model.registrationModel
-                |> List.map (Ui.map RegistrationMsg)
+    let
+        mainContentWrapper =
+            Ui.column
+                [ Ui.paddingXY 0 5
+                , Ui.height Ui.fill
+                , Ui.width Ui.fill
+                ]
 
-        Challenge opponentId ->
-            let
-                challengeModel = model.challengeModel
-            in
-                Challenge.viewChallenge {challengeModel | opponentId = opponentId}
-                    |> List.map (Ui.map ChallengeMsg)
+        mainContent =
+            case model.currentRoute of
+                Registration ->
+                    Registration.viewRegistration model.registrationModel
+                        |> List.map (Ui.map RegistrationMsg)
 
-        AnonymousHomepage ->
-            Home.viewHome model.homeModel
-                |> List.map (Ui.map HomeMsg)
+                Challenge opponentId ->
+                    let
+                        challengeModel =
+                            model.challengeModel
+                    in
+                    Challenge.viewChallenge { challengeModel | opponentId = opponentId }
+                        |> List.map (Ui.map ChallengeMsg)
 
+                AnonymousHomepage ->
+                    Home.viewHome model.homeModel
+                        |> List.map (Ui.map HomeMsg)
+    in
+    [ mainContentWrapper <| mainContent ++ viewRegistrationRedirectButton model ]

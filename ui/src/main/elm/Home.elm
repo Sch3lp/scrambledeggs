@@ -110,7 +110,7 @@ viewHome : Model -> List (Ui.Element Msg)
 viewHome model =
     [ Ui.row
         [ Ui.width Ui.fill
-        , Ui.height Ui.fill
+        , Ui.height Ui.shrink
         , Ui.alignTop
         , Ui.spacing 16
         ]

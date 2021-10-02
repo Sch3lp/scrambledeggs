@@ -9,7 +9,7 @@ import Html.Events
 import Json.Decode as D
 import String exposing (fromInt)
 import Url.Builder as UrlBuilder
-import CommonTypes exposing (GameMode,gameModeAsString)
+import CommonTypes exposing (gameModeAsString)
 import Api exposing (PendingChallengeEntry)
 
 
