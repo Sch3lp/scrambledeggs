@@ -87,7 +87,7 @@ class ChallengingScenario {
         runBlocking {
             val pendingChallenges: List<PendingChallengeJson> = opponentClient.fetchPendingChallengesStep()
             assertThat(pendingChallenges).containsExactly(
-                PendingChallengeJson(challenge.id, gameMode, "Sch3lp", suggestion)
+                PendingChallengeJson(challenge.challengeId, gameMode, "Sch3lp", suggestion)
             )
         }
     }

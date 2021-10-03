@@ -1,11 +1,15 @@
 package org.scrambled.domain.core.api.challenges
 
+import java.util.*
+
 interface QueryableChallenges {
-    fun getById(id: ChallengeId): QueryableChallenge?
+    fun getById(id: UUID): QueryableChallenge?
+    fun getByChallengeId(id: String): QueryableChallenge?
     fun store(queryableChallenge: QueryableChallenge)
 }
 
-data class QueryableChallenge(val id: ChallengeId,
+data class QueryableChallenge(val id: UUID,
+                              val challengeId: String,
                               val challengerId: ChallengerId,
                               val opponentId: OpponentId,
                               val comment: String,

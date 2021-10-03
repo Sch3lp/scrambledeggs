@@ -9,7 +9,8 @@ import java.util.*
 import kotlin.reflect.KClass
 
 data class Challenge(
-    val id: ChallengeId,
+    val id: UUID,
+    val challengeId: ChallengeId,
     val challengerId: ChallengerId,
     val opponentId: OpponentId,
     val comment: UsefulString,
@@ -37,7 +38,7 @@ data class Challenge(
             appointmentSuggestion: UsefulString,
             gameMode: GameMode,
         ): Challenge {
-            return Challenge(UUID.randomUUID(), challengerId, opponentId, comment, appointmentSuggestion, gameMode)
+            return Challenge(UUID.randomUUID(), ChallengeId.newChallengeId(), challengerId, opponentId, comment, appointmentSuggestion, gameMode)
         }
     }
 }
@@ -53,6 +54,7 @@ class PendingChallengesForHandler(
             .findPendingFor(query.challengedPlayerId)
             .map { challenge ->
                 QueryablePendingChallenge(
+                    challenge.id,
                     challenge.challengeId,
                     challenge.gameMode,
                     challenge.opponentName,

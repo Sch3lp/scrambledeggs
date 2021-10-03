@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     api(project(":infra"))
+    testImplementation(testFixtures(project(":infra")))
 }

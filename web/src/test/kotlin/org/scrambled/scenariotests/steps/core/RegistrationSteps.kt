@@ -48,4 +48,4 @@ suspend fun HttpClient.fetchAllPlayersStep(): List<RegisteredPlayerJson> {
 }
 
 internal fun String.toPlayerId() : PlayerId = UUID.fromString(this)
-internal fun String.toChallengeId() : ChallengeId = UUID.fromString(this)
+internal fun String.toChallengeId() : ChallengeId = ChallengeId.challengeId(this)

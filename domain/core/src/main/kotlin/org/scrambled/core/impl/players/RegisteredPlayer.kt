@@ -14,6 +14,7 @@ import org.scrambled.domain.core.api.registration.PlayerRegistered
 import org.scrambled.domain.core.api.registration.RegisterPlayer
 import org.scrambled.infra.cqrs.CommandHandler
 import org.scrambled.infra.cqrs.QueryHandler
+import org.scrambled.infra.retry.retry
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -70,9 +71,11 @@ class ChallengePlayerHandler(
     override fun handle(cmd: ChallengePlayer): Pair<ChallengeId, PlayerChallenged> {
         val challenger = playerRepository.getById(cmd.challenger)
         val opponent = playerRepository.getById(cmd.opponent)
-        val challenge: Challenge = challenger.challenge(opponent, cmd.comment, cmd.appointmentSuggestion, cmd.gameMode)
+        val challenge: Challenge =
+            retry("Couldn't create challenge with unique id.") { challenger.challenge(opponent, cmd.comment, cmd.appointmentSuggestion, cmd.gameMode) }
+                .until { challenge -> !challengeRepository.exists(challenge.challengeId) }
         challengeRepository.save(challenge)
-        return challenge.id to PlayerChallenged(challenger.id, opponent.id)
+        return challenge.challengeId to PlayerChallenged(challenger.id, opponent.id)
     }
 }
 

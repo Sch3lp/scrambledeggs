@@ -72,7 +72,7 @@ data class ChallengeRequestJson(
 
 
 data class PendingChallengeJson(
-    val challengeId: PlayerId,
+    val challengeId: String,
     val gameMode: GameMode,
     val opponentName: String,
     val appointment: String,

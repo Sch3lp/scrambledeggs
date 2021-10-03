@@ -12,7 +12,8 @@ interface PendingChallengesDao : QueryablePendingChallenges {
 
     @SqlQuery(
         """
-        SELECT c.id as challengeId,
+        SELECT c.id as id,
+        c.challengeId as challengeId,
         c.gameMode as gameMode,
         p.nickname as opponentName,
         c.appointmentsuggestion as appointment

@@ -3,6 +3,7 @@ package org.scrambled.domain.core.api.challenges
 import org.scrambled.domain.core.api.UsefulString
 import org.scrambled.infra.cqrs.Command
 import org.scrambled.infra.domainevents.DomainEvent
+import org.scrambled.infra.hashids.Hashids
 import java.util.*
 
 data class ChallengePlayer(
@@ -19,7 +20,15 @@ typealias ChallengerId = PlayerId
 typealias OpponentId = PlayerId
 typealias PlayerId = UUID
 typealias PlayerNickname = String
-typealias ChallengeId = UUID
+
+data class ChallengeId private constructor(val id: String) {
+
+    companion object {
+        private val hashIds = Hashids("ScrambledEggs Challenges Salt")
+        fun newChallengeId(): ChallengeId = ChallengeId(hashIds.next())
+        fun challengeId(id: String) = ChallengeId(id)
+    }
+}
 
 enum class GameMode {
     Duel, TwoVsTwo, WipeOut, CTF
