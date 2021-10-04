@@ -4,7 +4,25 @@ A project to get Diabotical players to play more Diabotical, by offering a websi
 
 Built in Kotlin, and Elm.
 
-See https://twitch.tv/livecodingwithsch3lp to see how it's going.
+Check [the LiveCoding With Sch3lp Twitch Channel](https://twitch.tv/livecodingwithsch3lp) to see how it's going, or watch [the past episodes on YouTube](https://www.youtube.com/watch?v=MTr35-Pt1Xg&list=PLb9Sf9ImdCXJQ6v76kOfEj2As4_DsfEw4) to see how it went.
+
+## Experiments I'm running
+### Valuing E2E tests over unit tests
+With E2E I mean integration tests that hit my REST endpoints, and verify both rdbms and eventstore for correctness.
+
+**Hypothesis**: 
+
+* I might refactor much faster this way.
+* Running E2E tests is not that much slower than running integration tests + unit tests.
+
+**Observations**:
+
+* I miss unit tests on my domain sometimes, so I started writing those.
+* Refactoring is easier most of the time, but running the tests does take longer.
+* Using types properly (aka _Lean on the compiler_) is a must.
+* I miss integration/framework tests when I don't know enough about a library/framework. For example, I usually finish my refactoring quite easily and then get failing scenario tests because I did something that JDBI doesn't like. JDBI framework tests on my _DAO's_ would give me faster feedback.
+* Had to provide my own JWT stubbing impl, which was both fun and not fun. Normally I would write JWT -> User mgmt stuff in unit tests and then just use basic auth in scenario tests.
+
 
 ## Contributing
 Read about the design decisions in the [Captain's Log](./docs/CaptainsLog.md).
