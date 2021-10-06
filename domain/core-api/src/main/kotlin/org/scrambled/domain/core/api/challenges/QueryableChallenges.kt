@@ -4,15 +4,17 @@ import java.util.*
 
 interface QueryableChallenges {
     fun getById(id: UUID): QueryableChallenge?
-    fun getByChallengeId(id: String): QueryableChallenge?
+    fun getByChallengeId(challengeId: String): QueryableChallenge?
     fun store(queryableChallenge: QueryableChallenge)
 }
 
-data class QueryableChallenge(val id: UUID,
-                              val challengeId: String,
-                              val challengerId: ChallengerId,
-                              val opponentId: OpponentId,
-                              val comment: String,
-                              val appointmentSuggestion: String,
-                              val gameMode: GameMode = GameMode.CTF,
+data class QueryableChallenge(
+    val id: UUID,
+    val challengeId: String,
+    val challengerId: ChallengerId,
+    val opponentId: OpponentId,
+    val comment: String,
+    val appointmentSuggestion: String,
+    val gameMode: GameMode = GameMode.CTF,
+    val isAccepted: Boolean
 )

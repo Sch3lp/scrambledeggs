@@ -16,6 +16,7 @@ import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
 import org.scrambled.domain.core.api.challenges.GameMode
 import org.scrambled.domain.core.api.challenges.PlayerId
 import org.scrambled.scenariotests.steps.client.createClient
+import org.scrambled.scenariotests.steps.core.acceptChallengeStep
 import org.scrambled.scenariotests.steps.core.challengePlayerStep
 import org.scrambled.scenariotests.steps.core.fetchPendingChallengesStep
 import org.scrambled.scenariotests.steps.core.registerPlayerStep
@@ -89,6 +90,12 @@ class ChallengingScenario {
             assertThat(pendingChallenges).containsExactly(
                 PendingChallengeJson(challenge.challengeId, gameMode, "Sch3lp", suggestion)
             )
+        }
+
+        runBlocking {
+            opponentClient.acceptChallengeStep(challenge.challengeId)
+            assertThat(challengeDao.getByChallengeId(challenge.challengeId)?.isAccepted).isTrue()
+            assertThat(opponentClient.fetchPendingChallengesStep()).isEmpty()
         }
     }
 

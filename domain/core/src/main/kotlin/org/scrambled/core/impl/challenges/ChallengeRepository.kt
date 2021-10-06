@@ -26,7 +26,8 @@ class ChallengeRepository(
             aggregate.opponentId,
             aggregate.comment.value,
             aggregate.appointmentSuggestion.value,
-            aggregate.gameMode
+            aggregate.gameMode,
+            false
         ).save()
 
     fun getByChallengeId(challengeId: ChallengeId) =

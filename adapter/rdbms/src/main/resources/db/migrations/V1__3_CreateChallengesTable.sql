@@ -6,5 +6,6 @@ CREATE TABLE CHALLENGES
     opponentId uuid not null,
     comment varchar,
     appointmentSuggestion varchar,
-    gameMode varchar
+    gameMode varchar,
+    isAccepted bool
 );
