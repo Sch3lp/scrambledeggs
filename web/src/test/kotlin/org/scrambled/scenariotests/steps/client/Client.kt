@@ -16,6 +16,8 @@ import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.scrambled.adapter.restapi.JwtInfo
+import org.scrambled.domain.core.api.registration.JwtSub
+import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.Nickname
 
 const val baseUrl = "http://localhost:9999/api"
 
@@ -24,6 +26,8 @@ internal fun createClient(jwtInfo: JwtInfo? = null): HttpClient {
     jwtInfo?.apply { runBlocking { createClient.exchangeCookie(this@apply) } }
     return createClient
 }
+
+internal fun createClient(sub: JwtSub) = createClient(JwtInfo("https://google.com", sub))
 
 private fun createClient() = HttpClient(CIO) {
     install(JsonFeature) {

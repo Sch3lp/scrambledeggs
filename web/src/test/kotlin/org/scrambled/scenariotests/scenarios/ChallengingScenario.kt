@@ -49,50 +49,40 @@ class ChallengingScenario {
 
     @Test
     fun `A registered player challenges another player and has their score increased`() {
-        val sch3lpsJwtInfo = JwtInfo("http://google.com", "schlep")
-        var sch3lpPlayerId: PlayerId
-        val rgm3JwtInfo = JwtInfo("http://google.com", "monsieurRgm")
-        var rgm3PlayerId: PlayerId
-        val challengerClient = createClient(sch3lpsJwtInfo)
-        val opponentClient = createClient(rgm3JwtInfo)
-        val comment = "Some comment"
-        val suggestion = "Next wednesday at 20:00"
-        val gameMode = GameMode.Duel
-        runBlocking{
-            sch3lpPlayerId = challengerClient.registerPlayerStep("Sch3lp").expectSuccess()
-
-            rgm3PlayerId = opponentClient.registerPlayerStep("rgm3").expectSuccess()
-
-            challengerClient.challengePlayerStep(sch3lpPlayerId, rgm3PlayerId, comment, suggestion, gameMode).expectSuccess()
-        }
-
-        val challenge = challengeDao.findChallenge(sch3lpPlayerId, rgm3PlayerId).last()
-        assertThat(challenge.comment).isEqualTo(comment)
-        assertThat(challenge.appointmentSuggestion).isEqualTo(suggestion)
-        assertThat(challenge.gameMode).isEqualTo(gameMode)
-
         runBlocking {
+            val challengerClient = createClient("schlep")
+            val opponentClient = createClient("monsieurRgm")
+            val sch3lpPlayerId: PlayerId = challengerClient.registerPlayerStep("Sch3lp").expectSuccess()
+            val rgm3PlayerId: PlayerId = opponentClient.registerPlayerStep("rgm3").expectSuccess()
+
+            val comment = "Some comment"
+            val suggestion = "Next wednesday at 20:00"
+            val gameMode = GameMode.Duel
+
+            challengerClient.challengePlayerStep(sch3lpPlayerId, rgm3PlayerId, comment, suggestion, gameMode)
+                .expectSuccess()
+
+            val challenge = challengeDao.findChallenge(sch3lpPlayerId, rgm3PlayerId).last()
+            assertThat(challenge.comment).isEqualTo(comment)
+            assertThat(challenge.appointmentSuggestion).isEqualTo(suggestion)
+            assertThat(challenge.gameMode).isEqualTo(gameMode)
+
             val firstPlayerChallenged = eventStream.filterEvents<Event.PlayerChallenged>().first()
             assertThat(firstPlayerChallenged.challenger).isEqualTo(sch3lpPlayerId)
             assertThat(firstPlayerChallenged.opponent).isEqualTo(rgm3PlayerId)
-        }
-        runBlocking { challengerClient.triggerLeaderboardRehydration() }
-        runBlocking {
+            challengerClient.triggerLeaderboardRehydration()
+
             val leaderboard: List<LeaderboardEntryJson> = challengerClient.fetchLeaderboardStep()
             assertThat(leaderboard).containsExactly(
                 LeaderboardEntryJson(rank = 1, nickname = "Sch3lp", score = 1, playerId = sch3lpPlayerId),
                 LeaderboardEntryJson(rank = null, nickname = "rgm3", score = 0, playerId = rgm3PlayerId),
             )
-        }
 
-        runBlocking {
             val pendingChallenges: List<PendingChallengeJson> = opponentClient.fetchPendingChallengesStep()
             assertThat(pendingChallenges).containsExactly(
                 PendingChallengeJson(challenge.challengeId, gameMode, "Sch3lp", suggestion)
             )
-        }
 
-        runBlocking {
             opponentClient.acceptChallengeStep(challenge.challengeId)
             assertThat(challengeDao.getByChallengeId(challenge.challengeId)?.isAccepted).isTrue()
             assertThat(opponentClient.fetchPendingChallengesStep()).isEmpty()
