@@ -11,6 +11,7 @@ this in <http://guide.elm-lang.org/architecture/index.html>
 
 -}
 
+import AcceptChallenge
 import Api exposing (ApiError, RegisteredPlayer, expectStringWithErrorHandling)
 import Base
 import Browser exposing (UrlRequest)
@@ -56,9 +57,12 @@ type Route
     = Home
     | Registration
     | Challenge OpponentId
+    | AcceptChallenge ChallengeId
 
 
 type alias OpponentId =
+    String
+type alias ChallengeId =
     String
 
 
@@ -78,6 +82,7 @@ parseRoute =
         [ Parser.map Home Parser.top
         , Parser.map Registration (Parser.s "register")
         , Parser.map Challenge (Parser.s "challenge" </> Parser.string) --/challenge/<opponentid>
+        , Parser.map AcceptChallenge (Parser.s "pendingchallenge" </> Parser.string) --/pendingchallenge/<challengeid>
         ]
 
 
@@ -85,6 +90,7 @@ emptyModel route key redirectUri authFlow token =
     Model (Home.emptyModel key)
         (Registration.emptyModel key)
         (Challenge.emptyModel key)
+        (AcceptChallenge.emptyModel key)
         route
         key
         authFlow
@@ -97,6 +103,9 @@ initPage model =
     case model of
         Challenge opponentId ->
             Cmd.map ChallengeMsg (Challenge.initPage opponentId)
+
+        AcceptChallenge challengeId ->
+            Cmd.map AcceptChallengeMsg (AcceptChallenge.initPage challengeId)
 
         Home ->
             Cmd.map HomeMsg Home.initPage
@@ -282,6 +291,7 @@ type alias Model =
     { homeModel : Home.Model
     , registrationModel : Registration.Model
     , challengeModel : Challenge.Model
+    , acceptChallengeModel : AcceptChallenge.Model
     , currentRoute : Route
     , key : Key
     , authFlow : AuthFlow
@@ -308,6 +318,10 @@ setChallengeModel : Challenge.Model -> Model -> Model
 setChallengeModel newChallengeModel model =
     { model | challengeModel = newChallengeModel }
 
+setAcceptChallengeModel : AcceptChallenge.Model -> Model -> Model
+setAcceptChallengeModel newAcceptChallengeModel model =
+    { model | acceptChallengeModel = newAcceptChallengeModel }
+
 
 
 -- UPDATE
@@ -317,6 +331,7 @@ type Msg
     = RegistrationMsg Registration.Msg
     | HomeMsg Home.Msg
     | ChallengeMsg Challenge.Msg
+    | AcceptChallengeMsg AcceptChallenge.Msg
     | RegistrationRedirectButtonClicked
     | UrlChanged Url
     | LinkClicked UrlRequest
@@ -358,6 +373,15 @@ update msg model =
             in
             ( setChallengeModel newChallengeModel model
             , Cmd.map ChallengeMsg newChallengeMsg
+            )
+
+        AcceptChallengeMsg subMsg ->
+            let
+                            ( newAcceptChallengeModel, newAcceptChallengeMsg ) =
+                                AcceptChallenge.update subMsg model.acceptChallengeModel
+                        in
+            ( setAcceptChallengeModel newAcceptChallengeModel model
+            , Cmd.map AcceptChallengeMsg newAcceptChallengeMsg
             )
 
         UrlChanged url ->
@@ -622,6 +646,14 @@ viewMainContent model =
                     in
                     Challenge.viewChallenge { challengeModel | opponentId = opponentId }
                         |> List.map (Ui.map ChallengeMsg)
+
+                AcceptChallenge challengeId ->
+                    let
+                        acceptChallengeModel =
+                            model.acceptChallengeModel
+                    in
+                    AcceptChallenge.viewChallenge { acceptChallengeModel | challengeId = challengeId }
+                        |> List.map (Ui.map AcceptChallengeMsg)
 
                 Home ->
                     Home.viewHome model.homeModel
