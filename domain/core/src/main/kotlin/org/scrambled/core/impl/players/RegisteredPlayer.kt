@@ -23,7 +23,12 @@ data class RegisteredPlayer(
     val nickName: PlayerNickname,
     val externalAccountRef: ExternalAccountRef
 ) {
-    fun challenge(opponent: RegisteredPlayer, comment: UsefulString, appointmentSuggestion: UsefulString, gameMode: GameMode) =
+    fun challenge(
+        opponent: RegisteredPlayer,
+        comment: UsefulString,
+        appointmentSuggestion: UsefulString,
+        gameMode: GameMode
+    ) =
         Challenge.createChallenge(
             challengerId = this.id,
             opponentId = opponent.id,
@@ -72,8 +77,9 @@ class ChallengePlayerHandler(
         val challenger = playerRepository.getById(cmd.challenger)
         val opponent = playerRepository.getById(cmd.opponent)
         val challenge: Challenge =
-            retry("Couldn't create challenge with unique id.") { challenger.challenge(opponent, cmd.comment, cmd.appointmentSuggestion, cmd.gameMode) }
-                .until { challenge -> !challengeRepository.exists(challenge.challengeId) }
+            retry("Couldn't create challenge with unique id.") {
+                challenger.challenge(opponent, cmd.comment, cmd.appointmentSuggestion, cmd.gameMode)
+            }.until { challenge -> !challengeRepository.exists(challenge.challengeId) }
         challengeRepository.save(challenge)
         return challenge.challengeId to PlayerChallenged(challenger.id, opponent.id)
     }
