@@ -16,12 +16,15 @@ data class ChallengePlayer(
 
 data class PlayerChallenged(val challenger: ChallengerId, val opponent: OpponentId) : DomainEvent()
 
+data class AcceptChallenge(val challengeId: ChallengeId) : Command<ChallengeId>
+data class ChallengeAccepted(val challengeId: ChallengeId) : DomainEvent()
+
 typealias ChallengerId = PlayerId
 typealias OpponentId = PlayerId
 typealias PlayerId = UUID
 typealias PlayerNickname = String
 
-data class ChallengeId private constructor(val id: String) {
+@JvmInline value class ChallengeId private constructor(val id: String) {
 
     companion object {
         private val hashIds = Hashids("ScrambledEggs Challenges Salt")

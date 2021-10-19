@@ -51,5 +51,12 @@ interface ChallengesDao : QueryableChallenges {
         """
     )
     override fun store(@BindKotlin queryableChallenge: QueryableChallenge)
+    @SqlUpdate(
+        """UPDATE CHALLENGES
+            set isaccepted = true
+            where id = :id
+        """
+    )
+    override fun storeAcceptedChallenge(@Bind("id") id: UUID)
 
 }

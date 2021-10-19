@@ -6,6 +6,7 @@ interface QueryableChallenges {
     fun getById(id: UUID): QueryableChallenge?
     fun getByChallengeId(challengeId: String): QueryableChallenge?
     fun store(queryableChallenge: QueryableChallenge)
+    fun storeAcceptedChallenge(id: UUID)
 }
 
 data class QueryableChallenge(

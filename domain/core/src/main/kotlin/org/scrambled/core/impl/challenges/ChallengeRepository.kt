@@ -30,6 +30,9 @@ class ChallengeRepository(
             false
         ).save()
 
+    fun save(aggregate: AcceptedChallenge) =
+        challenges.storeAcceptedChallenge(aggregate.id)
+
     fun getByChallengeId(challengeId: ChallengeId) =
         challenges.getByChallengeId(challengeId.id)?.toChallenge()
             ?: throw NotFoundException("Couldn't find Challenge with challengeId $challengeId")

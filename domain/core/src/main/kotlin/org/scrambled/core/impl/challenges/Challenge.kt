@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component
 import java.util.*
 import kotlin.reflect.KClass
 
+data class AcceptedChallenge(val id: UUID)
+
 data class Challenge(
     val id: UUID,
     val challengeId: ChallengeId,
@@ -29,6 +31,8 @@ data class Challenge(
             throw NotValidException("You cannot challenge yourself.")
         }
     }
+
+    fun accept() = AcceptedChallenge(this.id)
 
     companion object {
         fun createChallenge(

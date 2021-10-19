@@ -19,7 +19,9 @@ interface PendingChallengesDao : QueryablePendingChallenges {
         c.appointmentsuggestion as appointment
         FROM CHALLENGES c
         inner join registered_players p on p.id = c.challengerid
-        where c.opponentId = :challengedPlayerId"""
+        where c.opponentId = :challengedPlayerId
+        and c.isaccepted = false
+        """
     )
     override fun findPendingFor(@Bind("challengedPlayerId") challengedPlayerId: PlayerId): List<QueryablePendingChallenge>
 }

@@ -14,9 +14,11 @@ import org.scrambled.domain.core.api.registration.PlayerRegistered
 import org.scrambled.domain.core.api.registration.RegisterPlayer
 import org.scrambled.infra.cqrs.CommandHandler
 import org.scrambled.infra.cqrs.QueryHandler
+import org.scrambled.infra.domainevents.DomainEvent
 import org.scrambled.infra.retry.retry
 import org.springframework.stereotype.Component
 import java.util.*
+import kotlin.reflect.KClass
 
 data class RegisteredPlayer(
     val id: PlayerId,
@@ -85,6 +87,18 @@ class ChallengePlayerHandler(
     }
 }
 
+@Component
+class AcceptChallengeHandler(
+    private val challengeRepository: ChallengeRepository
+) : CommandHandler<ChallengeId, AcceptChallenge> {
+    override val commandType = AcceptChallenge::class
+
+    override fun handle(cmd: AcceptChallenge): Pair<ChallengeId, ChallengeAccepted> {
+        val challenge = challengeRepository.getByChallengeId(cmd.challengeId)
+        challengeRepository.save(challenge.accept())
+        return challenge.challengeId to ChallengeAccepted(challenge.challengeId)
+    }
+}
 
 @Component
 class PlayerByIdQueryHandler(

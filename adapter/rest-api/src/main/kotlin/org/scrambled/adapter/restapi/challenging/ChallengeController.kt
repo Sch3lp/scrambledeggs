@@ -43,6 +43,12 @@ class ChallengeController(
         } ?: emptyList()
     }
 
+    @PutMapping("{challengeId}/accept")
+    fun acceptChallenge(@PathVariable challengeId: ChallengeId): ResponseEntity<Any> {
+        commandExecutor.execute(AcceptChallenge(challengeId))
+        return ResponseEntity.ok().build()
+    }
+
     fun toJson(rep: QueryablePendingChallenge): PendingChallengeJson {
         return PendingChallengeJson(
             rep.challengeId,
