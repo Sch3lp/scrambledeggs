@@ -16,6 +16,6 @@ data class QueryableChallenge(
     val opponentId: OpponentId,
     val comment: String,
     val appointmentSuggestion: String,
-    val gameMode: GameMode = GameMode.CTF,
+    val gameMode: GameMode,
     val isAccepted: Boolean
 )
