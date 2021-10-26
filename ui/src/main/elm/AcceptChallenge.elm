@@ -1,31 +1,19 @@
 module AcceptChallenge exposing (..)
 
-import Api exposing (ApiError(..), RegisteredPlayer, performAcceptChallenge, expectJsonWithErrorHandling, expectStringWithErrorHandling, toGameMode)
+import Api exposing (ApiError(..), PendingChallengeEntry, RegisteredPlayer, performFetchPendingChallenge, performAcceptChallenge)
 import Base
 import Browser.Navigation as Nav
-import Json.Decode as D exposing (Decoder)
 import Navigation exposing (redirectToHome)
 import Element as Ui
-import Element.Input as Input
-import Http exposing (emptyBody)
-import Json.Encode
 import CommonTypes exposing (GameMode)
 import CommonTypes exposing (GameMode(..))
 
 
 type Msg
     = NoOp
-    | GotPerformFetchChallengeResponse (Result ApiError PendingChallenge)
+    | GotPerformFetchChallengeResponse (Result ApiError PendingChallengeEntry)
     | GotPerformAcceptChallengeResponse (Result ApiError ())
     | AcceptChallengeButtonClicked
-
-type alias PendingChallenge =
-    { challengeId : String
-    , opponentName : String
-    , gameMode : GameMode
-    , appointment : String
-    , comment : String
-    }
 
 type alias Model =
     { challengeId : String
@@ -94,25 +82,10 @@ updateModelWith model pendingChallenge =
     |> setAppointment pendingChallenge.appointment
     |> setComment pendingChallenge.comment
 
-performFetchPendingChallenge : String -> Cmd Msg
-performFetchPendingChallenge challengeId =
-    Http.get
-        { url = "/api/challenge/pending/"++challengeId
-        , expect = expectJsonWithErrorHandling pendingChallengeDecoder GotPerformFetchChallengeResponse
-        }
-
-pendingChallengeDecoder : Decoder PendingChallenge
-pendingChallengeDecoder =
-    D.map5 PendingChallenge
-        (D.field "challengeId" D.string)
-        (D.field "opponentName" D.string)
-        (D.field "gameMode" D.string |> D.andThen toGameMode)
-        (D.field "appointment" D.string)
-        (D.field "comment" D.string)
 
 initPage : String -> Cmd Msg
 initPage challengeId =
-    performFetchPendingChallenge challengeId
+    performFetchPendingChallenge challengeId GotPerformFetchChallengeResponse
 
 
 viewChallenge : Model -> List (Ui.Element Msg)

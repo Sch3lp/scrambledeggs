@@ -106,7 +106,12 @@ fetchRegisteredPlayer opponentId msg =
 -- Pending Challenges
 
 type alias PendingChallengeEntry =
-    { challengeId : String, gameMode : GameMode, opponentName : String, appointment : String }
+    { challengeId : String
+    , gameMode : GameMode
+    , opponentName : String
+    , appointment : String
+    , comment : String
+    }
     
 pendingChallengesDecoder: Decoder (List PendingChallengeEntry)
 pendingChallengesDecoder = 
@@ -114,11 +119,12 @@ pendingChallengesDecoder =
 
 pendingChallengeDecoder: Decoder PendingChallengeEntry
 pendingChallengeDecoder = 
-    D.map4 PendingChallengeEntry
+    D.map5 PendingChallengeEntry
         (D.field "challengeId" D.string)
         (D.field "gameMode" D.string |> D.andThen toGameMode)
         (D.field "opponentName" D.string)
         (D.field "appointment" D.string)
+        (D.field "comment" D.string)
 
 toGameMode : String -> Decoder GameMode
 toGameMode s =
@@ -147,3 +153,10 @@ performAcceptChallenge challengeId msg =
             , timeout = Nothing
             , tracker = Nothing
             }
+
+performFetchPendingChallenge: String -> MsgConstructor PendingChallengeEntry msg -> Cmd msg
+performFetchPendingChallenge challengeId msg =
+    Http.get
+        { url = "/api/challenge/pending/"++challengeId
+        , expect = expectJsonWithErrorHandling pendingChallengeDecoder msg
+        }
