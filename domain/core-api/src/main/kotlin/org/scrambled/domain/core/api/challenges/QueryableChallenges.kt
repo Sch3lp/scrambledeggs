@@ -3,9 +3,9 @@ package org.scrambled.domain.core.api.challenges
 import java.util.*
 
 interface QueryableChallenges {
-    fun getById(id: UUID): QueryableChallenge?
     fun getByChallengeId(challengeId: String): QueryableChallenge?
-    fun store(queryableChallenge: QueryableChallenge)
+    fun getPendingByChallengeId(challengeId: String): QueryableChallenge?
+    fun storePendingChallenge(queryableChallenge: QueryableChallenge)
     fun storeAcceptedChallenge(id: UUID)
 }
 

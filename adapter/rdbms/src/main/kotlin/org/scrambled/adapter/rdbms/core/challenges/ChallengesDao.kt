@@ -13,11 +13,11 @@ import java.util.*
 @RegisterKotlinMapper(value = QueryableChallenge::class)
 interface ChallengesDao : QueryableChallenges {
 
-    @SqlQuery("SELECT * FROM CHALLENGES where id = :id")
-    override fun getById(@Bind("id") id: UUID): QueryableChallenge?
-
     @SqlQuery("SELECT * FROM CHALLENGES where challengeId = :challengeId")
     override fun getByChallengeId(@Bind("challengeId") challengeId: String): QueryableChallenge?
+
+    @SqlQuery("SELECT * FROM CHALLENGES where isaccepted = false and challengeId = :challengeId")
+    override fun getPendingByChallengeId(@Bind("challengeId") challengeId: String): QueryableChallenge?
 
     @SqlQuery("""
         SELECT * FROM CHALLENGES 
@@ -50,7 +50,7 @@ interface ChallengesDao : QueryableChallenges {
             )
         """
     )
-    override fun store(@BindKotlin queryableChallenge: QueryableChallenge)
+    override fun storePendingChallenge(@BindKotlin queryableChallenge: QueryableChallenge)
     @SqlUpdate(
         """UPDATE CHALLENGES
             set isaccepted = true

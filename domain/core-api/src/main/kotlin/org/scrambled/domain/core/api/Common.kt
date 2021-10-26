@@ -3,13 +3,10 @@ package org.scrambled.domain.core.api
 import org.scrambled.domain.core.api.exceptions.NotValidException
 
 @JvmInline
-value class UsefulString(private val _s: String) {
-
-    val value: String
-        get() = _s
+value class UsefulString(val value: String) {
 
     init {
-        validateUsefulString(_s)
+        validateUsefulString(value)
     }
 
     private fun validateUsefulString(s: String) {

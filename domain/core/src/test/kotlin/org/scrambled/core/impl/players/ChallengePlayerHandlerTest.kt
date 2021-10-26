@@ -9,7 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
-import org.scrambled.core.impl.challenges.Challenge
+import org.scrambled.core.impl.challenges.PendingChallenge
 import org.scrambled.core.impl.challenges.ChallengeRepository
 import org.scrambled.domain.core.api.UsefulString
 import org.scrambled.domain.core.api.challenges.ChallengePlayer
@@ -41,7 +41,7 @@ class ChallengePlayerHandlerTest {
 
         val (challengeId, _) = handler.handle(challengePlayerCmd(sch3lp, coredusk))
 
-        val challengeCaptor = argumentCaptor<Challenge>()
+        val challengeCaptor = argumentCaptor<PendingChallenge>()
         Mockito.verify(challengeRepo).save(challengeCaptor.capture())
 
         assertThat(challengeCaptor.firstValue.challengeId).isEqualTo(challengeId)
@@ -64,7 +64,7 @@ class ChallengePlayerHandlerTest {
 
         assertThatExceptionOfType(RetryException::class.java)
             .isThrownBy { handler.handle(challengePlayerCmd(sch3lp, coredusk)) }
-            .withMessage("Couldn't create challenge with unique id.")
+            .withMessage("Couldn't create a pending challenge with unique id.")
     }
 
     private fun challengePlayerCmd(

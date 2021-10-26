@@ -1,6 +1,7 @@
 package org.scrambled.core.impl.players
 
-import org.scrambled.core.impl.challenges.Challenge
+import org.scrambled.core.impl.challenges.AcceptedChallenge
+import org.scrambled.core.impl.challenges.PendingChallenge
 import org.scrambled.core.impl.challenges.ChallengeRepository
 import org.scrambled.domain.core.api.UsefulString
 import org.scrambled.domain.core.api.challenges.*
@@ -14,11 +15,9 @@ import org.scrambled.domain.core.api.registration.PlayerRegistered
 import org.scrambled.domain.core.api.registration.RegisterPlayer
 import org.scrambled.infra.cqrs.CommandHandler
 import org.scrambled.infra.cqrs.QueryHandler
-import org.scrambled.infra.domainevents.DomainEvent
 import org.scrambled.infra.retry.retry
 import org.springframework.stereotype.Component
 import java.util.*
-import kotlin.reflect.KClass
 
 data class RegisteredPlayer(
     val id: PlayerId,
@@ -31,7 +30,7 @@ data class RegisteredPlayer(
         appointmentSuggestion: UsefulString,
         gameMode: GameMode
     ) =
-        Challenge.createChallenge(
+        PendingChallenge.createChallenge(
             challengerId = this.id,
             opponentId = opponent.id,
             comment = comment,
@@ -78,12 +77,12 @@ class ChallengePlayerHandler(
     override fun handle(cmd: ChallengePlayer): Pair<ChallengeId, PlayerChallenged> {
         val challenger = playerRepository.getById(cmd.challenger)
         val opponent = playerRepository.getById(cmd.opponent)
-        val challenge: Challenge =
-            retry("Couldn't create challenge with unique id.") {
+        val pendingChallenge: PendingChallenge =
+            retry("Couldn't create a pending challenge with unique id.") {
                 challenger.challenge(opponent, cmd.comment, cmd.appointmentSuggestion, cmd.gameMode)
             }.until { challenge -> !challengeRepository.exists(challenge.challengeId) }
-        challengeRepository.save(challenge)
-        return challenge.challengeId to PlayerChallenged(challenger.id, opponent.id)
+        challengeRepository.save(pendingChallenge)
+        return pendingChallenge.challengeId to PlayerChallenged(challenger.id, opponent.id)
     }
 }
 
@@ -94,10 +93,12 @@ class AcceptChallengeHandler(
     override val commandType = AcceptChallenge::class
 
     override fun handle(cmd: AcceptChallenge): Pair<ChallengeId, ChallengeAccepted> {
-        val challenge = challengeRepository.getByChallengeId(cmd.challengeId)
-        challengeRepository.save(challenge.accept())
-        return challenge.challengeId to ChallengeAccepted(challenge.challengeId)
+        val pendingChallenge = challengeRepository.getPendingByChallengeId(cmd.challengeId)
+        pendingChallenge.accept().save()
+        return pendingChallenge.challengeId to ChallengeAccepted(pendingChallenge.challengeId)
     }
+
+    private fun AcceptedChallenge.save() = challengeRepository.save(this)
 }
 
 @Component

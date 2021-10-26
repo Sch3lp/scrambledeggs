@@ -5,6 +5,9 @@ import org.jdbi.v3.sqlobject.kotlin.RegisterKotlinMapper
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.scrambled.domain.core.api.challenges.*
 
+/**
+ * Exists to join challenges with player info to immediately get the opponent name
+ */
 @RegisterKotlinMapper(value = QueryablePendingChallenge::class)
 interface PendingChallengesDao : QueryablePendingChallenges {
 

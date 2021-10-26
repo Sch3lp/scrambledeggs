@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 
 data class AcceptedChallenge(val id: UUID)
 
-data class Challenge(
+data class PendingChallenge(
     val id: UUID,
     val challengeId: ChallengeId,
     val challengerId: ChallengerId,
@@ -21,10 +21,10 @@ data class Challenge(
     val gameMode: GameMode
 ) {
     init {
-        validateNotChallengingYourself(challengerId, opponentId)
+        validateYouCannotChallengeYourself(challengerId, opponentId)
     }
 
-    private fun validateNotChallengingYourself(
+    private fun validateYouCannotChallengeYourself(
         challengerId: PlayerId,
         opponentId: PlayerId
     ) {
@@ -42,8 +42,8 @@ data class Challenge(
             comment: UsefulString,
             appointmentSuggestion: UsefulString,
             gameMode: GameMode,
-        ): Challenge {
-            return Challenge(UUID.randomUUID(), ChallengeId.newChallengeId(), challengerId, opponentId, comment, appointmentSuggestion, gameMode)
+        ): PendingChallenge {
+            return PendingChallenge(UUID.randomUUID(), ChallengeId.newChallengeId(), challengerId, opponentId, comment, appointmentSuggestion, gameMode)
         }
     }
 }

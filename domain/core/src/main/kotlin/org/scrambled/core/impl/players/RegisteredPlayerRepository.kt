@@ -1,6 +1,5 @@
 package org.scrambled.core.impl.players
 
-import org.scrambled.domain.core.api.Repository
 import org.scrambled.domain.core.api.challenges.PlayerId
 import org.scrambled.domain.core.api.exceptions.NotFoundException
 import org.scrambled.domain.core.api.players.QueryablePlayer
@@ -11,16 +10,16 @@ import org.springframework.stereotype.Component
 @Component
 class RegisteredPlayerRepository(
     val players: QueryablePlayers
-) : Repository<RegisteredPlayer> {
+) {
 
-    override fun getById(id: PlayerId) =
+    fun getById(id: PlayerId) =
         players.getById(id)?.toRegisteredPlayer()
             ?: throw NotFoundException("Couldn't find Player with id $id")
 
     fun getByExternalAccountRef(externalAccountRef: ExternalAccountRef) =
         players.findByExternalAccountRef(externalAccountRef.jwtIss, externalAccountRef.jwtSub)?.toRegisteredPlayer()
 
-    override fun save(aggregate: RegisteredPlayer) =
+    fun save(aggregate: RegisteredPlayer) =
         QueryablePlayer(
             aggregate.id,
             aggregate.nickName,
