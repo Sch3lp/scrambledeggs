@@ -4,10 +4,10 @@ import Api exposing (ApiError(..), RegisteredPlayer, expectJsonWithErrorHandling
 import Base
 import Browser.Navigation as Nav
 import Json.Decode as D exposing (Decoder)
-import Navigation
+import Navigation exposing (redirectToHome)
 import Element as Ui
 import Element.Input as Input
-import Http
+import Http exposing (emptyBody)
 import Json.Encode
 import CommonTypes exposing (GameMode)
 import CommonTypes exposing (GameMode(..))
@@ -16,6 +16,7 @@ import CommonTypes exposing (GameMode(..))
 type Msg
     = NoOp
     | GotPerformFetchChallengeResponse (Result ApiError PendingChallenge)
+    | GotPerformAcceptChallengeResponse (Result ApiError ())
     | AcceptChallengeButtonClicked
 
 type alias PendingChallenge =
@@ -80,6 +81,11 @@ update msg model =
             in
                 ( updatedModel, Cmd.none )
 
+        GotPerformAcceptChallengeResponse result ->
+            case result of
+                Ok _ -> redirectToHome model
+                Err _ -> (model, Cmd.none)
+
 updateModelWith model pendingChallenge =
     model
     |> setChallengeId pendingChallenge.challengeId
@@ -90,12 +96,15 @@ updateModelWith model pendingChallenge =
 
 performAcceptChallenge : Model -> Cmd Msg
 performAcceptChallenge model =
-    Cmd.none
-    --Http.post
-    --    { url = "/api/challenge/"++model.challengeId++"/accept"
-    --    , expect = expectStringWithErrorHandling GotPerformAcceptChallengeResponse
-    --    , body = Http.jsonBody (asChallengeRequest model)
-    --    }
+    Http.request
+        { method = "PUT"
+        , headers = []
+        , url = "/api/challenge/"++model.challengeId++"/accept"
+        , body = emptyBody
+        , expect = expectStringWithErrorHandling GotPerformAcceptChallengeResponse
+        , timeout = Nothing
+        , tracker = Nothing
+        }
 
 performFetchPendingChallenge : String -> Cmd Msg
 performFetchPendingChallenge challengeId =
