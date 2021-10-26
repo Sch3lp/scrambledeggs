@@ -3,30 +3,76 @@ package org.scrambled.adapter.rdbms.core.challenges
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.kotlin.BindKotlin
 import org.jdbi.v3.sqlobject.kotlin.RegisterKotlinMapper
+import org.jdbi.v3.sqlobject.kotlin.RegisterKotlinMappers
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
-import org.scrambled.domain.core.api.challenges.PlayerId
-import org.scrambled.domain.core.api.challenges.QueryableChallenge
-import org.scrambled.domain.core.api.challenges.QueryableChallenges
+import org.scrambled.domain.core.api.challenges.*
 import java.util.*
 
-@RegisterKotlinMapper(value = QueryableChallenge::class)
+@RegisterKotlinMappers(
+    RegisterKotlinMapper(value = QueryableChallenge::class),
+    RegisterKotlinMapper(value = QueryablePendingChallenge::class)
+)
 interface ChallengesDao : QueryableChallenges {
 
     @SqlQuery("SELECT * FROM CHALLENGES where challengeId = :challengeId")
     override fun getByChallengeId(@Bind("challengeId") challengeId: String): QueryableChallenge?
 
-    @SqlQuery("SELECT * FROM CHALLENGES where isaccepted = false and challengeId = :challengeId")
-    override fun getPendingByChallengeId(@Bind("challengeId") challengeId: String): QueryableChallenge?
-
-    @SqlQuery("""
+    @SqlQuery(
+        """
         SELECT * FROM CHALLENGES 
         where challengerId = :challengerId and opponentId = :opponentId
-        """)
+        """
+    )
     fun findChallenge(
         @Bind("challengerId") challengerId: PlayerId,
         @Bind("opponentId") opponentId: PlayerId
     ): List<QueryableChallenge>
+
+    //TODO: fix duplication of concept (querying into a QueryablePendingChallenge)
+    @SqlQuery(
+        """
+        SELECT c.id as id,
+        c.challengeId as challengeId,
+        c.challengerId as challengerId,
+        challenger.nickname as challengerName,
+        c.opponentId as opponentId,
+        opponent.nickname as opponentName,
+        c.gameMode as gameMode,
+        c.appointmentsuggestion as appointment,
+        c.comment as comment,
+        c.isaccepted as isAccepted
+        FROM CHALLENGES c
+        inner join registered_players challenger on challenger.id = c.challengerid
+        inner join registered_players opponent on opponent.id = c.opponentid
+        where c.isaccepted = false
+        and c.challengeId = :challengeId
+    """
+    )
+    override fun getByChallengeId(@Bind("challengeId") challengeId: ChallengeId): QueryablePendingChallenge?
+
+    //TODO: fix duplication of concept (querying into a QueryablePendingChallenge)
+    @SqlQuery(
+        """
+        SELECT c.id as id,
+        c.challengeId as challengeId,
+        c.challengerId as challengerId,
+        challenger.nickname as challengerName,
+        c.opponentId as opponentId,
+        opponent.nickname as opponentName,
+        c.gameMode as gameMode,
+        c.appointmentsuggestion as appointment,
+        c.comment as comment,
+        c.isaccepted as isAccepted
+        FROM CHALLENGES c
+        inner join registered_players challenger on challenger.id = c.challengerid
+        inner join registered_players opponent on opponent.id = c.opponentid
+        where c.isaccepted = false
+        and c.opponentId = :challengedPlayerId
+        or c.challengerId = :challengedPlayerId
+        """
+    )
+    override fun findPendingFor(@Bind("challengedPlayerId") challengedPlayerId: PlayerId): List<QueryablePendingChallenge>
 
     @SqlUpdate(
         """INSERT INTO CHALLENGES(
@@ -51,6 +97,7 @@ interface ChallengesDao : QueryableChallenges {
         """
     )
     override fun storePendingChallenge(@BindKotlin queryableChallenge: QueryableChallenge)
+
     @SqlUpdate(
         """UPDATE CHALLENGES
             set isaccepted = true

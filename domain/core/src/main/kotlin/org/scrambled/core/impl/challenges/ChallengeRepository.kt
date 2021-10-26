@@ -4,6 +4,7 @@ import org.scrambled.domain.core.api.UsefulString
 import org.scrambled.domain.core.api.challenges.ChallengeId
 import org.scrambled.domain.core.api.challenges.QueryableChallenge
 import org.scrambled.domain.core.api.challenges.QueryableChallenges
+import org.scrambled.domain.core.api.challenges.QueryablePendingChallenge
 import org.scrambled.domain.core.api.exceptions.NotFoundException
 import org.springframework.stereotype.Component
 
@@ -11,9 +12,8 @@ import org.springframework.stereotype.Component
 class ChallengeRepository(
     private val challenges: QueryableChallenges
 ) {
-
     fun getPendingByChallengeId(challengeId: ChallengeId): PendingChallenge =
-        challenges.getPendingByChallengeId(challengeId.id)?.toPendingChallenge()
+        challenges.getByChallengeId(challengeId)?.toPendingChallenge()
             ?: throw NotFoundException("Couldn't find Pending Challenge with challengeId $challengeId")
 
     fun exists(challengeId: ChallengeId) =
@@ -37,14 +37,14 @@ class ChallengeRepository(
 
     private fun QueryableChallenge.save() = challenges.storePendingChallenge(this)
 
-    private fun QueryableChallenge.toPendingChallenge() = if (this.isAccepted) null else {
+    private fun QueryablePendingChallenge.toPendingChallenge() = if (this.isAccepted) null else {
         PendingChallenge(
             this.id,
             ChallengeId.challengeId(this.challengeId),
             this.challengerId,
             this.opponentId,
             UsefulString(this.comment),
-            UsefulString(this.appointmentSuggestion),
+            UsefulString(this.appointment),
             this.gameMode,
         )
     }

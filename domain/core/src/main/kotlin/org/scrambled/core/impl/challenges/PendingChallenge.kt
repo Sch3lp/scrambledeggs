@@ -43,24 +43,32 @@ data class PendingChallenge(
             appointmentSuggestion: UsefulString,
             gameMode: GameMode,
         ): PendingChallenge {
-            return PendingChallenge(UUID.randomUUID(), ChallengeId.newChallengeId(), challengerId, opponentId, comment, appointmentSuggestion, gameMode)
+            return PendingChallenge(
+                UUID.randomUUID(),
+                ChallengeId.newChallengeId(),
+                challengerId,
+                opponentId,
+                comment,
+                appointmentSuggestion,
+                gameMode
+            )
         }
     }
 }
 
 @Component
 class PendingChallengesForHandler(
-    private val pendingChallengesRepo: QueryablePendingChallenges
+    private val pendingChallengesRepo: QueryableChallenges
 ) : QueryHandler<PendingChallengesFor, List<QueryablePendingChallenge>> {
     override val queryType: KClass<PendingChallengesFor> = PendingChallengesFor::class
 
     override fun handle(query: PendingChallengesFor): List<QueryablePendingChallenge> =
-        pendingChallengesRepo.findPendingFor(query.challengedPlayerId)
+        pendingChallengesRepo.findPendingFor(query.challengedPlayerId).swapIfNecessary(query.challengedPlayerId)
 }
 
 @Component
 class PendingChallengeByIdHandler(
-    private val pendingChallengesRepo: QueryablePendingChallenges
+    private val pendingChallengesRepo: QueryableChallenges
 ) : QueryHandler<PendingChallengeById, QueryablePendingChallenge> {
     override val queryType: KClass<PendingChallengeById> = PendingChallengeById::class
 
@@ -69,3 +77,19 @@ class PendingChallengeByIdHandler(
             ?: throw NotFoundException("Could not find Pending Challenge with id ${query.challengeId}")
 
 }
+
+internal fun List<QueryablePendingChallenge>.swapIfNecessary(challengedPlayerId: PlayerId) =
+    map { it.swapIfNecessary(challengedPlayerId) }
+
+internal fun QueryablePendingChallenge.swapIfNecessary(challengedPlayerId: PlayerId) =
+    if (this.challengerId != challengedPlayerId) {
+        this.swapPlayers()
+    } else {
+        this
+    }
+
+internal fun QueryablePendingChallenge.swapPlayers(): QueryablePendingChallenge =
+    this.copy(
+        challengerId = this.opponentId, challengerName = this.opponentName,
+        opponentId = this.challengerId, opponentName = this.opponentName,
+    )
