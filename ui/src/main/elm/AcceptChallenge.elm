@@ -1,6 +1,6 @@
 module AcceptChallenge exposing (..)
 
-import Api exposing (ApiError(..), RegisteredPlayer, expectJsonWithErrorHandling, expectStringWithErrorHandling, toGameMode)
+import Api exposing (ApiError(..), RegisteredPlayer, performAcceptChallenge, expectJsonWithErrorHandling, expectStringWithErrorHandling, toGameMode)
 import Base
 import Browser.Navigation as Nav
 import Json.Decode as D exposing (Decoder)
@@ -71,7 +71,7 @@ update msg model =
             ( model, Cmd.none )
 
         AcceptChallengeButtonClicked ->
-            ( model, performAcceptChallenge model )
+            ( model, performAcceptChallenge model.challengeId GotPerformAcceptChallengeResponse )
 
         GotPerformFetchChallengeResponse result ->
             let
@@ -93,18 +93,6 @@ updateModelWith model pendingChallenge =
     |> setChallengeMode pendingChallenge.gameMode
     |> setAppointment pendingChallenge.appointment
     |> setComment pendingChallenge.comment
-
-performAcceptChallenge : Model -> Cmd Msg
-performAcceptChallenge model =
-    Http.request
-        { method = "PUT"
-        , headers = []
-        , url = "/api/challenge/"++model.challengeId++"/accept"
-        , body = emptyBody
-        , expect = expectStringWithErrorHandling GotPerformAcceptChallengeResponse
-        , timeout = Nothing
-        , tracker = Nothing
-        }
 
 performFetchPendingChallenge : String -> Cmd Msg
 performFetchPendingChallenge challengeId =

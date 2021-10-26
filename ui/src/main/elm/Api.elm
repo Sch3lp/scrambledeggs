@@ -1,6 +1,6 @@
 module Api exposing (..)
 
-import Http
+import Http exposing (emptyBody)
 import Json.Decode as D exposing (Decoder)
 import CommonTypes exposing (GameMode,GameMode(..))
 
@@ -103,6 +103,7 @@ fetchRegisteredPlayer opponentId msg =
             , expect = expectJsonWithErrorHandling registeredPlayerDecoder msg
             }
 
+-- Pending Challenges
 
 type alias PendingChallengeEntry =
     { challengeId : String, gameMode : GameMode, opponentName : String, appointment : String }
@@ -133,4 +134,16 @@ fetchPendingChallenges msg =
     Http.get
             { url = "/api/challenge/pending"
             , expect = expectJsonWithErrorHandling pendingChallengesDecoder msg
+            }
+
+performAcceptChallenge : String -> MsgConstructor () msg -> Cmd msg
+performAcceptChallenge challengeId msg =
+    Http.request
+            { method = "PUT"
+            , headers = []
+            , url = "/api/challenge/"++challengeId++"/accept"
+            , body = emptyBody
+            , expect = expectStringWithErrorHandling msg
+            , timeout = Nothing
+            , tracker = Nothing
             }
