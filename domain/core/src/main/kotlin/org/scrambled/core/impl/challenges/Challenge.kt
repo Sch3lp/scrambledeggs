@@ -2,6 +2,7 @@ package org.scrambled.core.impl.challenges
 
 import org.scrambled.domain.core.api.UsefulString
 import org.scrambled.domain.core.api.challenges.*
+import org.scrambled.domain.core.api.exceptions.NotFoundException
 import org.scrambled.domain.core.api.exceptions.NotValidException
 import org.scrambled.infra.cqrs.QueryHandler
 import org.springframework.stereotype.Component
@@ -54,16 +55,17 @@ class PendingChallengesForHandler(
     override val queryType: KClass<PendingChallengesFor> = PendingChallengesFor::class
 
     override fun handle(query: PendingChallengesFor): List<QueryablePendingChallenge> =
-        pendingChallengesRepo
-            .findPendingFor(query.challengedPlayerId)
-            .map { challenge ->
-                QueryablePendingChallenge(
-                    challenge.id,
-                    challenge.challengeId,
-                    challenge.gameMode,
-                    challenge.opponentName,
-                    challenge.appointment,
-                )
-            }
+        pendingChallengesRepo.findPendingFor(query.challengedPlayerId)
+}
+
+@Component
+class PendingChallengeByIdHandler(
+    private val pendingChallengesRepo: QueryablePendingChallenges
+) : QueryHandler<PendingChallengeById, QueryablePendingChallenge> {
+    override val queryType: KClass<PendingChallengeById> = PendingChallengeById::class
+
+    override fun handle(query: PendingChallengeById): QueryablePendingChallenge =
+        pendingChallengesRepo.getByChallengeId(query.challengeId)
+            ?: throw NotFoundException("Could not find Pending Challenge with id ${query.challengeId}")
 
 }

@@ -1,8 +1,9 @@
 module AcceptChallenge exposing (..)
 
-import Api exposing (ApiError(..), RegisteredPlayer, expectStringWithErrorHandling)
+import Api exposing (ApiError(..), RegisteredPlayer, expectJsonWithErrorHandling, expectStringWithErrorHandling, toGameMode)
 import Base
 import Browser.Navigation as Nav
+import Json.Decode as D exposing (Decoder)
 import Navigation
 import Element as Ui
 import Element.Input as Input
@@ -14,9 +15,16 @@ import CommonTypes exposing (GameMode(..))
 
 type Msg
     = NoOp
+    | GotPerformFetchChallengeResponse (Result ApiError PendingChallenge)
     | AcceptChallengeButtonClicked
 
-
+type alias PendingChallenge =
+    { challengeId : String
+    , opponentName : String
+    , gameMode : GameMode
+    , appointment : String
+    , comment : String
+    }
 
 type alias Model =
     { challengeId : String
@@ -28,16 +36,21 @@ type alias Model =
     , key : Nav.Key
     }
 
+setChallengeId : String -> Model -> Model
+setChallengeId updatedChallengeId model =
+    { model | challengeId = updatedChallengeId }
+
+setOppentNickname : String -> Model -> Model
+setOppentNickname updatedNickname model =
+    { model | opponentNickname = updatedNickname }
 
 setChallengeMode : GameMode -> Model -> Model
 setChallengeMode selectedChallengeMode model =
     { model | challengeMode = selectedChallengeMode }
 
-
 setAppointment : String -> Model -> Model
 setAppointment updatedAppointment model =
     { model | appointment = updatedAppointment }
-
 
 setComment : String -> Model -> Model
 setComment updatedComment model =
@@ -59,6 +72,21 @@ update msg model =
         AcceptChallengeButtonClicked ->
             ( model, performAcceptChallenge model )
 
+        GotPerformFetchChallengeResponse result ->
+            let
+                updatedModel = case result of
+                    Ok pendingChallenge -> updateModelWith model pendingChallenge
+                    Err _ -> model
+            in
+                ( updatedModel, Cmd.none )
+
+updateModelWith model pendingChallenge =
+    model
+    |> setChallengeId pendingChallenge.challengeId
+    |> setOppentNickname pendingChallenge.opponentName
+    |> setChallengeMode pendingChallenge.gameMode
+    |> setAppointment pendingChallenge.appointment
+    |> setComment pendingChallenge.comment
 
 performAcceptChallenge : Model -> Cmd Msg
 performAcceptChallenge model =
@@ -69,20 +97,30 @@ performAcceptChallenge model =
     --    , body = Http.jsonBody (asChallengeRequest model)
     --    }
 
+performFetchPendingChallenge : String -> Cmd Msg
+performFetchPendingChallenge challengeId =
+    Http.get
+        { url = "/api/challenge/pending/"++challengeId
+        , expect = expectJsonWithErrorHandling pendingChallengeDecoder GotPerformFetchChallengeResponse
+        }
+
+pendingChallengeDecoder : Decoder PendingChallenge
+pendingChallengeDecoder =
+    D.map5 PendingChallenge
+        (D.field "challengeId" D.string)
+        (D.field "opponentName" D.string)
+        (D.field "gameMode" D.string |> D.andThen toGameMode)
+        (D.field "appointment" D.string)
+        (D.field "comment" D.string)
+
 initPage : String -> Cmd Msg
 initPage challengeId =
-    Cmd.none
+    performFetchPendingChallenge challengeId
 
 
 viewChallenge : Model -> List (Ui.Element Msg)
 viewChallenge model =
     [ Ui.row
-        [ Ui.width Ui.fill
-        , Ui.alignTop, Ui.paddingXY 20 10
-        ]
-        [ viewChallengeHeader model.opponentNickname
-        ]
-    , Ui.row
         [ Ui.width Ui.fill
         , Ui.height Ui.fill
         , Ui.alignTop
@@ -95,13 +133,14 @@ viewChallenge model =
 
 
 viewChallengeHeader opponent =
-    Ui.text (opponent ++ " challenged you to:")
+    Ui.text (opponent ++ " challenged you to")
 
 
 viewChallengeDetail model =
     Ui.column
         [ Ui.width Ui.fill, Ui.alignTop, Ui.paddingXY 20 10 ]
-        [ Ui.el [ Ui.width Ui.fill, Ui.paddingXY 0 5 ] (viewGameMode model.challengeMode)
+        [ Ui.el [ Ui.width Ui.fill, Ui.paddingXY 0 5 ] (viewChallengeHeader model.opponentNickname)
+        , Ui.el [ Ui.width Ui.fill, Ui.paddingXY 0 5 ] (viewGameMode model.challengeMode)
         , Ui.el [ Ui.width Ui.fill, Ui.paddingXY 0 5 ] (viewAppointmentInput model.appointment)
         , Ui.el [ Ui.width Ui.fill, Ui.paddingXY 0 5 ] (viewCommentInput model.comment)
         , Base.button { isDisabled = False, label = "Accept Challenge" } AcceptChallengeButtonClicked
@@ -109,14 +148,18 @@ viewChallengeDetail model =
 
 
 viewGameMode mode =
-    case mode of
-        Duel -> Ui.text "Duel"
-        TwoVsTwo -> Ui.text "2v2"
-        WipeOut -> Ui.text "WipeOut"
-        CTF -> Ui.text "CTF"
+    let
+        modeAsText = case mode of
+            Duel -> Ui.text "Duel"
+            TwoVsTwo -> Ui.text "2v2"
+            WipeOut -> Ui.text "WipeOut"
+            CTF -> Ui.text "CTF"
+    in
+        Ui.row [ Ui.width Ui.fill ] [Ui.text "a ", modeAsText]
+
 
 viewAppointmentInput appointment =
-    Ui.row [ Ui.width Ui.fill ] [Ui.text "Appointment:", Ui.text appointment]
+    Ui.row [ Ui.width Ui.fill ] [Ui.text appointment]
 
 
 viewCommentInput comment =

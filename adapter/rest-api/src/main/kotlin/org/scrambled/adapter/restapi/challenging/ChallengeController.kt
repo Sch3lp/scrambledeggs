@@ -34,6 +34,12 @@ class ChallengeController(
         return ResponseEntity.created(locationUri).build()
     }
 
+    @GetMapping("/pending/{challengeId}")
+    fun pendingChallenges(@PathVariable challengeId: ChallengeId): ResponseEntity<PendingChallengeJson> {
+        val pendingChallenge = queryExecutor.execute(PendingChallengeById(challengeId)) { toJson(this) }
+        return ResponseEntity.ok(pendingChallenge)
+    }
+
     @GetMapping("/pending")
     fun pendingChallenges(): List<PendingChallengeJson> {
         val externalAccountRef = SecurityContextHolder.getContext().toExternalAccountRef()
@@ -55,6 +61,7 @@ class ChallengeController(
             rep.gameMode,
             rep.opponentName,
             rep.appointment,
+            rep.comment,
         )
     }
 
@@ -76,10 +83,10 @@ data class ChallengeRequestJson(
     val gameMode: GameMode,
 )
 
-
 data class PendingChallengeJson(
     val challengeId: String,
     val gameMode: GameMode,
     val opponentName: String,
     val appointment: String,
+    val comment: String,
 )
