@@ -10,7 +10,7 @@ import org.scrambled.adapter.eventsourcing.api.Event
 import org.scrambled.adapter.eventsourcing.api.filterEvents
 import org.scrambled.adapter.eventsourcing.eventstore.PostgresEventStore
 import org.scrambled.adapter.restapi.JwtInfo
-import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
+import org.scrambled.leaderboards.adapters.`in`.rest.leaderboards.LeaderboardEntryJson
 import org.scrambled.scenariotests.steps.client.createClient
 import org.scrambled.scenariotests.steps.core.*
 import org.scrambled.scenariotests.steps.leaderboard.fetchLeaderboardStep
@@ -60,12 +60,14 @@ class RegistrationScenario {
         runBlocking { client.triggerLeaderboardRehydration() }
         runBlocking {
             val leaderboard: List<LeaderboardEntryJson> = client.fetchLeaderboardStep()
-            assertThat(leaderboard).containsExactly(LeaderboardEntryJson(
+            assertThat(leaderboard).containsExactly(
+                LeaderboardEntryJson(
                 rank = null,
                 nickname = "Sch3lp",
                 score = 0,
                 playerId = sch3lpPlayerId
-            ))
+            )
+            )
         }
         runBlocking {
             val registeredPlayer = client.fetchPlayerByJwtInfoStep()
@@ -95,12 +97,14 @@ class RegistrationScenario {
 
         runBlocking {
             val leaderboard: List<LeaderboardEntryJson> = client.fetchLeaderboardStep()
-            assertThat(leaderboard).containsExactly(LeaderboardEntryJson(
+            assertThat(leaderboard).containsExactly(
+                LeaderboardEntryJson(
                 rank = null,
                 nickname = "CoredusK",
                 score = 0,
                 playerId = coreDuskPlayerId
-            ))
+            )
+            )
         }
     }
 

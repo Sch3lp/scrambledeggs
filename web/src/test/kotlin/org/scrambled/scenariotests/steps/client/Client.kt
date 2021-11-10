@@ -15,7 +15,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.scrambled.adapter.restapi.JwtInfo
-import org.scrambled.domain.api.security.JwtSub
+import org.scrambled.common.domain.api.security.JwtSub
 
 const val baseUrl = "http://localhost:9999/api"
 

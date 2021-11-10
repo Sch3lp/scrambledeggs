@@ -9,11 +9,11 @@ import org.junit.jupiter.api.Test
 import org.scrambled.adapter.eventsourcing.api.Event
 import org.scrambled.adapter.eventsourcing.api.filterEvents
 import org.scrambled.adapter.eventsourcing.eventstore.PostgresEventStore
-import org.scrambled.adapter.rdbms.core.challenges.ChallengesDao
-import org.scrambled.adapter.restapi.challenging.PendingChallengeJson
-import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
-import org.scrambled.domain.core.api.challenges.GameMode
-import org.scrambled.domain.core.api.challenges.PlayerId
+import org.scrambled.matches.adapters.out.rdbms.challenges.ChallengesDao
+import org.scrambled.matches.adapters.`in`.rest.challenging.PendingChallengeJson
+import org.scrambled.leaderboards.adapters.`in`.rest.leaderboards.LeaderboardEntryJson
+import org.scrambled.matches.domain.api.challenges.GameMode
+import org.scrambled.matches.domain.api.challenges.PlayerId
 import org.scrambled.scenariotests.steps.client.createClient
 import org.scrambled.scenariotests.steps.core.acceptChallengeStep
 import org.scrambled.scenariotests.steps.core.challengePlayerStep

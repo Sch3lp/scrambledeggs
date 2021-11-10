@@ -1,7 +1,7 @@
 package org.scrambled.adapter.restapi
 
-import org.scrambled.domain.api.security.JwtIss
-import org.scrambled.domain.api.security.JwtSub
+import org.scrambled.common.domain.api.security.JwtIss
+import org.scrambled.common.domain.api.security.JwtSub
 import java.util.*
 
 
