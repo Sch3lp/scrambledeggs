@@ -5,7 +5,7 @@ import org.gradle.kotlin.dsl.kotlin
 import org.gradle.kotlin.dsl.repositories
 
 plugins {
-    id("scrambledeggs.kotlin.common-conventions")
+    id("scrambledeggs.kotlin.common")
     id("io.spring.dependency-management")
     kotlin("plugin.spring")
 }

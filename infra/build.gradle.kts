@@ -1,7 +1,7 @@
 plugins {
-    id("scrambledeggs.kotlin.library-conventions")
-    id("scrambledeggs.spring.di-conventions")
-    id("scrambledeggs.spring.tx-conventions")
+    id("scrambledeggs.kotlin.library")
+    id("scrambledeggs.spring.di")
+    id("scrambledeggs.spring.tx")
 }
 
 dependencies {
