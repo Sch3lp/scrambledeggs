@@ -82,7 +82,7 @@ class MostChallengesDonePolicy(
 
     private val logger = LoggerFactory.getLogger(MostChallengesDonePolicy::class.java)
 
-    @Scheduled(fixedDelay = 1000 * 60 * 5) // Every 5 minutes
+    @Scheduled(fixedDelay = 1000L * 60 * 5) // Every 5 minutes
     fun regenerateLeaderboard() {
         val events: List<BroadcastEvent> = broadcastEvents.findAll()
 
