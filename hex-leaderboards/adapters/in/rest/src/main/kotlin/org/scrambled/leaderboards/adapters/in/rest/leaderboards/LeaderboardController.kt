@@ -1,6 +1,5 @@
 package org.scrambled.leaderboards.adapters.`in`.rest.leaderboards
 
-import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.*
 import org.scrambled.infra.cqrs.CommandExecutor
 import org.scrambled.leaderboards.domain.api.mostchallengesdone.projections.*
 import org.springframework.http.MediaType

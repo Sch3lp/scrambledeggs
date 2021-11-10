@@ -2,8 +2,6 @@ package org.scrambled.leaderboards.domain.core.mostchallengesdone
 
 import org.scrambled.leaderboards.domain.api.infra.BroadcastEvent
 import org.scrambled.leaderboards.domain.api.infra.BroadcastEvents
-import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.*
-import org.scrambled.leaderboards.domain.core.mostchallengesdone.PlayerId
 import org.scrambled.infra.cqrs.CommandHandler
 import org.scrambled.infra.domainevents.DomainEvent
 import org.scrambled.leaderboards.domain.api.mostchallengesdone.projections.*

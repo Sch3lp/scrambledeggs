@@ -1,6 +1,7 @@
 plugins {
     id("scrambledeggs.kotlin.application")
     id("scrambledeggs.spring.boot")
+    id("scrambledeggs.db.jdbi")
 }
 
 dependencies {
@@ -32,9 +33,21 @@ dependencies {
     testImplementation(testFixtures(project(":common:adapter:rest-api")))
 }
 
+//bootJar
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
     archiveBaseName.set("scrambledeggs-webapp")
     mainClass.set("org.scrambled.ScrambledApplication")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+//distTar
+tasks.withType<Tar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+//distZip
+tasks.withType<Zip> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 tasks.processResources {

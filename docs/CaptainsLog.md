@@ -2,6 +2,25 @@
 
 This log serves to document all design decisions and problems we ran in to.
 
+## 2021, November 10th - Introduced explicit hexagons: Matches & Leaderboards
+These modules now have their own adapters close to their domain. This way, the module should _scream_ architecture more loudly than before. I've also updated the architecture diagrams on Miro accordingly.
+
+### Issues
+After the full redesign I tried running a build which produced this error:
+
+```
+Execution failed for task ':web:bootJar'.
+> Entry BOOT-INF/lib/rest.jar is a duplicate but no duplicate handling strategy has been set. Please refer to https://docs.gradle.org/7.1/dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:duplicatesStrategy for details.
+```
+
+Both hex-*:adapters:in:rest modules are producing rest.jar's when :web:bootJar's goal is being run.
+
+Fixed the error message by adding a DuplicationStrategy to three Distribution tasks: bootJar ,distTar ,distZip.
+Their respective tasks now have this block:
+`duplicatesStrategy = DuplicatesStrategy.EXCLUDE`
+
+But that didn't create the proper named jar file anymore. Soooo.., have fun with that dear future "devops-sch3lp". 😬
+
 ## 2021, June 22nd - JWT in cookie or exchange JWT for session in cookie
 To reduce the attack surface, we'll want to send the JWT along with the http requests in a read-only cookie.
 
