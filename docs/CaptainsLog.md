@@ -21,6 +21,8 @@ Their respective tasks now have this block:
 
 But that didn't create the proper named jar file anymore. Soooo.., have fun with that dear future "devops-sch3lp". 😬
 
+**Update:** the bootJar goal does create a properly named jar, but it's not a _fatjar_, or _onejar_, or _shadowjar_, ... it doesn't contain the other modules' jars.
+
 ## 2021, June 22nd - JWT in cookie or exchange JWT for session in cookie
 To reduce the attack surface, we'll want to send the JWT along with the http requests in a read-only cookie.
 
