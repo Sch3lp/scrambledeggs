@@ -77,13 +77,16 @@ class ChallengingScenario {
                 LeaderboardEntryJson(rank = null, nickname = "rgm3", score = 0, playerId = rgm3PlayerId),
             )
 
-            val pendingChallenges: List<PendingChallengeJson> = opponentClient.fetchPendingChallengesStep()
-            assertThat(pendingChallenges).containsExactly(
+            assertThat(challengerClient.fetchPendingChallengesStep()).containsExactly(
+                PendingChallengeJson(challenge.challengeId, gameMode, "rgm3", suggestion, comment)
+            )
+            assertThat(opponentClient.fetchPendingChallengesStep()).containsExactly(
                 PendingChallengeJson(challenge.challengeId, gameMode, "Sch3lp", suggestion, comment)
             )
 
             opponentClient.acceptChallengeStep(challenge.challengeId)
             assertThat(challengeDao.getByChallengeId(challenge.challengeId)?.isAccepted).isTrue()
+            assertThat(challengerClient.fetchPendingChallengesStep()).isEmpty()
             assertThat(opponentClient.fetchPendingChallengesStep()).isEmpty()
         }
     }
