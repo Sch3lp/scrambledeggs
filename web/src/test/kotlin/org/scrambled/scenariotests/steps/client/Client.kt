@@ -9,15 +9,13 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.features.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.features.json.*
-import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.scrambled.adapter.restapi.JwtInfo
-import org.scrambled.domain.core.api.registration.JwtSub
-import org.scrambled.domain.leaderboards.api.mostchallengesdone.projections.Nickname
+import org.scrambled.domain.api.security.JwtSub
 
 const val baseUrl = "http://localhost:9999/api"
 

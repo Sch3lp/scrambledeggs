@@ -4,24 +4,32 @@ plugins {
 }
 
 dependencies {
-    api(project(":adapter:rest-api"))
-    api(project(":adapter:eventsourcing"))
-    api(project(":adapter:rdbms"))
-    api(project(":domain:core"))
-    api(project(":domain:core-api"))
-    api(project(":domain:leaderboards"))
-    api(project(":domain:leaderboards-api"))
+    api(project(":common:adapter:rest-api"))
+    api(project(":common:adapter:rdbms"))
+
+    api(project(":common:domain:api:error"))
+
+    api(project(":hex-matches:domain:core"))
+    api(project(":hex-matches:domain:api"))
+    api(project(":hex-matches:adapters:in:rest"))
+    api(project(":hex-matches:adapters:out:rdbms"))
+
+    api(project(":hex-leaderboards:domain:core"))
+    api(project(":hex-leaderboards:domain:api"))
+    api(project(":hex-leaderboards:adapters:in:rest"))
+    api(project(":hex-leaderboards:adapters:out:eventsourcing"))
+    api(project(":hex-leaderboards:adapters:out:rdbms"))
+
     api(project(":infra"))
 
     val ktorVersion = "1.5.1"
     testImplementation("io.ktor:ktor-client-cio:$ktorVersion")
     testImplementation("io.ktor:ktor-client-jackson:$ktorVersion")
     testImplementation("io.ktor:ktor-client-logging:$ktorVersion")
-    testImplementation(platform("org.jdbi:jdbi3-bom:3.18.0"))
-    testImplementation("org.jdbi:jdbi3-core")
     testImplementation("org.springframework.data:spring-data-r2dbc")
 
-    testImplementation(testFixtures(project(":adapter:rest-api")))
+    testImplementation(project(":common:adapter:rdbms"))
+    testImplementation(testFixtures(project(":common:adapter:rest-api")))
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {

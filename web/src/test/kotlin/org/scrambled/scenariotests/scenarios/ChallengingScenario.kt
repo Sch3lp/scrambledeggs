@@ -10,7 +10,6 @@ import org.scrambled.adapter.eventsourcing.api.Event
 import org.scrambled.adapter.eventsourcing.api.filterEvents
 import org.scrambled.adapter.eventsourcing.eventstore.PostgresEventStore
 import org.scrambled.adapter.rdbms.core.challenges.ChallengesDao
-import org.scrambled.adapter.restapi.JwtInfo
 import org.scrambled.adapter.restapi.challenging.PendingChallengeJson
 import org.scrambled.adapter.restapi.leaderboards.LeaderboardEntryJson
 import org.scrambled.domain.core.api.challenges.GameMode

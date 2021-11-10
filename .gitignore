@@ -6,7 +6,6 @@
 
 # Built stuff
 build/
-out/
 elm-stuff/
 node_modules/
 main.js
