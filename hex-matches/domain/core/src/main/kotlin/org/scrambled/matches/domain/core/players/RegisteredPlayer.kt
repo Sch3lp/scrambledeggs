@@ -1,23 +1,15 @@
 package org.scrambled.matches.domain.core.players
 
-import org.scrambled.matches.domain.core.challenges.AcceptedChallenge
 import org.scrambled.matches.domain.core.challenges.PendingChallenge
-import org.scrambled.matches.domain.core.challenges.ChallengeRepository
 import org.scrambled.matches.domain.api.UsefulString
 import org.scrambled.matches.domain.api.challenges.*
-import org.scrambled.common.domain.api.error.DomainRuntimeException
 import org.scrambled.common.domain.api.security.ExternalAccountRef
 import org.scrambled.matches.domain.api.players.FetchAllRegisteredPlayers
 import org.scrambled.matches.domain.api.players.PlayerByExternalAccountRef
 import org.scrambled.matches.domain.api.players.PlayerById
 import org.scrambled.matches.domain.api.players.RegisteredPlayerRepresentation
-import org.scrambled.matches.domain.api.registration.PlayerRegistered
-import org.scrambled.matches.domain.api.registration.RegisterPlayer
-import org.scrambled.infra.cqrs.CommandHandler
 import org.scrambled.infra.cqrs.QueryHandler
-import org.scrambled.infra.retry.retry
 import org.springframework.stereotype.Component
-import java.util.*
 
 data class RegisteredPlayer(
     val id: PlayerId,
@@ -39,67 +31,6 @@ data class RegisteredPlayer(
         )
 }
 
-@Component
-class RegisterPlayerHandler(
-    private val playerRepository: RegisteredPlayerRepository
-) : CommandHandler<RegisteredPlayerRepresentation, RegisterPlayer> {
-    override val commandType = RegisterPlayer::class
-
-    override fun handle(cmd: RegisterPlayer): Pair<RegisteredPlayerRepresentation, PlayerRegistered> {
-        if (playerRepository.existsByExternalAccountRef(cmd.externalAccountRef)) {
-            throw DomainRuntimeException("You can only register once with the same Epic account")
-        }
-
-        val registeredPlayer = RegisteredPlayer(generatePlayerId(), cmd.nickname, cmd.externalAccountRef)
-
-        registeredPlayer.save()
-
-        return registeredPlayerRepresentation(registeredPlayer) to
-                PlayerRegistered(registeredPlayer.id, registeredPlayer.nickName)
-    }
-
-    private fun RegisteredPlayer.save() = playerRepository.save(this)
-
-    private fun generatePlayerId(): PlayerId = UUID.randomUUID()
-
-    private fun registeredPlayerRepresentation(registeredPlayer: RegisteredPlayer) =
-        RegisteredPlayerRepresentation(registeredPlayer.id, registeredPlayer.nickName)
-}
-
-
-@Component
-class ChallengePlayerHandler(
-    private val playerRepository: RegisteredPlayerRepository,
-    private val challengeRepository: ChallengeRepository
-) : CommandHandler<ChallengeId, ChallengePlayer> {
-    override val commandType = ChallengePlayer::class
-
-    override fun handle(cmd: ChallengePlayer): Pair<ChallengeId, PlayerChallenged> {
-        val challenger = playerRepository.getById(cmd.challenger)
-        val opponent = playerRepository.getById(cmd.opponent)
-        val pendingChallenge: PendingChallenge =
-            retry("Couldn't create a pending challenge with unique id.") {
-                challenger.challenge(opponent, cmd.comment, cmd.appointmentSuggestion, cmd.gameMode)
-            }.until { challenge -> !challengeRepository.exists(challenge.challengeId) }
-        challengeRepository.save(pendingChallenge)
-        return pendingChallenge.challengeId to PlayerChallenged(challenger.id, opponent.id)
-    }
-}
-
-@Component
-class AcceptChallengeHandler(
-    private val challengeRepository: ChallengeRepository
-) : CommandHandler<ChallengeId, AcceptChallenge> {
-    override val commandType = AcceptChallenge::class
-
-    override fun handle(cmd: AcceptChallenge): Pair<ChallengeId, ChallengeAccepted> {
-        val pendingChallenge = challengeRepository.getPendingByChallengeId(cmd.challengeId)
-        pendingChallenge.accept().save()
-        return pendingChallenge.challengeId to ChallengeAccepted(pendingChallenge.challengeId)
-    }
-
-    private fun AcceptedChallenge.save() = challengeRepository.save(this)
-}
 
 @Component
 class PlayerByIdQueryHandler(

@@ -16,6 +16,7 @@ import org.scrambled.matches.domain.api.UsefulString
 import org.scrambled.matches.domain.api.challenges.ChallengePlayer
 import org.scrambled.matches.domain.api.challenges.GameMode
 import org.scrambled.infra.retry.RetryException
+import org.scrambled.matches.domain.core.challenges.ChallengePlayerHandler
 import java.util.*
 
 @ExtendWith(MockitoExtension::class)
