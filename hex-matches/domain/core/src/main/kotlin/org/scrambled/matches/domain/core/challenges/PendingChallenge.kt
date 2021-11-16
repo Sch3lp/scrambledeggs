@@ -1,10 +1,11 @@
 package org.scrambled.matches.domain.core.challenges
 
+import org.scrambled.common.domain.api.error.NotFoundException
 import org.scrambled.matches.domain.api.UsefulString
 import org.scrambled.matches.domain.api.challenges.*
-import org.scrambled.common.domain.api.error.NotFoundException
 import org.scrambled.common.domain.api.error.NotValidException
 import org.scrambled.infra.cqrs.QueryHandler
+import org.scrambled.matches.domain.api.players.QueryablePlayers
 import org.springframework.stereotype.Component
 import java.util.*
 import kotlin.reflect.KClass
@@ -68,14 +69,14 @@ class PendingChallengesForHandler(
 
 @Component
 class PendingChallengeByIdHandler(
-    private val pendingChallengesRepo: QueryableChallenges
+    private val pendingChallengesRepo: QueryableChallenges,
 ) : QueryHandler<PendingChallengeById, QueryablePendingChallenge> {
     override val queryType: KClass<PendingChallengeById> = PendingChallengeById::class
 
-    override fun handle(query: PendingChallengeById): QueryablePendingChallenge =
-        pendingChallengesRepo.getByChallengeId(query.challengeId)
+    override fun handle(query: PendingChallengeById): QueryablePendingChallenge {
+        return pendingChallengesRepo.getByChallengeId(query.challengeId)
             ?: throw NotFoundException("Could not find Pending Challenge with id ${query.challengeId}")
-
+    }
 }
 
 internal fun List<QueryablePendingChallenge>.swapIfNecessary(playerId: PlayerId) =

@@ -35,9 +35,15 @@ class ChallengeController(
     }
 
     @GetMapping("/pending/{challengeId}")
-    fun pendingChallenges(@PathVariable challengeId: ChallengeId): ResponseEntity<PendingChallengeJson> {
-        val pendingChallenge = queryExecutor.execute(PendingChallengeById(challengeId)) { toJson(this) }
-        return ResponseEntity.ok(pendingChallenge)
+    fun pendingChallenges(@PathVariable challengeId: ChallengeId): ResponseEntity<PendingChallengeDetailJson> {
+        val externalAccountRef = SecurityContextHolder.getContext().toExternalAccountRef()
+        val player = queryExecutor.executeOrNull(PlayerByExternalAccountRef(externalAccountRef)) { this }
+        return player?.let {
+            val pendingChallenge =
+                queryExecutor.execute(PendingChallengeById(challengeId)) { toDetailJson(this, player.id) }
+            ResponseEntity.ok(pendingChallenge)
+        }
+            ?: ResponseEntity.notFound().build()
     }
 
     @GetMapping("/pending")
@@ -45,6 +51,7 @@ class ChallengeController(
         val externalAccountRef = SecurityContextHolder.getContext().toExternalAccountRef()
         val player = queryExecutor.executeOrNull(PlayerByExternalAccountRef(externalAccountRef)) { this }
         return player?.let { p ->
+            //TODO pass externalAccountRef instead of playerId (and move player does not exist handling to the handler)
             queryExecutor.execute(PendingChallengesFor(p.id)) { this.map(::toJson) }
         } ?: emptyList()
     }
@@ -62,6 +69,21 @@ class ChallengeController(
         rep.appointment,
         rep.comment,
     )
+
+    fun toDetailJson(challenge: QueryablePendingChallenge, id: PlayerId): PendingChallengeDetailJson {
+        val challengeText = if (challenge.opponentId == id) {
+            "${challenge.challengerName} challenged you"
+        } else {
+            "You challenged ${challenge.opponentName}"
+        }
+        return PendingChallengeDetailJson(
+            challenge.challengeId,
+            challenge.gameMode,
+            challengeText,
+            challenge.appointment,
+            challenge.comment,
+        )
+    }
 
     private fun ChallengeRequestJson.toCommand() =
         ChallengePlayer(
@@ -85,6 +107,14 @@ data class PendingChallengeJson(
     val challengeId: String,
     val gameMode: GameMode,
     val opponentName: String,
+    val appointment: String,
+    val comment: String,
+)
+
+data class PendingChallengeDetailJson(
+    val challengeId: String,
+    val gameMode: GameMode,
+    val challengeText: String,
     val appointment: String,
     val comment: String,
 )

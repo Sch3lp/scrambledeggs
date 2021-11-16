@@ -1,6 +1,6 @@
 module AcceptChallenge exposing (..)
 
-import Api exposing (ApiError(..), PendingChallengeEntry, RegisteredPlayer, performFetchPendingChallenge, performAcceptChallenge)
+import Api exposing (ApiError(..), PendingChallengeDetail, PendingChallengeEntry, RegisteredPlayer, performAcceptChallenge, performFetchPendingChallengeDetail)
 import Base
 import Browser.Navigation as Nav
 import Navigation exposing (redirectToHome)
@@ -11,13 +11,13 @@ import CommonTypes exposing (GameMode(..))
 
 type Msg
     = NoOp
-    | GotPerformFetchChallengeResponse (Result ApiError PendingChallengeEntry)
+    | GotPerformFetchChallengeResponse (Result ApiError PendingChallengeDetail)
     | GotPerformAcceptChallengeResponse (Result ApiError ())
     | AcceptChallengeButtonClicked
 
 type alias Model =
     { challengeId : String
-    , opponentNickname : String
+    , challengeText : String
     , challengeMode : GameMode
     , appointment : String
     , comment : String
@@ -29,9 +29,9 @@ setChallengeId : String -> Model -> Model
 setChallengeId updatedChallengeId model =
     { model | challengeId = updatedChallengeId }
 
-setOppentNickname : String -> Model -> Model
-setOppentNickname updatedNickname model =
-    { model | opponentNickname = updatedNickname }
+setChallengeText : String -> Model -> Model
+setChallengeText challengeText model =
+    { model | challengeText = challengeText }
 
 setChallengeMode : GameMode -> Model -> Model
 setChallengeMode selectedChallengeMode model =
@@ -64,7 +64,7 @@ update msg model =
         GotPerformFetchChallengeResponse result ->
             let
                 updatedModel = case result of
-                    Ok pendingChallenge -> updateModelWith model pendingChallenge
+                    Ok pendingChallengeDetail -> updateModelWith model pendingChallengeDetail
                     Err _ -> model
             in
                 ( updatedModel, Cmd.none )
@@ -77,7 +77,7 @@ update msg model =
 updateModelWith model pendingChallenge =
     model
     |> setChallengeId pendingChallenge.challengeId
-    |> setOppentNickname pendingChallenge.opponentName
+    |> setChallengeText pendingChallenge.challengeText
     |> setChallengeMode pendingChallenge.gameMode
     |> setAppointment pendingChallenge.appointment
     |> setComment pendingChallenge.comment
@@ -85,7 +85,7 @@ updateModelWith model pendingChallenge =
 
 initPage : String -> Cmd Msg
 initPage challengeId =
-    performFetchPendingChallenge challengeId GotPerformFetchChallengeResponse
+    performFetchPendingChallengeDetail challengeId GotPerformFetchChallengeResponse
 
 
 viewChallenge : Model -> List (Ui.Element Msg)
@@ -102,14 +102,15 @@ viewChallenge model =
     ]
 
 
-viewChallengeHeader opponent =
-    Ui.text (opponent ++ " challenged you to")
+viewChallengeHeader challengeText =
+    Ui.text (challengeText ++ " to")
 
 
+viewChallengeDetail : Model -> Ui.Element Msg
 viewChallengeDetail model =
     Ui.column
         [ Ui.width Ui.fill, Ui.alignTop, Ui.paddingXY 20 10 ]
-        [ Ui.el [ Ui.width Ui.fill, Ui.paddingXY 0 5 ] (viewChallengeHeader model.opponentNickname)
+        [ Ui.el [ Ui.width Ui.fill, Ui.paddingXY 0 5 ] (viewChallengeHeader model.challengeText)
         , Ui.el [ Ui.width Ui.fill, Ui.paddingXY 0 5 ] (viewGameMode model.challengeMode)
         , Ui.el [ Ui.width Ui.fill, Ui.paddingXY 0 5 ] (viewAppointmentInput model.appointment)
         , Ui.el [ Ui.width Ui.fill, Ui.paddingXY 0 5 ] (viewCommentInput model.comment)

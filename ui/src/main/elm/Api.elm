@@ -105,6 +105,23 @@ fetchRegisteredPlayer opponentId msg =
 
 -- Pending Challenges
 
+type alias PendingChallengeDetail =
+    { challengeId : String
+    , gameMode : GameMode
+    , challengeText : String
+    , appointment : String
+    , comment : String
+    }
+
+pendingChallengeDetailDecoder: Decoder PendingChallengeDetail
+pendingChallengeDetailDecoder =
+    D.map5 PendingChallengeDetail
+        (D.field "challengeId" D.string)
+        (D.field "gameMode" D.string |> D.andThen toGameMode)
+        (D.field "challengeText" D.string)
+        (D.field "appointment" D.string)
+        (D.field "comment" D.string)
+
 type alias PendingChallengeEntry =
     { challengeId : String
     , gameMode : GameMode
@@ -112,7 +129,7 @@ type alias PendingChallengeEntry =
     , appointment : String
     , comment : String
     }
-    
+
 pendingChallengesDecoder: Decoder (List PendingChallengeEntry)
 pendingChallengesDecoder = 
     D.list pendingChallengeDecoder
@@ -154,9 +171,9 @@ performAcceptChallenge challengeId msg =
             , tracker = Nothing
             }
 
-performFetchPendingChallenge: String -> MsgConstructor PendingChallengeEntry msg -> Cmd msg
-performFetchPendingChallenge challengeId msg =
+performFetchPendingChallengeDetail: String -> MsgConstructor PendingChallengeDetail msg -> Cmd msg
+performFetchPendingChallengeDetail challengeId msg =
     Http.get
         { url = "/api/challenge/pending/"++challengeId
-        , expect = expectJsonWithErrorHandling pendingChallengeDecoder msg
+        , expect = expectJsonWithErrorHandling pendingChallengeDetailDecoder msg
         }
