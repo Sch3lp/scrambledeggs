@@ -46,11 +46,12 @@ suspend fun HttpClient.fetchPendingChallengeDetailStep(challengeId: String): Pen
     }
 }
 
-suspend fun HttpClient.acceptChallengeStep(challengeId: String) : Unit {
+suspend fun HttpClient.acceptChallengeStep(challengeId: String) : ApiResult<Unit> {
     val response = this.put<HttpResponse> {
         url("$baseUrl/challenge/${challengeId}/accept") // Thanks Socrates OpenSpace for collabing on a good endpoint
         contentType(ContentType.Application.Json)
-        expectSuccess = true
+        expectSuccess = false
     }
+    return response.asApiResult()
 }
 

@@ -37,27 +37,28 @@ class ChallengeController(
     @GetMapping("/pending/{challengeId}")
     fun pendingChallengeDetail(@PathVariable challengeId: ChallengeId): ResponseEntity<PendingChallengeDetailJson> {
         val externalAccountRef = SecurityContextHolder.getContext().toExternalAccountRef()
-        val player = queryExecutor.executeOrNull(PlayerByExternalAccountRef(externalAccountRef)) { this }
-        return player?.let {
+        val player = queryExecutor.execute(PlayerByExternalAccountRef(externalAccountRef)) { this }
+        return player.let {
             val pendingChallenge =
                 queryExecutor.execute(PendingChallengeById(challengeId)) { toDetailJson(this, player.id) }
             ResponseEntity.ok(pendingChallenge)
         }
-            ?: ResponseEntity.notFound().build()
     }
 
     @GetMapping("/pending")
     fun pendingChallenges(): List<PendingChallengeJson> {
         val externalAccountRef = SecurityContextHolder.getContext().toExternalAccountRef()
-        val player = queryExecutor.executeOrNull(PlayerByExternalAccountRef(externalAccountRef)) { this }
-        return player?.let { p ->
+        val player = queryExecutor.execute(PlayerByExternalAccountRef(externalAccountRef)) { this }
+        return player.let { p ->
             queryExecutor.execute(PendingChallengesFor(p.id)) { this.map(::toJson) }
-        } ?: emptyList()
+        }
     }
 
     @PutMapping("{challengeId}/accept")
     fun acceptChallenge(@PathVariable challengeId: ChallengeId): ResponseEntity<Any> {
-        commandExecutor.execute(AcceptChallenge(challengeId))
+        val externalAccountRef = SecurityContextHolder.getContext().toExternalAccountRef()
+        val player = queryExecutor.execute(PlayerByExternalAccountRef(externalAccountRef)) { this }
+        commandExecutor.execute(AcceptChallenge(player.id, challengeId))
         return ResponseEntity.ok().build()
     }
 

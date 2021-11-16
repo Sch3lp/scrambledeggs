@@ -16,7 +16,7 @@ data class ChallengePlayer(
 
 data class PlayerChallenged(val challenger: ChallengerId, val opponent: OpponentId) : DomainEvent()
 
-data class AcceptChallenge(val challengeId: ChallengeId) : Command<ChallengeId>
+data class AcceptChallenge(val playerId: PlayerId, val challengeId: ChallengeId) : Command<ChallengeId>
 data class ChallengeAccepted(val challengeId: ChallengeId) : DomainEvent()
 
 typealias ChallengerId = PlayerId

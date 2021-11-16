@@ -1,5 +1,6 @@
 package org.scrambled.matches.domain.core.players
 
+import org.scrambled.common.domain.api.error.DomainRuntimeException
 import org.scrambled.matches.domain.core.challenges.PendingChallenge
 import org.scrambled.matches.domain.api.UsefulString
 import org.scrambled.matches.domain.api.challenges.*
@@ -9,6 +10,7 @@ import org.scrambled.matches.domain.api.players.PlayerByExternalAccountRef
 import org.scrambled.matches.domain.api.players.PlayerById
 import org.scrambled.matches.domain.api.players.RegisteredPlayerRepresentation
 import org.scrambled.infra.cqrs.QueryHandler
+import org.scrambled.matches.domain.core.challenges.AcceptedChallenge
 import org.springframework.stereotype.Component
 
 data class RegisteredPlayer(
@@ -29,8 +31,17 @@ data class RegisteredPlayer(
             appointmentSuggestion = appointmentSuggestion,
             gameMode = gameMode
         )
+
+    fun accept(pendingChallenge: PendingChallenge): AcceptedChallenge {
+        return if (pendingChallenge.challengerId == id) {
+            throw SelfAcceptException()
+        } else {
+            pendingChallenge.accept()
+        }
+    }
 }
 
+class SelfAcceptException : DomainRuntimeException("You cannot accept a pending challenge you created yourself")
 
 @Component
 class PlayerByIdQueryHandler(

@@ -38,7 +38,7 @@ private fun createClient() = HttpClient(CIO) {
         developmentMode = false
     }
     install(HttpTimeout) {
-        val timeoutInMillis: Long = 1000 * 4
+        val timeoutInMillis: Long = 1000L * 4
         requestTimeoutMillis = timeoutInMillis
         connectTimeoutMillis = timeoutInMillis
         socketTimeoutMillis = timeoutInMillis
@@ -94,3 +94,8 @@ internal fun <T> Any?.asApiResult(response: HttpResponse): ApiResult<T> =
     } else ApiResult.ApiError(
         response
     )
+
+internal suspend inline fun <reified T> HttpResponse.asApiResult(): ApiResult<T> =
+    if (this.status.isSuccess()) {
+        ApiResult.Success(this.receive())
+    } else ApiResult.ApiError(this)

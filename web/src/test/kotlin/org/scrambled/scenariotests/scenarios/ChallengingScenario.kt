@@ -88,7 +88,10 @@ class ChallengingScenario {
                 PendingChallengeDetailJson(challenge.challengeId, gameMode, "Sch3lp challenged you", suggestion, comment)
             )
 
-            opponentClient.acceptChallengeStep(challenge.challengeId)
+            val errorMessage = challengerClient.acceptChallengeStep(challenge.challengeId).expectFailure()
+            assertThat(errorMessage).isEqualTo("You cannot accept a pending challenge you created yourself")
+
+            opponentClient.acceptChallengeStep(challenge.challengeId).expectSuccess()
             assertThat(challengeDao.getByChallengeId(challenge.challengeId)?.isAccepted).isTrue()
             assertThat(challengerClient.fetchPendingChallengesStep()).isEmpty()
             assertThat(opponentClient.fetchPendingChallengesStep()).isEmpty()
