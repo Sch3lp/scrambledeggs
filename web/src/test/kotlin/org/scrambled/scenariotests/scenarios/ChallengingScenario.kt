@@ -12,13 +12,11 @@ import org.scrambled.adapter.eventsourcing.eventstore.PostgresEventStore
 import org.scrambled.matches.adapters.out.rdbms.challenges.ChallengesDao
 import org.scrambled.matches.adapters.`in`.rest.challenging.PendingChallengeJson
 import org.scrambled.leaderboards.adapters.`in`.rest.leaderboards.LeaderboardEntryJson
+import org.scrambled.matches.adapters.`in`.rest.challenging.PendingChallengeDetailJson
 import org.scrambled.matches.domain.api.challenges.GameMode
 import org.scrambled.matches.domain.api.challenges.PlayerId
 import org.scrambled.scenariotests.steps.client.createClient
-import org.scrambled.scenariotests.steps.core.acceptChallengeStep
-import org.scrambled.scenariotests.steps.core.challengePlayerStep
-import org.scrambled.scenariotests.steps.core.fetchPendingChallengesStep
-import org.scrambled.scenariotests.steps.core.registerPlayerStep
+import org.scrambled.scenariotests.steps.core.*
 import org.scrambled.scenariotests.steps.leaderboard.fetchLeaderboardStep
 import org.scrambled.scenariotests.steps.leaderboard.triggerLeaderboardRehydration
 import org.springframework.beans.factory.annotation.Autowired
@@ -82,6 +80,12 @@ class ChallengingScenario {
             )
             assertThat(opponentClient.fetchPendingChallengesStep()).containsExactly(
                 PendingChallengeJson(challenge.challengeId, gameMode, "Sch3lp", suggestion, comment)
+            )
+            assertThat(challengerClient.fetchPendingChallengeDetailStep(challenge.challengeId)).isEqualTo(
+                PendingChallengeDetailJson(challenge.challengeId, gameMode, "You challenged rgm3", suggestion, comment)
+            )
+            assertThat(opponentClient.fetchPendingChallengeDetailStep(challenge.challengeId)).isEqualTo(
+                PendingChallengeDetailJson(challenge.challengeId, gameMode, "Sch3lp challenged you", suggestion, comment)
             )
 
             opponentClient.acceptChallengeStep(challenge.challengeId)

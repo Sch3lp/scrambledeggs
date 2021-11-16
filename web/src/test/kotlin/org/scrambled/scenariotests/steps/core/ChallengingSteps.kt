@@ -6,6 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import org.scrambled.matches.adapters.`in`.rest.challenging.ChallengeRequestJson
+import org.scrambled.matches.adapters.`in`.rest.challenging.PendingChallengeDetailJson
 import org.scrambled.matches.adapters.`in`.rest.challenging.PendingChallengeJson
 import org.scrambled.matches.domain.api.challenges.ChallengeId
 import org.scrambled.matches.domain.api.challenges.GameMode
@@ -34,6 +35,13 @@ suspend fun HttpClient.challengePlayerStep(
 suspend fun HttpClient.fetchPendingChallengesStep(): List<PendingChallengeJson> {
     return this.get {
         url("$baseUrl/challenge/pending")
+        contentType(ContentType.Application.Json)
+    }
+}
+
+suspend fun HttpClient.fetchPendingChallengeDetailStep(challengeId: String): PendingChallengeDetailJson {
+    return this.get {
+        url("$baseUrl/challenge/pending/$challengeId")
         contentType(ContentType.Application.Json)
     }
 }

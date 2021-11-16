@@ -35,7 +35,7 @@ class ChallengeController(
     }
 
     @GetMapping("/pending/{challengeId}")
-    fun pendingChallenges(@PathVariable challengeId: ChallengeId): ResponseEntity<PendingChallengeDetailJson> {
+    fun pendingChallengeDetail(@PathVariable challengeId: ChallengeId): ResponseEntity<PendingChallengeDetailJson> {
         val externalAccountRef = SecurityContextHolder.getContext().toExternalAccountRef()
         val player = queryExecutor.executeOrNull(PlayerByExternalAccountRef(externalAccountRef)) { this }
         return player?.let {
@@ -51,7 +51,6 @@ class ChallengeController(
         val externalAccountRef = SecurityContextHolder.getContext().toExternalAccountRef()
         val player = queryExecutor.executeOrNull(PlayerByExternalAccountRef(externalAccountRef)) { this }
         return player?.let { p ->
-            //TODO pass externalAccountRef instead of playerId (and move player does not exist handling to the handler)
             queryExecutor.execute(PendingChallengesFor(p.id)) { this.map(::toJson) }
         } ?: emptyList()
     }

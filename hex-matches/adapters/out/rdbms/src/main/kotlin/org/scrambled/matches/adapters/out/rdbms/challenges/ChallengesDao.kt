@@ -68,8 +68,7 @@ interface ChallengesDao : QueryableChallenges {
         inner join registered_players challenger on challenger.id = c.challengerid
         inner join registered_players opponent on opponent.id = c.opponentid
         where c.isaccepted = false
-        and c.opponentId = :playerId
-        or c.challengerId = :playerId
+        and (c.opponentId = :playerId or c.challengerId = :playerId)
         """
     )
     override fun findPendingFor(@Bind("playerId") playerId: PlayerId): List<QueryablePendingChallenge>
