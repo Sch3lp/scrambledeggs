@@ -16,3 +16,19 @@ services:
       POSTGRES_DB: postgresprojectionsdb
       POSTGRES_USER: mumra
       POSTGRES_PASSWORD: SnarfSnarf!
+  eventstore_scenario_db:
+    image: library/postgres:13.1-alpine
+    ports:
+      - "7778:5432"
+    environment:
+      POSTGRES_DB: postgreseventsdb
+      POSTGRES_USER: snarf
+      POSTGRES_PASSWORD: Lion-0!
+  projections_scenario_db:
+    image: library/postgres:13.1-alpine
+    ports:
+      - "7779:5432"
+    environment:
+      POSTGRES_DB: postgresprojectionsdb
+      POSTGRES_USER: mumra
+      POSTGRES_PASSWORD: SnarfSnarf!
