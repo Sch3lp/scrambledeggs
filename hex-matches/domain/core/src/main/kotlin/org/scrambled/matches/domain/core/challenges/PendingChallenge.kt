@@ -63,7 +63,7 @@ class PendingChallengesForHandler(
     override val queryType: KClass<PendingChallengesFor> = PendingChallengesFor::class
 
     override fun handle(query: PendingChallengesFor): List<QueryablePendingChallenge> =
-        pendingChallengesRepo.findPendingFor(query.challengedPlayerId).swapIfNecessary(query.challengedPlayerId)
+        pendingChallengesRepo.findPendingFor(query.playerId).swapIfNecessary(query.playerId)
 }
 
 @Component
@@ -78,11 +78,11 @@ class PendingChallengeByIdHandler(
 
 }
 
-internal fun List<QueryablePendingChallenge>.swapIfNecessary(challengedPlayerId: PlayerId) =
-    map { it.swapIfNecessary(challengedPlayerId) }
+internal fun List<QueryablePendingChallenge>.swapIfNecessary(playerId: PlayerId) =
+    map { it.swapIfNecessary(playerId) }
 
-internal fun QueryablePendingChallenge.swapIfNecessary(challengedPlayerId: PlayerId) =
-    if (this.challengerId != challengedPlayerId) {
+internal fun QueryablePendingChallenge.swapIfNecessary(playerId: PlayerId) =
+    if (this.opponentId == playerId) {
         this.swapPlayers()
     } else {
         this
@@ -91,5 +91,5 @@ internal fun QueryablePendingChallenge.swapIfNecessary(challengedPlayerId: Playe
 internal fun QueryablePendingChallenge.swapPlayers(): QueryablePendingChallenge =
     this.copy(
         challengerId = this.opponentId, challengerName = this.opponentName,
-        opponentId = this.challengerId, opponentName = this.opponentName,
+        opponentId = this.challengerId, opponentName = this.challengerName,
     )

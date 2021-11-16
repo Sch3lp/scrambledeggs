@@ -7,7 +7,7 @@ interface QueryableChallenges {
     fun storePendingChallenge(queryableChallenge: QueryableChallenge)
     fun storeAcceptedChallenge(id: UUID)
     fun getByChallengeId(challengeId: ChallengeId): QueryablePendingChallenge?
-    fun findPendingFor(challengedPlayerId: PlayerId): List<QueryablePendingChallenge>
+    fun findPendingFor(playerId: PlayerId): List<QueryablePendingChallenge>
 }
 
 data class QueryableChallenge(
